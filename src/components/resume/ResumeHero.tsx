@@ -9,7 +9,6 @@ export function ResumeHero() {
         loop
         playsInline
         preload="auto"
-        fetchPriority="high"
         aria-label="소개 영상"
       />
     </section>
