@@ -25,20 +25,21 @@ export function CareerTimeline() {
             {(() => {
               const { primary, secondary } = splitRole(career.role);
               return (
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[1.08rem] font-semibold tracking-tight text-slate-900 sm:text-[1.2rem]">
-                  {career.company}
-                </p>
-                <p className="resume-body mt-2 border-l-2 border-indigo-900/80 pl-3 font-medium">
-                  {primary}
-                </p>
-                {secondary ? <p className="resume-body mt-1.5 font-medium">{secondary}</p> : null}
-              </div>
-              <span className="glass-chip resume-meta px-2.5 py-1 font-medium">
-                {career.period}
-              </span>
-            </div>
+                <div>
+                  <span className="glass-chip resume-meta float-right mb-1 ml-3 px-2.5 py-1 font-medium">
+                    {career.period}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[1.08rem] font-semibold tracking-tight text-slate-900 sm:text-[1.2rem]">
+                      {career.company}
+                    </p>
+                  </div>
+                  <p className="resume-body mt-2 border-l-2 border-indigo-900/80 pl-3 font-medium">
+                    {primary}
+                  </p>
+                  {secondary ? <p className="resume-body mt-1.5 font-medium">{secondary}</p> : null}
+                  <div className="clear-both" />
+                </div>
               );
             })()}
 
