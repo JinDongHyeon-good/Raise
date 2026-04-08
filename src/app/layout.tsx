@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "여양진씨 37대손 진동현에 대해서 알아보자",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://auth.moast.ai/storage/v1/object/public/moast/manual/og-image.png",
         width: 1200,
         height: 630,
         alt: "진동댕 나라 OG 이미지",

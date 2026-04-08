@@ -3,12 +3,12 @@ import { CareerTimeline } from "@/components/resume/CareerTimeline";
 import { ProjectSections } from "@/components/resume/ProjectSections";
 import { SkillsGrid } from "@/components/resume/SkillsGrid";
 import { ResumeFooterBlocks } from "@/components/resume/ResumeFooterBlocks";
-import { ScrollRevealObserver } from "@/components/ScrollRevealObserver";
+import { TitleUnderlineObserver } from "@/components/TitleUnderlineObserver";
 
 export default function Home() {
   return (
     <div className="resume-soft relative min-h-dvh overflow-hidden font-sans text-slate-900">
-      <ScrollRevealObserver />
+      <TitleUnderlineObserver />
       <div className="glass-orb glass-orb--one float-soft" />
       <div className="glass-orb glass-orb--two float-soft" style={{ animationDelay: "900ms" }} />
       <div className="glass-orb glass-orb--three float-soft" style={{ animationDelay: "1600ms" }} />

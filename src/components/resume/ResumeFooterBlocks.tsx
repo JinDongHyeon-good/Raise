@@ -2,38 +2,33 @@ import { certificates, contacts, education } from "@/data/resume";
 
 export function ResumeFooterBlocks() {
   return (
-    <section className="resume-anchor resume-section space-y-4.5 sm:space-y-6" id="etc">
-      <h2 className="section-title resume-heading fade-up">
-        Education · Certificate · Contact
-      </h2>
-      <div className="grid grid-cols-1 gap-4">
+    <>
+      <section className="resume-anchor resume-section space-y-4.5 sm:space-y-6" id="education">
+        <h2 className="section-title resume-heading fade-up">Education</h2>
         <article className="resume-card scale-in p-4 sm:p-6 stagger-1">
-          <span className="glass-chip footer-badge resume-meta px-2.5 py-1 font-semibold uppercase tracking-wide">
-            Education
-          </span>
-          <ul className="resume-list mt-3 space-y-2">
+          <ul className="resume-list space-y-2">
             {education.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </article>
+      </section>
 
+      <section className="resume-anchor resume-section space-y-4.5 sm:space-y-6" id="certificate">
+        <h2 className="section-title resume-heading fade-up">Certificate</h2>
         <article className="resume-card scale-in p-4 sm:p-6 stagger-2">
-          <span className="glass-chip footer-badge resume-meta px-2.5 py-1 font-semibold uppercase tracking-wide">
-            Certificate
-          </span>
-          <ul className="resume-list mt-3 space-y-2">
+          <ul className="resume-list space-y-2">
             {certificates.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </article>
+      </section>
 
+      <section className="resume-anchor resume-section space-y-4.5 sm:space-y-6" id="contact">
+        <h2 className="section-title resume-heading fade-up">Contact</h2>
         <article className="resume-card scale-in p-4 sm:p-6 stagger-3">
-          <span className="glass-chip footer-badge resume-meta px-2.5 py-1 font-semibold uppercase tracking-wide">
-            Contact
-          </span>
-          <ul className="resume-list mt-3 space-y-3">
+          <ul className="resume-list space-y-3">
             {contacts.map((item) => (
               <li key={item.label}>
                 <p className="resume-meta uppercase tracking-wide">{item.label}</p>
@@ -49,7 +44,7 @@ export function ResumeFooterBlocks() {
             ))}
           </ul>
         </article>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

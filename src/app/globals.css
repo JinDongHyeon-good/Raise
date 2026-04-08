@@ -29,7 +29,6 @@ body {
   scroll-margin-top: 5.5rem;
 }
 
-
 .resume-section {
   text-align: left;
 }
@@ -188,6 +187,7 @@ body {
 }
 
 .section-title {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
@@ -195,10 +195,97 @@ body {
   letter-spacing: -0.01em;
   color: rgb(23 37 84);
   text-shadow: 0 1px 0 rgb(255 255 255 / 0.45);
+  padding-bottom: 0.34rem;
 }
 
 .section-title::before {
-  content: none;
+  content: "";
+  position: absolute;
+  left: -0.07em;
+  right: -0.09em;
+  bottom: 0.13rem;
+  height: 6px;
+  border-radius: 999px 999px 740px 620px;
+  background: linear-gradient(
+    94deg,
+    rgb(28 58 132 / 0.92),
+    rgb(37 78 169 / 0.78) 42%,
+    rgb(29 78 216 / 0.58) 74%,
+    rgb(27 52 124 / 0.66)
+  );
+  clip-path: polygon(
+    0% 60%, 7% 50%, 14% 59%, 22% 49%, 31% 60%, 40% 51%, 50% 59%, 61% 52%,
+    72% 60%, 83% 51%, 92% 58%, 100% 54%, 100% 90%, 0% 90%
+  );
+  transform-origin: left center;
+  transform: scaleX(0) rotate(-1.15deg);
+  filter: saturate(92%);
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  left: -0.01em;
+  right: -0.05em;
+  bottom: -0.05rem;
+  height: 5px;
+  border-radius: 860px 690px 990px 780px;
+  background: linear-gradient(
+    87deg,
+    rgb(28 72 198 / 0.8),
+    rgb(33 92 225 / 0.58) 52%,
+    rgb(27 52 124 / 0.52)
+  );
+  clip-path: polygon(
+    0% 57%, 8% 46%, 16% 56%, 24% 45%, 34% 57%, 45% 47%, 56% 58%, 67% 48%,
+    78% 56%, 88% 47%, 96% 55%, 100% 52%, 100% 92%, 0% 92%
+  );
+  transform-origin: left center;
+  transform: scaleX(0) rotate(2.1deg);
+  opacity: 0.92;
+  filter: saturate(88%);
+}
+
+.section-title.title-underline-visible::before {
+  animation: pencil-underline-draw 820ms cubic-bezier(0.22, 0.78, 0.26, 1) forwards;
+}
+
+.section-title.title-underline-visible::after {
+  animation: pencil-underline-draw-lower 740ms cubic-bezier(0.22, 0.78, 0.26, 1) 150ms forwards;
+}
+
+@keyframes pencil-underline-draw {
+  from {
+    transform: scaleX(0) translateX(-4px) translateY(1px) rotate(-2.2deg);
+    opacity: 0.3;
+    filter: blur(1px);
+  }
+  54% {
+    transform: scaleX(1.03) translateX(0.6px) translateY(-0.5px) rotate(0.8deg);
+    opacity: 0.94;
+  }
+  to {
+    transform: scaleX(1) translateX(0) translateY(0) rotate(0deg);
+    opacity: 1;
+    filter: blur(0) saturate(95%);
+  }
+}
+
+@keyframes pencil-underline-draw-lower {
+  from {
+    transform: scaleX(0) translateX(-3px) translateY(1px) rotate(-1.8deg);
+    opacity: 0.32;
+    filter: blur(1px);
+  }
+  54% {
+    transform: scaleX(1.02) translateX(0.4px) translateY(-0.3px) rotate(1.1deg);
+    opacity: 0.94;
+  }
+  to {
+    transform: scaleX(1) translateX(0) translateY(0) rotate(0.6deg);
+    opacity: 1;
+    filter: blur(0) saturate(95%);
+  }
 }
 
 .bullet-soft li::marker {
@@ -239,39 +326,21 @@ body {
 }
 
 .fade-up {
-  opacity: 0;
-  transform: translateY(18px);
-  filter: blur(8px);
-  transition:
-    opacity 680ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 760ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    filter 760ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 1;
+  transform: none;
+  filter: none;
 }
 
 .scale-in {
-  opacity: 0;
-  transform: translateY(12px) scale(0.985);
-  transition:
-    opacity 620ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.fade-up.is-visible {
   opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
+  transform: none;
 }
 
-.scale-in.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.stagger-1 { transition-delay: 80ms; }
-.stagger-2 { transition-delay: 170ms; }
-.stagger-3 { transition-delay: 260ms; }
-.stagger-4 { transition-delay: 350ms; }
-.stagger-5 { transition-delay: 440ms; }
+.stagger-1 { transition-delay: 0ms; }
+.stagger-2 { transition-delay: 0ms; }
+.stagger-3 { transition-delay: 0ms; }
+.stagger-4 { transition-delay: 0ms; }
+.stagger-5 { transition-delay: 0ms; }
 
 .float-soft {
   animation: float-soft 4.8s ease-in-out infinite alternate;
@@ -294,6 +363,10 @@ body {
     filter: blur(28px);
   }
 
+  
+
+  
+
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -307,6 +380,14 @@ body {
     opacity: 1 !important;
     filter: none !important;
   }
+
+  .section-title::before,
+  .section-title::after {
+    animation: none !important;
+    transform: scaleX(1) !important;
+  }
+
+  
 }
 
 @media print {
@@ -314,9 +395,6 @@ body {
     max-width: 100% !important;
   }
 }
-
-
-
 
 .career-link-card {
   cursor: pointer;
@@ -366,5 +444,4 @@ body {
   outline: 2px solid rgb(37 56 117 / 0.9);
   outline-offset: 2px;
 }
-
 

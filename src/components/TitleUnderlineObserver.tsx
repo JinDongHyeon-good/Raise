@@ -2,26 +2,21 @@
 
 import { useEffect } from "react";
 
-export function ScrollRevealObserver() {
+export function TitleUnderlineObserver() {
   useEffect(() => {
-    const targets = Array.from(
-      document.querySelectorAll<HTMLElement>(".fade-up, .scale-in"),
-    );
-
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(".section-title"));
     if (targets.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add("title-underline-visible");
+          observer.unobserve(entry.target);
         }
       },
       {
-        root: null,
-        threshold: 0.16,
+        threshold: 0.2,
         rootMargin: "0px 0px -8% 0px",
       },
     );

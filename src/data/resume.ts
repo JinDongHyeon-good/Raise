@@ -28,26 +28,26 @@ export const resumeHeader = {
 export const careers: CareerItem[] = [
   {
     company: "아스타 AI",
-    role: "FullStack Developer · 기술리더",
+    role: "AI FullStack Developer · 기술리더 · 시드 단계 마케팅 도메인 스타트업에서 AI 기술 조직을 이끄는 기술 리더로서 AI 전환(AX)을 주고하고있습니다.",
     period: "2025.03 ~ 재직중",
     href: "https://www.astarcorp.ai/",
   },
   {
     company: "EY한영",
-    role: "FrontEnd Developer · 기술리더",
-    period: "2024.12 ~ 2025.01 (2개월)",
+    role: "FrontEnd Developer · 기술리더 · 프론트엔드 기술 리더로 참여해 기술 전환 인프라 및 프로젝트 세팅을 수행했습니다.",
+    period: "2024.12 ~ 2025.01",
     href: "https://www.ey.com/en_kr",
   },
   {
     company: "교보문고",
-    role: "FrontEnd Developer",
-    period: "2023.11 ~ 2024.11 (1년 1개월)",
+    role: "FrontEnd Developer · 신사업 본부 프론트엔드 개발자로서 디자인 시스템과 신사업 서비스를 구축했습니다.",
+    period: "2023.11 ~ 2024.11",
     href: "https://company.kyobobook.co.kr/",
   },
   {
     company: "RSQUARE",
-    role: "FullStack Developer",
-    period: "2019.08 ~ 2023.10 (4년 2개월)",
+    role: "FullStack Developer · 시리즈 A부터 C 단계까지 성장 구간에서 핵심 개발 역량과 기술 로드맵을 담당했습니다.",
+    period: "2019.08 ~ 2023.10",
     href: "https://www.rsquare.co.kr/",
   },
 ];
@@ -57,8 +57,6 @@ export const projects: ProjectItem[] = [
     company: "아스타 AI",
     name: "MOAST",
     period: "2025.06 ~",
-    summary:
-      "시드 단계 마케팅 도메인 스타트업에서 AI 기술 조직을 이끄는 기술 리더로서 AI 전환(AX)을 주도했습니다.",
     bullets: [
       "레퍼런스 이미지 기반 생성/리터치 기능 개발",
       "OCR 및 객체 탐지 기능 개발",
@@ -104,16 +102,12 @@ export const projects: ProjectItem[] = [
     company: "EY한영",
     name: "Krtax 페이롤 프로젝트",
     period: "2024.12 ~ 2025.01",
-    summary:
-      "차세대 작업 프론트엔드 기술 리더로 참여해 기술 전환 인프라 및 프로젝트 세팅을 수행했습니다.",
     bullets: ["인프라 구성", "모노레포 구성", "화면 개발"],
   },
   {
     company: "교보문고",
     name: "창작의 날씨",
     period: "2023.11 ~ 2024.11",
-    summary:
-      "신사업 본부 프론트엔드 개발자로서 디자인 시스템 구축과 개발 조직 생산성 향상을 이끌었습니다.",
     bullets: [
       "하이브리드(웹/모바일웹/iOS/Android) 대응 컨벤션 정리",
       "SSR + react-query 렌더 최적화 컨벤션",
@@ -145,8 +139,6 @@ export const projects: ProjectItem[] = [
     company: "RSQUARE",
     name: "CRM / DRM 서비스",
     period: "2019.08 ~ 2023.10",
-    summary:
-      "시리즈 A부터 C 단계까지 성장 구간에서 핵심 개발 역량과 기술 로드맵을 담당했습니다.",
     bullets: [
       "프론트 프로젝트 설계 및 화면 개발",
       "인프라 작업",
