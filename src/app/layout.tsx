@@ -19,10 +19,26 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Raise",
-  description: "Next.js App Router (React Server Components / SSR)",
+  title: "진동댕 세상",
+  description: "진동댕 세상",
+  openGraph: {
+    title: "진동댕 세상",
+    description: "여양진씨 37대손 진동현에 대해서 알아보자",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "진동댕 나라 OG 이미지",
+      },
+    ],
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +49,9 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preload" as="video" href="/introduce.mp4" type="video/mp4" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

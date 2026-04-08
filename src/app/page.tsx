@@ -1,23 +1,24 @@
-import Link from "next/link";
+import { ResumeHero } from "@/components/resume/ResumeHero";
+import { CareerTimeline } from "@/components/resume/CareerTimeline";
+import { ProjectSections } from "@/components/resume/ProjectSections";
+import { SkillsGrid } from "@/components/resume/SkillsGrid";
+import { ResumeFooterBlocks } from "@/components/resume/ResumeFooterBlocks";
+import { ScrollRevealObserver } from "@/components/ScrollRevealObserver";
 
 export default function Home() {
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 sm:px-10">
-        <div className="flex w-full max-w-md flex-row gap-3 sm:gap-4">
-          <Link
-            href="/resume"
-            className="flex h-12 flex-1 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800 sm:h-14 sm:text-base"
-          >
-            경력기술서
-          </Link>
-          <Link
-            href="/introduction"
-            className="flex h-12 flex-1 items-center justify-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800 sm:h-14 sm:text-base"
-          >
-            자기소개서
-          </Link>
-        </div>
+    <div className="resume-soft relative min-h-dvh overflow-hidden font-sans text-slate-900">
+      <ScrollRevealObserver />
+      <div className="glass-orb glass-orb--one float-soft" />
+      <div className="glass-orb glass-orb--two float-soft" style={{ animationDelay: "900ms" }} />
+      <div className="glass-orb glass-orb--three float-soft" style={{ animationDelay: "1600ms" }} />
+
+      <main className="relative z-10 mx-auto w-full max-w-6xl space-y-9 px-3.5 py-7 sm:space-y-12 sm:px-6 sm:py-12 lg:space-y-14 lg:px-8">
+        <ResumeHero />
+        <CareerTimeline />
+        <ProjectSections />
+        <SkillsGrid />
+        <ResumeFooterBlocks />
       </main>
     </div>
   );
