@@ -4,10 +4,11 @@ import { ProjectSections } from "@/components/resume/ProjectSections";
 import { SkillsGrid } from "@/components/resume/SkillsGrid";
 import { ResumeFooterBlocks } from "@/components/resume/ResumeFooterBlocks";
 import { TitleUnderlineObserver } from "@/components/TitleUnderlineObserver";
+import { FloatingActions } from "@/components/FloatingActions";
 
 export default function Home() {
   return (
-    <div className="resume-soft relative min-h-dvh overflow-hidden font-sans text-slate-900">
+    <div id="page-top" className="resume-soft relative min-h-dvh overflow-hidden font-sans text-slate-900">
       <TitleUnderlineObserver />
       <div className="glass-orb glass-orb--one float-soft" />
       <div className="glass-orb glass-orb--two float-soft" style={{ animationDelay: "900ms" }} />
@@ -20,6 +21,8 @@ export default function Home() {
         <SkillsGrid />
         <ResumeFooterBlocks />
       </main>
+
+      <FloatingActions />
     </div>
   );
 }

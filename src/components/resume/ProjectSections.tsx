@@ -22,6 +22,7 @@ function groupByCompany(): ProjectGroup[] {
 
 export function ProjectSections() {
   const groups = groupByCompany();
+  const awardProjectName = "삼성카드 AI 솔루션 (POC 우수상)";
 
   return (
     <section className="resume-anchor resume-section space-y-4.5 sm:space-y-6" id="project">
@@ -40,11 +41,35 @@ export function ProjectSections() {
                   className={`resume-card scale-in p-4 sm:p-6 stagger-${(index % 5) + 1}`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <h4 className="resume-card-title flex-1 pr-2 text-slate-900">{project.name}</h4>
+                    <h4 className="resume-card-title flex-1 pr-2 text-slate-900">
+                      {project.name === awardProjectName ? (
+                        <>
+                          삼성카드 AI 솔루션{" "}
+                          <span className="poc-award-glow">
+                            (POC 우수상)
+                            <span className="ml-1 inline-block align-middle" aria-hidden="true">
+                              🏅
+                            </span>
+                          </span>
+                        </>
+                      ) : (
+                        project.name
+                      )}
+                    </h4>
                     <span className="glass-chip resume-meta w-fit px-2.5 py-1 font-medium">
                       {project.period}
                     </span>
                   </div>
+                  {project.name === "MOAST" ? (
+                    <a
+                      href="https://www.moast.ai/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="resume-meta mt-1 inline-block break-all text-[0.78rem] font-semibold underline decoration-indigo-800/60 underline-offset-3"
+                    >
+                      https://www.moast.ai/
+                    </a>
+                  ) : null}
 
                   {project.summary ? <p className="resume-body mt-3">{project.summary}</p> : null}
                   <ul className="bullet-soft resume-list mt-3 list-disc space-y-2 pl-5">

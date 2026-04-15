@@ -292,6 +292,10 @@ body {
   color: rgb(75 85 109);
 }
 
+.poc-award-glow {
+  color: rgb(146 64 14);
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -395,53 +399,3 @@ body {
     max-width: 100% !important;
   }
 }
-
-.career-link-card {
-  cursor: pointer;
-}
-
-.career-overlay {
-  background: linear-gradient(180deg, rgb(15 23 42 / 0.08), rgb(15 23 42 / 0.18));
-  backdrop-filter: blur(2px) saturate(110%);
-  -webkit-backdrop-filter: blur(2px) saturate(110%);
-  opacity: 0;
-  transition: opacity 220ms ease;
-}
-
-.career-overlay-label {
-  border-radius: 9999px;
-  border: 1px solid rgb(58 74 120);
-  background: rgb(20 34 74);
-  backdrop-filter: blur(10px) saturate(160%);
-  -webkit-backdrop-filter: blur(10px) saturate(160%);
-  padding: 0.42rem 0.95rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: rgb(255 255 255);
-  box-shadow:
-    0 6px 16px rgb(17 24 39 / 0.24),
-    inset 0 1px 0 rgb(148 163 184 / 0.18);
-  opacity: 0;
-  transform: translateY(8px) scale(0.96);
-  transition:
-    opacity 220ms ease,
-    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.career-link-card:hover .career-overlay,
-.career-link-card:focus-within .career-overlay {
-  opacity: 1;
-}
-
-.career-link-card:hover .career-overlay-label,
-.career-link-card:focus-within .career-overlay-label {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.career-link-card:focus-within {
-  outline: 2px solid rgb(37 56 117 / 0.9);
-  outline-offset: 2px;
-}
-

@@ -20,7 +20,7 @@ export function CareerTimeline() {
         {careers.map((career, index) => (
           <li
             key={`${career.company}-${career.period}`}
-            className={`resume-card career-link-card group scale-in p-5 sm:p-7 stagger-${Math.min(index + 1, 5)}`}
+            className={`resume-card scale-in p-5 sm:p-7 stagger-${Math.min(index + 1, 5)}`}
           >
             {(() => {
               const { primary, secondary } = splitRole(career.role);
@@ -33,6 +33,16 @@ export function CareerTimeline() {
                     <p className="text-[1.08rem] font-semibold tracking-tight text-slate-900 sm:text-[1.2rem]">
                       {career.company}
                     </p>
+                    {career.href ? (
+                      <a
+                        href={career.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="resume-meta mt-1 inline-block break-all text-[0.78rem] font-semibold underline decoration-indigo-800/60 underline-offset-3"
+                      >
+                        {career.href.replace(/\/$/, "")}
+                      </a>
+                    ) : null}
                   </div>
                   <p className="resume-body mt-2 border-l-2 border-indigo-900/80 pl-3 font-medium">
                     {primary}
@@ -43,20 +53,6 @@ export function CareerTimeline() {
               );
             })()}
 
-            {career.href ? (
-              <>
-                <a
-                  href={career.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${career.company} 알아보기`}
-                  className="absolute inset-0 z-10 cursor-pointer rounded-[inherit]"
-                />
-                <div className="career-overlay pointer-events-none absolute inset-0 z-[5] flex items-center justify-center rounded-[inherit]">
-                  <span className="career-overlay-label">회사보기</span>
-                </div>
-              </>
-            ) : null}
           </li>
         ))}
       </ul>
