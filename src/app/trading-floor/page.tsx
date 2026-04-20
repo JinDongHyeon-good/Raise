@@ -1999,12 +1999,37 @@ export default function TradingFloorPage() {
                                   const line = item.trim();
                                   const bulletText = line.replace(/^[-•]\s+/, "");
                                   const isBullet = /^[-•]\s+/.test(line);
+                                  const bulletLabelOnlyMatch = line.match(/^[-•]\s*([^:]{1,40}):\s*$/);
+                                  const bulletLabelDescMatch = line.match(/^[-•]\s*([^:]{1,40}):\s+(.+)$/);
                                   const labelOnlyMatch = line.match(/^([^:]{1,40}):\s*$/);
                                   const labelDescMatch = line.match(/^([^:]{1,40}):\s+(.+)$/);
 
+                                  if (bulletLabelOnlyMatch) {
+                                    return (
+                                      <p
+                                        key={`${idx}-${itemIdx}`}
+                                        className="mt-2 break-words pl-2 font-semibold text-sky-100"
+                                      >
+                                        {bulletLabelOnlyMatch[1]}
+                                      </p>
+                                    );
+                                  }
+
+                                  if (bulletLabelDescMatch) {
+                                    return (
+                                      <p
+                                        key={`${idx}-${itemIdx}`}
+                                        className="mt-2 break-words pl-2 text-slate-100"
+                                      >
+                                        <span className="mr-1 font-semibold text-sky-100">{bulletLabelDescMatch[1]}</span>
+                                        <span>{bulletLabelDescMatch[2]}</span>
+                                      </p>
+                                    );
+                                  }
+
                                   if (isBullet) {
                                     return (
-                                      <p key={`${idx}-${itemIdx}`} className="break-words pl-3 text-slate-200">
+                                      <p key={`${idx}-${itemIdx}`} className="break-words pl-5 text-slate-200">
                                         • {bulletText}
                                       </p>
                                     );
