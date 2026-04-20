@@ -865,7 +865,7 @@ export default function TradingFloorPage() {
     setLiveSecondCloses([]);
     const timer = window.setInterval(() => {
       const latest = detailPriceRef.current ?? latestKlineCloseRef.current;
-      if (!Number.isFinite(latest)) return;
+      if (typeof latest !== "number" || !Number.isFinite(latest)) return;
       setLiveSecondCloses((prev) => [...prev, { timestamp: Date.now(), close: latest }].slice(-120));
     }, 1000);
 
@@ -1074,7 +1074,7 @@ export default function TradingFloorPage() {
       />
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6">
         <div className="flex flex-col gap-1.5 sm:gap-2">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">TRADING FLOOR</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">JJINDONG TRADING</h1>
           <p className="text-xs text-slate-400 sm:text-sm">서울역 가던가 시그니엘 가던가 우리에게 중간은 없다.</p>
           <p className="text-xs text-slate-300 sm:text-sm">해당 데이터는 linear 마진거래 금액 기준입니다.</p>
         </div>

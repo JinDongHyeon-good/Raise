@@ -30,7 +30,7 @@ type UsMacroEvent = {
 function cleanXmlText(raw?: string) {
   if (!raw) return "";
   return raw
-    .replace(/<!\[CDATA\[(.*?)\]\]>/gis, "$1")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1")
     .replace(/<[^>]+>/g, "")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
