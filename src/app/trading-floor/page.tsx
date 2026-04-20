@@ -70,6 +70,10 @@ const FILTER_PAGE_SIZE = 20;
 const NEWS_PAGE_SIZE = 5;
 const AI_DAILY_LIMIT = 2;
 const AI_DAILY_USAGE_STORAGE_KEY = "trading-floor-ai-daily-usage-v1";
+const CHART_WIDTH = 640;
+const CHART_AXIS_WIDTH = 84;
+const CHART_PLOT_WIDTH = CHART_WIDTH - CHART_AXIS_WIDTH;
+const CHART_HEIGHT = 300;
 const KLINE_INTERVAL_OPTIONS: Array<{ value: KlineInterval; label: string }> = [
   { value: "1s", label: "1초" },
   { value: "1", label: "1분" },
@@ -950,15 +954,13 @@ export default function TradingFloorPage() {
 
   const chartPath = useMemo(() => {
     if (displayKlineData.length < 2) return "";
-    const width = 640;
-    const height = 220;
     const min = Math.min(...displayKlineData.map((p) => p.close));
     const max = Math.max(...displayKlineData.map((p) => p.close));
     const range = max - min || 1;
     return displayKlineData
       .map((point, idx) => {
-        const x = (idx / (displayKlineData.length - 1)) * width;
-        const y = height - ((point.close - min) / range) * height;
+        const x = (idx / (displayKlineData.length - 1)) * CHART_PLOT_WIDTH;
+        const y = CHART_HEIGHT - ((point.close - min) / range) * CHART_HEIGHT;
         return `${idx === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
       })
       .join(" ");
@@ -975,8 +977,6 @@ export default function TradingFloorPage() {
 
   const maPaths = useMemo(() => {
     if (displayKlineData.length < 2) return [];
-    const width = 640;
-    const height = 220;
     const allValues = [
       ...displayKlineData.map((p) => p.close),
       ...maSeriesList.flatMap((series) => series.points.filter((p): p is number => p !== null)),
@@ -990,8 +990,8 @@ export default function TradingFloorPage() {
       const d = series.points
         .map((value, idx) => {
           if (value === null) return "";
-          const x = (idx / (displayKlineData.length - 1)) * width;
-          const y = height - ((value - min) / range) * height;
+          const x = (idx / (displayKlineData.length - 1)) * CHART_PLOT_WIDTH;
+          const y = CHART_HEIGHT - ((value - min) / range) * CHART_HEIGHT;
           const prefix = started ? "L" : "M";
           started = true;
           return `${prefix}${x.toFixed(2)},${y.toFixed(2)}`;
@@ -1008,8 +1008,6 @@ export default function TradingFloorPage() {
 
   const bollingerPaths = useMemo(() => {
     if (displayKlineData.length < 20) return { upper: "", lower: "" };
-    const width = 640;
-    const height = 220;
     const bollinger = calculateBollinger(displayKlineData, 20, 2);
     const allValues = [
       ...displayKlineData.map((p) => p.close),
@@ -1025,8 +1023,8 @@ export default function TradingFloorPage() {
       return series
         .map((value, idx) => {
           if (value === null) return "";
-          const x = (idx / (displayKlineData.length - 1)) * width;
-          const y = height - ((value - min) / range) * height;
+          const x = (idx / (displayKlineData.length - 1)) * CHART_PLOT_WIDTH;
+          const y = CHART_HEIGHT - ((value - min) / range) * CHART_HEIGHT;
           const prefix = started ? "L" : "M";
           started = true;
           return `${prefix}${x.toFixed(2)},${y.toFixed(2)}`;
@@ -1042,6 +1040,42 @@ export default function TradingFloorPage() {
   }, [displayKlineData]);
 
   const rsiValue = useMemo(() => calculateRsi(displayKlineData, 14), [displayKlineData]);
+
+  const chartScale = useMemo(() => {
+    if (displayKlineData.length < 2) return null;
+    const allValues = [
+      ...displayKlineData.map((p) => p.close),
+      ...maSeriesList.flatMap((series) => series.points.filter((p): p is number => p !== null)),
+    ];
+    const min = Math.min(...allValues);
+    const max = Math.max(...allValues);
+    const range = max - min || 1;
+    return { min, max, range };
+  }, [displayKlineData, maSeriesList]);
+
+  const currentDisplayPrice = useMemo(() => {
+    const tickerPrice = Number(detailTicker?.lastPrice);
+    if (Number.isFinite(tickerPrice)) return tickerPrice;
+    return displayKlineData[displayKlineData.length - 1]?.close ?? null;
+  }, [detailTicker?.lastPrice, displayKlineData]);
+
+  const currentPriceY = useMemo(() => {
+    if (!chartScale || typeof currentDisplayPrice !== "number") return null;
+    const normalized = (currentDisplayPrice - chartScale.min) / chartScale.range;
+    const y = CHART_HEIGHT - normalized * CHART_HEIGHT;
+    return Math.max(0, Math.min(CHART_HEIGHT, y));
+  }, [chartScale, currentDisplayPrice]);
+
+  const yAxisTicks = useMemo(() => {
+    if (!chartScale) return [];
+    const tickCount = 5;
+    return Array.from({ length: tickCount }, (_, idx) => {
+      const ratio = idx / (tickCount - 1);
+      const value = chartScale.max - chartScale.range * ratio;
+      const y = CHART_HEIGHT * ratio;
+      return { value, y };
+    });
+  }, [chartScale]);
 
   const volumeBars = useMemo(() => {
     if (klineData.length < 2) return [];
@@ -1590,7 +1624,61 @@ export default function TradingFloorPage() {
                   {klineError && <p className="text-sm text-red-300">{klineError}</p>}
                   {!isKlineLoading && !klineError && displayKlineData.length > 1 && (
                     <div className="min-w-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-950 p-3">
-                      <svg viewBox="0 0 640 220" className="h-[200px] w-full sm:h-[220px]">
+                      <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} className="h-[260px] w-full sm:h-[300px]">
+                        {yAxisTicks.map((tick, idx) => (
+                          <g key={`tick-${idx}`}>
+                            <line
+                              x1={0}
+                              y1={tick.y}
+                              x2={CHART_PLOT_WIDTH}
+                              y2={tick.y}
+                              stroke="rgb(51 65 85 / 0.6)"
+                              strokeWidth="1"
+                              strokeDasharray="3 4"
+                            />
+                            <text
+                              x={CHART_PLOT_WIDTH + 8}
+                              y={Math.max(10, Math.min(CHART_HEIGHT - 4, tick.y - 4))}
+                              textAnchor="start"
+                              fontSize="10"
+                              fill="rgb(148 163 184)"
+                            >
+                              {formatPrice(String(tick.value))}
+                            </text>
+                          </g>
+                        ))}
+                        {currentPriceY !== null && currentDisplayPrice !== null && (
+                          <g>
+                            <line
+                              x1={0}
+                              y1={currentPriceY}
+                              x2={CHART_PLOT_WIDTH}
+                              y2={currentPriceY}
+                              stroke="rgb(248 113 113)"
+                              strokeWidth="1.5"
+                              strokeDasharray="2 2"
+                              opacity="0.95"
+                            />
+                            <text
+                              x={CHART_PLOT_WIDTH + 8}
+                              y={Math.max(10, Math.min(CHART_HEIGHT - 4, currentPriceY - 4))}
+                              textAnchor="start"
+                              fontSize="10"
+                              fontWeight="600"
+                              fill="rgb(252 165 165)"
+                            >
+                              {formatPrice(String(currentDisplayPrice))}
+                            </text>
+                          </g>
+                        )}
+                        <line
+                          x1={CHART_PLOT_WIDTH}
+                          y1={0}
+                          x2={CHART_PLOT_WIDTH}
+                          y2={CHART_HEIGHT}
+                          stroke="rgb(71 85 105 / 0.8)"
+                          strokeWidth="1"
+                        />
                         <path d={chartPath} fill="none" stroke="rgb(56 189 248)" strokeWidth="2.5" />
                         {bollingerPaths.upper && (
                           <path
