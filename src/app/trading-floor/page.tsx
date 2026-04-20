@@ -1157,7 +1157,7 @@ export default function TradingFloorPage() {
   }, [klineData]);
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-slate-950 px-3 py-8 text-slate-100 sm:px-6 sm:py-12">
+    <main className="trading-floor-page relative min-h-dvh overflow-hidden bg-slate-950 px-3 py-8 text-slate-100 sm:px-6 sm:py-12">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.1]"
         style={{
@@ -1218,7 +1218,7 @@ export default function TradingFloorPage() {
             </button>
 
             <div
-              className={`mt-2 overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-2xl transition-all duration-300 ease-out ${
+              className={`absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-2xl transition-all duration-300 ease-out ${
                 isFilterOpen ? "max-h-[560px] translate-y-0 p-3 opacity-100" : "max-h-0 -translate-y-1 p-0 opacity-0"
               }`}
             >
@@ -1691,7 +1691,7 @@ export default function TradingFloorPage() {
                     </div>
                   </div>
 
-                  <div className="mb-3 w-full sm:w-[360px]">
+                  <div className="relative mb-3 w-full sm:w-[360px]">
                     <button
                       type="button"
                       onClick={() => setIsIndicatorDropdownOpen((prev) => !prev)}
@@ -1701,7 +1701,7 @@ export default function TradingFloorPage() {
                       <span className="text-slate-400">{isIndicatorDropdownOpen ? "닫기" : "열기"}</span>
                     </button>
                     <div
-                      className={`mt-1 overflow-hidden rounded-md border border-slate-700 bg-slate-950 shadow-xl transition-all duration-300 ease-out ${
+                      className={`absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-slate-700 bg-slate-950 shadow-xl transition-all duration-300 ease-out ${
                         isIndicatorDropdownOpen
                           ? "max-h-[420px] translate-y-0 p-1 opacity-100"
                           : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
@@ -1889,6 +1889,20 @@ export default function TradingFloorPage() {
                         )}
                       </div>
                       <div className="mt-3 border-t border-slate-800 pt-3">
+                        <p className="mb-2 text-xs text-slate-400">거래량</p>
+                        <svg viewBox="0 0 640 80" className="mb-3 h-[70px] w-full sm:h-[80px]">
+                          {volumeBars.map((bar, idx) => (
+                            <rect
+                              key={`${idx}-${bar.x}`}
+                              x={bar.x}
+                              y={bar.y}
+                              width={bar.width}
+                              height={bar.height}
+                              rx="1"
+                              fill="rgb(34 197 94 / 0.8)"
+                            />
+                          ))}
+                        </svg>
                         <p className="mb-1 text-xs text-slate-400">RSI(14)</p>
                         <div className="mb-3 rounded-md border border-slate-800 bg-slate-900/70 p-2">
                           <div className="mb-1 flex items-center justify-between text-[11px] text-slate-300">
@@ -1902,20 +1916,6 @@ export default function TradingFloorPage() {
                             />
                           </div>
                         </div>
-                        <p className="mb-2 text-xs text-slate-400">거래량</p>
-                        <svg viewBox="0 0 640 80" className="h-[70px] w-full sm:h-[80px]">
-                          {volumeBars.map((bar, idx) => (
-                            <rect
-                              key={`${idx}-${bar.x}`}
-                              x={bar.x}
-                              y={bar.y}
-                              width={bar.width}
-                              height={bar.height}
-                              rx="1"
-                              fill="rgb(34 197 94 / 0.8)"
-                            />
-                          ))}
-                        </svg>
                       </div>
                     </div>
                   )}

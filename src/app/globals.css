@@ -39,6 +39,12 @@ body {
   scroll-margin-top: 5.5rem;
 }
 
+.trading-floor-page button,
+.trading-floor-page a,
+.trading-floor-page input[type="checkbox"] {
+  cursor: pointer;
+}
+
 .resume-section {
   text-align: left;
 }
