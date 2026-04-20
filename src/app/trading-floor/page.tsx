@@ -320,6 +320,7 @@ export default function TradingFloorPage() {
   const [cryptoNewsPage, setCryptoNewsPage] = useState(1);
   const [exchangeNewsPage, setExchangeNewsPage] = useState(1);
   const [usEventsPage, setUsEventsPage] = useState(1);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -807,6 +808,15 @@ export default function TradingFloorPage() {
     setIsIntervalDropdownOpen(false);
     setIsIndicatorDropdownOpen(false);
   }, [klineInterval, detailSymbol]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTopButton(window.scrollY > 240);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleToggleSymbol = (symbol: string) => {
     setSelectedSymbols((prev) => {
@@ -1320,7 +1330,7 @@ export default function TradingFloorPage() {
                         onClick={() => setDetailSymbol({ symbol: row.symbol, baseCoin: row.baseCoin, quoteCoin: row.quoteCoin })}
                         className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-2.5 py-1 text-xs font-semibold text-white shadow-md shadow-violet-900/40 transition hover:scale-[1.03] hover:brightness-110"
                       >
-                        분석하기
+                        AI 분석하기
                       </button>
                     </div>
 
@@ -1374,7 +1384,7 @@ export default function TradingFloorPage() {
                           onClick={() => setDetailSymbol({ symbol: row.symbol, baseCoin: row.baseCoin, quoteCoin: row.quoteCoin })}
                           className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 transition hover:scale-[1.03] hover:brightness-110"
                         >
-                          분석하기
+                          AI 분석하기
                         </button>
                       </td>
                     </tr>
@@ -2071,6 +2081,26 @@ export default function TradingFloorPage() {
           </div>
         </div>
       )}
+
+      <button
+        type="button"
+        aria-label="맨 위로 이동"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className={`fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 text-white shadow-lg shadow-violet-900/40 transition-all duration-300 hover:brightness-110 ${
+          showScrollTopButton ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
+        }`}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+          <path
+            d="M12 18V6M12 6l-5 5M12 6l5 5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
     </main>
   );
 }
