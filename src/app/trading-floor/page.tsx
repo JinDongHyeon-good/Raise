@@ -1168,34 +1168,45 @@ export default function TradingFloorPage() {
         }}
       />
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6">
-        <div className="flex flex-col gap-1.5 sm:gap-2">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">JJINDONG TRADING</h1>
-          <p className="text-xs text-slate-400 sm:text-sm">서울역 가던가 시그니엘 가던가 우리에게 중간은 없다.</p>
-          <p className="text-xs text-slate-300 sm:text-sm">해당 데이터는 linear 마진거래 금액 기준입니다.</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-sky-500/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-fuchsia-500/20 blur-2xl" />
+          <div className="relative z-10 flex flex-col gap-2">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">JJINDONG TRADING</h1>
+            <p className="text-xs text-slate-400 sm:text-sm">명심하라 서울역 가던가 시그니엘 가던가 우리에게 중간은 없다.</p>
+            <div className="mt-1 h-px w-full bg-gradient-to-r from-sky-400/50 via-violet-400/30 to-transparent" />
+            <p className="text-xs text-slate-300 sm:text-sm">※ 해당 데이터는 linear 마진거래 금액 기준입니다.</p>
+          </div>
         </div>
 
         <div className="inline-flex w-full rounded-2xl border border-slate-700 bg-slate-900/80 p-1">
           <button
             type="button"
             onClick={() => setFloorTab("market")}
-            className={`flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            className={`flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
               floorTab === "market"
                 ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-white shadow-md shadow-sky-900/30"
                 : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
-            Trading
+            <span className="inline-flex items-center gap-1.5 leading-none">
+              <span aria-hidden="true">📈</span>
+              <span>Trading</span>
+            </span>
           </button>
           <button
             type="button"
             onClick={() => setFloorTab("news")}
-            className={`flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            className={`flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
               floorTab === "news"
                 ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-white shadow-md shadow-sky-900/30"
                 : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
-            News
+            <span className="inline-flex items-center gap-1.5 leading-none">
+              <span aria-hidden="true">📰</span>
+              <span>News</span>
+            </span>
           </button>
         </div>
 
@@ -1836,7 +1847,26 @@ export default function TradingFloorPage() {
                     </div>
                   </div>
 
-                  {isKlineLoading && <div className="h-[220px] animate-pulse rounded-lg bg-slate-800/60" />}
+                  {isKlineLoading && (
+                    <div className="rounded-lg border border-slate-700 bg-slate-950 p-3">
+                      <div className="h-[260px] animate-pulse rounded-md bg-slate-800/60 sm:h-[300px]" />
+                      <div className="mt-2 flex flex-wrap gap-3">
+                        <div className="h-4 w-16 animate-pulse rounded bg-slate-800/60" />
+                        <div className="h-4 w-16 animate-pulse rounded bg-slate-800/60" />
+                        <div className="h-4 w-16 animate-pulse rounded bg-slate-800/60" />
+                        <div className="h-4 w-24 animate-pulse rounded bg-slate-800/60" />
+                      </div>
+                      <div className="mt-3 border-t border-slate-800 pt-3">
+                        <div className="mb-2 h-4 w-14 animate-pulse rounded bg-slate-800/60" />
+                        <div className="mb-3 h-[70px] animate-pulse rounded-md bg-slate-800/60 sm:h-[80px]" />
+                        <div className="mb-2 h-4 w-12 animate-pulse rounded bg-slate-800/60" />
+                        <div className="rounded-md border border-slate-800 bg-slate-900/70 p-2">
+                          <div className="mb-2 h-3 w-40 animate-pulse rounded bg-slate-800/60" />
+                          <div className="h-2 animate-pulse rounded-full bg-slate-800/70" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {klineError && <p className="text-sm text-red-300">{klineError}</p>}
                   {!isKlineLoading && !klineError && displayKlineData.length > 1 && (
                     <div className="min-w-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-950 p-3">
