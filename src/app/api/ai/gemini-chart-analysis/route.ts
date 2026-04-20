@@ -255,7 +255,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = sanitizeApiKey(process.env.GEMINI_API_KEY);
     const preferredModel = sanitizePreferredModel(process.env.GEMINI_MODEL);
     if (!apiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
@@ -416,7 +416,13 @@ export async function POST(request: NextRequest) {
     ].join("\n");
 
     const discovered = await listGenerateModels(apiKey);
-    const candidateModels = Array.from(new Set([preferredModel, ...discovered]));
+    const candidateModels = Array.from(new Set([preferredModel, ...discovered]))
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .filter(isValidModelName);
+    if (candidateModels.length === 0) {
+      candidateModels.push("gemini-3.1-pro-preview");
+    }
     console.log("[gemini-analysis] model candidates", candidateModels);
 
     let lastErrorMessage = "Gemini 요청 실패";
