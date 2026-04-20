@@ -28,6 +28,13 @@ function normalizeModelName(name: string) {
   return name.startsWith("models/") ? name.replace("models/", "") : name;
 }
 
+function sanitizePreferredModel(raw?: string) {
+  if (!raw) return "gemini-3.1-pro-preview";
+  const trimmed = raw.trim().replace(/^['"]|['"]$/g, "");
+  const normalized = normalizeModelName(trimmed);
+  return normalized || "gemini-3.1-pro-preview";
+}
+
 function calcSimpleMA(values: number[], period: number) {
   if (values.length < period) return null;
   const slice = values.slice(values.length - period);
@@ -125,7 +132,7 @@ async function listGenerateModels(apiKey: string) {
 export async function POST(request: NextRequest) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    const preferredModel = process.env.GEMINI_MODEL || "gemini-3.1-pro-preview";
+    const preferredModel = sanitizePreferredModel(process.env.GEMINI_MODEL);
     if (!apiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
     }
