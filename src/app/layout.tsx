@@ -19,17 +19,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "진동댕 세상",
-  description: "진동댕 세상",
+  title: "jjindong Trading",
+  description: "아직도 선물거래 감으로 하시나요? 전문 트레이딩 AI를 통해 이제 근거 있게 매매하세요.",
   openGraph: {
-    title: "진동댕 세상",
-    description: "여양진씨 37대손 진동현에 대해서 알아보자",
+    title: "jjindong Trading",
+    description: "아직도 선물거래 감으로 하시나요? 전문 트레이딩 AI를 통해 이제 근거 있게 매매하세요.",
     images: [
       {
-        url: "https://auth.moast.ai/storage/v1/object/public/moast/manual/og-image.png",
+        url: "https://auth.moast.ai/storage/v1/object/public/moast/temp/doge.jpg",
         width: 1200,
         height: 630,
-        alt: "진동댕 나라 OG 이미지",
+        alt: "트레이딩 플로어 OG 이미지",
       },
     ],
   },

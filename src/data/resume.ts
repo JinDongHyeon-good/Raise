@@ -28,7 +28,7 @@ export const resumeHeader = {
 export const careers: CareerItem[] = [
   {
     company: "아스타 AI",
-    role: "AI FullStack Developer · 기술리더 · 시드 단계 마케팅 도메인 스타트업에서 AI 기술 조직을 이끄는 기술 리더로서 AI 전환(AX)을 주고하고있습니다.",
+    role: "AI FullStack Developer · 기술 리더 · 시드 단계 마케팅 도메인 스타트업에서 기술 조직을 리딩하며, 마케팅 섹터에서 기업들의 AI 전환(AX)을 주도하고 있습니다.",
     period: "2025.03 ~ 재직중",
     href: "https://www.astarcorp.ai/",
   },
@@ -40,13 +40,13 @@ export const careers: CareerItem[] = [
   },
   {
     company: "교보문고",
-    role: "FrontEnd Developer · 신사업 본부 프론트엔드 개발자로서 디자인 시스템과 신사업 서비스를 구축했습니다.",
+    role: "FrontEnd Developer · 신사업 본부 프론트엔드 개발자로서 여러 프로젝트에서 코어 패키지로 사용하는 디자인 시스템을 구축 및 운영하였고, 창작 지원 플랫폼 서비스를 성공적으로 런칭 및 운영했습니다.",
     period: "2023.11 ~ 2024.11",
     href: "https://company.kyobobook.co.kr/",
   },
   {
     company: "RSQUARE",
-    role: "FullStack Developer · 시리즈 A부터 C 단계까지 성장 구간에서 핵심 개발 역량과 기술 로드맵을 담당했습니다.",
+    role: "FullStack Developer · 시리즈 A부터 C 단계까지의 비약적인 성장 과정에서 비즈니스 기획에 적극 참여하였으며, 다양한 핵심 프로젝트의 개발 리딩과 기술 로드맵 수립을 수행했습니다.",
     period: "2019.08 ~ 2023.10",
     href: "https://www.rsquare.co.kr/",
   },

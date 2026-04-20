@@ -8,6 +8,12 @@ frontend:
         - pnpm install
     build:
       commands:
+        - |
+          cat > .env.production <<EOF
+          GEMINI_API_KEY=$GEMINI_API_KEY
+          GEMINI_MODEL=$GEMINI_MODEL
+          CRYPTOPANIC_API_KEY=$CRYPTOPANIC_API_KEY
+          EOF
         - pnpm run build
   artifacts:
     baseDirectory: .next
