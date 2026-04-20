@@ -321,6 +321,8 @@ export default function TradingFloorPage() {
   const [exchangeNewsPage, setExchangeNewsPage] = useState(1);
   const [usEventsPage, setUsEventsPage] = useState(1);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const [isFilterInfoOpen, setIsFilterInfoOpen] = useState(false);
+  const [isFilterInfoHovered, setIsFilterInfoHovered] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -1158,24 +1160,22 @@ export default function TradingFloorPage() {
 
   return (
     <main className="trading-floor-page relative min-h-dvh overflow-hidden bg-slate-950 px-3 py-8 text-slate-100 sm:px-6 sm:py-12">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.1]"
-        style={{
-          backgroundImage: "url('/doge.png')",
-          backgroundRepeat: "repeat",
-          backgroundSize: "280px 280px",
-          backgroundPosition: "24px 24px",
-        }}
-      />
+      <div className="trading-floor-stars" />
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6">
         <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-sky-500/20 blur-3xl" />
           <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-fuchsia-500/20 blur-2xl" />
           <div className="relative z-10 flex flex-col gap-2">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">JJINDONG TRADING</h1>
+            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-4xl">
+              <span>JJINDONG TRADING</span>
+              <img
+                src="/doge.png"
+                alt="Doge"
+                className="h-8 w-8 rounded-full border border-slate-700 object-cover sm:h-10 sm:w-10"
+              />
+            </h1>
             <p className="text-xs text-slate-400 sm:text-sm">명심하라 서울역 가던가 시그니엘 가던가 우리에게 중간은 없다.</p>
             <div className="mt-1 h-px w-full bg-gradient-to-r from-sky-400/50 via-violet-400/30 to-transparent" />
-            <p className="text-xs text-slate-300 sm:text-sm">※ 해당 데이터는 linear 마진거래 금액 기준입니다.</p>
           </div>
         </div>
 
@@ -1213,7 +1213,31 @@ export default function TradingFloorPage() {
         {floorTab === "market" && (
           <>
         <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-          <p className="mb-3 text-sm text-slate-300">Coin Filter</p>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm text-slate-300">Coin Filter</p>
+            <div
+              className="relative"
+              onMouseEnter={() => setIsFilterInfoHovered(true)}
+              onMouseLeave={() => setIsFilterInfoHovered(false)}
+            >
+              <button
+                type="button"
+                aria-label="코인 필터 안내"
+                onClick={() => setIsFilterInfoOpen((prev) => !prev)}
+                onBlur={() => setIsFilterInfoOpen(false)}
+                className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-600 text-[11px] font-semibold text-slate-300 transition hover:border-sky-400 hover:text-sky-300"
+              >
+                i
+              </button>
+              <div
+                className={`absolute right-0 top-7 z-40 w-64 rounded-md border border-slate-700 bg-slate-950/95 p-2 text-xs leading-5 text-slate-300 shadow-xl transition-all duration-200 ${
+                  isFilterInfoOpen || isFilterInfoHovered ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0"
+                }`}
+              >
+                해당 데이터는 Bybit linear 마진거래 기준이며, 체크한 코인만 목록에 표시됩니다.
+              </div>
+            </div>
+          </div>
           <div ref={filterPanelRef} className="relative">
             <button
               type="button"
