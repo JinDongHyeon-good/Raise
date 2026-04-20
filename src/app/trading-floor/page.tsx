@@ -1983,7 +1983,7 @@ export default function TradingFloorPage() {
                         {analysisSections.map((section, idx) => (
                           <section
                             key={`${section.title}-${idx}`}
-                            className="rounded-lg border border-slate-800/90 bg-slate-950/70 p-3"
+                            className="rounded-none border-none bg-transparent p-0"
                           >
                             <div className="mb-2 flex items-center gap-2">
                               <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-sky-500/20 px-2 text-xs font-bold text-sky-200">
@@ -1995,16 +1995,44 @@ export default function TradingFloorPage() {
                             </div>
                             <div className="space-y-1.5 break-words text-sm leading-6 text-slate-100">
                               {section.items.map((item, itemIdx) => (
-                                <p
-                                  key={`${idx}-${itemIdx}`}
-                                  className={
-                                    item.startsWith("-")
-                                      ? "break-words rounded-md bg-slate-900/70 px-2 py-1 text-slate-200"
-                                      : "break-words"
+                                (() => {
+                                  const line = item.trim();
+                                  const bulletText = line.replace(/^[-•]\s+/, "");
+                                  const isBullet = /^[-•]\s+/.test(line);
+                                  const labelOnlyMatch = line.match(/^([^:]{1,40}):\s*$/);
+                                  const labelDescMatch = line.match(/^([^:]{1,40}):\s+(.+)$/);
+
+                                  if (isBullet) {
+                                    return (
+                                      <p key={`${idx}-${itemIdx}`} className="break-words pl-3 text-slate-200">
+                                        • {bulletText}
+                                      </p>
+                                    );
                                   }
-                                >
-                                  {item.startsWith("-") ? item.replace(/^-+\s*/, "• ") : item}
-                                </p>
+
+                                  if (labelOnlyMatch) {
+                                    return (
+                                      <p key={`${idx}-${itemIdx}`} className="mt-2 break-words font-semibold text-sky-100">
+                                        {labelOnlyMatch[1]}
+                                      </p>
+                                    );
+                                  }
+
+                                  if (labelDescMatch) {
+                                    return (
+                                      <p key={`${idx}-${itemIdx}`} className="break-words pl-2 text-slate-100">
+                                        <span className="mr-1 font-medium text-slate-300">{labelDescMatch[1]}</span>
+                                        <span>{labelDescMatch[2]}</span>
+                                      </p>
+                                    );
+                                  }
+
+                                  return (
+                                    <p key={`${idx}-${itemIdx}`} className="break-words text-slate-100">
+                                      {line}
+                                    </p>
+                                  );
+                                })()
                               ))}
                             </div>
                           </section>
