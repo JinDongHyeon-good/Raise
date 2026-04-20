@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 8;
+const CACHE_TTL_MS = 30 * 1000;
+
+const requestBuckets = new Map<string, { count: number; windowStart: number }>();
+const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();
+
 type CandleInput = {
   timestamp: number;
   open: number;
@@ -24,6 +31,13 @@ type GeminiGenerateResponse = {
   error?: { message?: string };
 };
 
+type AnalyzeRequestBody = {
+  symbol: string;
+  market: "spot" | "linear";
+  interval: string;
+  candles: CandleInput[];
+};
+
 function normalizeModelName(name: string) {
   return name.startsWith("models/") ? name.replace("models/", "") : name;
 }
@@ -33,6 +47,83 @@ function sanitizePreferredModel(raw?: string) {
   const trimmed = raw.trim().replace(/^['"]|['"]$/g, "");
   const normalized = normalizeModelName(trimmed);
   return normalized || "gemini-3.1-pro-preview";
+}
+
+function getClientIp(request: NextRequest) {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function checkRateLimit(clientKey: string) {
+  const now = Date.now();
+  const current = requestBuckets.get(clientKey);
+
+  if (!current || now - current.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    requestBuckets.set(clientKey, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  }
+
+  if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: current.windowStart + RATE_LIMIT_WINDOW_MS };
+  }
+
+  current.count += 1;
+  requestBuckets.set(clientKey, current);
+  return {
+    allowed: true,
+    remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - current.count),
+    resetAt: current.windowStart + RATE_LIMIT_WINDOW_MS,
+  };
+}
+
+function validateBody(input: unknown): { ok: true; body: AnalyzeRequestBody } | { ok: false; message: string } {
+  if (!input || typeof input !== "object") {
+    return { ok: false, message: "요청 본문 형식이 올바르지 않습니다." };
+  }
+
+  const body = input as Partial<AnalyzeRequestBody>;
+  if (!body.symbol || typeof body.symbol !== "string" || !/^[A-Z0-9]{3,20}$/.test(body.symbol)) {
+    return { ok: false, message: "symbol 형식이 올바르지 않습니다." };
+  }
+  if (body.market !== "spot" && body.market !== "linear") {
+    return { ok: false, message: "market 값이 올바르지 않습니다." };
+  }
+  if (!body.interval || typeof body.interval !== "string" || body.interval.length > 6) {
+    return { ok: false, message: "interval 값이 올바르지 않습니다." };
+  }
+  if (!Array.isArray(body.candles) || body.candles.length < 10 || body.candles.length > 240) {
+    return { ok: false, message: "candles 개수는 10~240개여야 합니다." };
+  }
+
+  for (const candle of body.candles) {
+    if (!candle || typeof candle !== "object") return { ok: false, message: "candles 데이터 형식이 올바르지 않습니다." };
+    const values = [candle.timestamp, candle.open, candle.high, candle.low, candle.close, candle.volume];
+    if (!values.every((value) => typeof value === "number" && Number.isFinite(value))) {
+      return { ok: false, message: "candles 숫자 데이터가 올바르지 않습니다." };
+    }
+  }
+
+  return { ok: true, body: body as AnalyzeRequestBody };
+}
+
+function getCacheKey(body: AnalyzeRequestBody) {
+  const tail = body.candles.slice(-60);
+  return JSON.stringify({
+    s: body.symbol,
+    m: body.market,
+    i: body.interval,
+    c: tail.map((item) => [item.timestamp, item.close, item.volume]),
+  });
+}
+
+function cleanupCaches() {
+  const now = Date.now();
+  for (const [key, value] of analysisCache.entries()) {
+    if (value.expiresAt <= now) analysisCache.delete(key);
+  }
 }
 
 function calcSimpleMA(values: number[], period: number) {
@@ -131,28 +222,73 @@ async function listGenerateModels(apiKey: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (process.env.AI_ANALYSIS_ENABLED?.toLowerCase() === "false") {
+      return NextResponse.json({ error: "현재 AI 분석 기능이 비활성화되어 있습니다." }, { status: 503 });
+    }
+
+    const origin = request.headers.get("origin");
+    const host = request.headers.get("host");
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host;
+        if (originHost !== host) {
+          return NextResponse.json({ error: "허용되지 않은 요청 출처입니다." }, { status: 403 });
+        }
+      } catch {
+        return NextResponse.json({ error: "요청 출처 정보가 올바르지 않습니다." }, { status: 403 });
+      }
+    }
+
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000)),
+          },
+        },
+      );
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     const preferredModel = sanitizePreferredModel(process.env.GEMINI_MODEL);
     if (!apiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
     }
 
-    const body = (await request.json()) as {
-      symbol?: string;
-      market?: "spot" | "linear";
-      interval?: string;
-      candles?: CandleInput[];
-    };
+    const parsedBody = validateBody(await request.json());
+    if (!parsedBody.ok) {
+      return NextResponse.json({ error: parsedBody.message }, { status: 400 });
+    }
+    const body = parsedBody.body;
+
+    cleanupCaches();
+    const cacheKey = getCacheKey(body);
+    const cached = analysisCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return NextResponse.json(
+        { analysis: cached.analysis, model: cached.model, warning: cached.warning, cached: true },
+        {
+          headers: {
+            "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+            "X-RateLimit-Remaining": String(rateLimit.remaining),
+            "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000)),
+          },
+        },
+      );
+    }
+
     console.log("[gemini-analysis] request received", {
       symbol: body.symbol,
       market: body.market,
       interval: body.interval,
       candles: Array.isArray(body.candles) ? body.candles.length : 0,
     });
-
-    if (!body.symbol || !body.interval || !body.market || !Array.isArray(body.candles) || body.candles.length < 10) {
-      return NextResponse.json({ error: "요청 데이터가 부족합니다." }, { status: 400 });
-    }
 
     const candles = body.candles.slice(-180);
     const closes = candles.map((c) => c.close);
@@ -333,7 +469,17 @@ export async function POST(request: NextRequest) {
         analysis = text;
         if (isCompleteAnalysis(text, body.market)) {
           console.log("[gemini-analysis] success", { model, attempt, length: analysis.length });
-          return NextResponse.json({ analysis, model });
+          analysisCache.set(cacheKey, { analysis, model, expiresAt: Date.now() + CACHE_TTL_MS });
+          return NextResponse.json(
+            { analysis, model },
+            {
+              headers: {
+                "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+                "X-RateLimit-Remaining": String(rateLimit.remaining),
+                "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000)),
+              },
+            },
+          );
         }
 
         console.warn("[gemini-analysis] incomplete response, retrying", { model, attempt, length: text.length });
@@ -341,7 +487,17 @@ export async function POST(request: NextRequest) {
 
       if (analysis) {
         // 완전하지 않더라도 마지막으로 받은 분석을 반환하여 빈 화면을 방지
-        return NextResponse.json({ analysis, model, warning: "partial_response" });
+        analysisCache.set(cacheKey, { analysis, model, warning: "partial_response", expiresAt: Date.now() + CACHE_TTL_MS });
+        return NextResponse.json(
+          { analysis, model, warning: "partial_response" },
+          {
+            headers: {
+              "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+              "X-RateLimit-Remaining": String(rateLimit.remaining),
+              "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000)),
+            },
+          },
+        );
       }
     }
 
