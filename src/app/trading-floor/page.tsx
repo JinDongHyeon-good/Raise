@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type MarketTab = "spot" | "linear";
-type FloorTab = "market" | "news";
+type FloorTab = "market" | "news" | "board";
 type ConnectionStatus = "idle" | "connecting" | "connected" | "reconnecting" | "disconnected" | "error";
 
 type BybitSymbol = {
@@ -1200,34 +1200,43 @@ export default function TradingFloorPage() {
           </div>
         </div>
 
-        <div className="inline-flex w-full rounded-2xl border border-slate-700 bg-slate-900/80 p-1">
+        <div className="relative inline-flex w-full rounded-2xl border border-slate-700 bg-slate-900/80 p-1">
+          <span
+            aria-hidden="true"
+            className={`absolute bottom-1 top-1 z-0 w-[calc((100%-0.5rem)/3)] rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 shadow-md shadow-sky-900/30 transition-transform duration-300 ease-out ${
+              floorTab === "market"
+                ? "translate-x-0"
+                : floorTab === "news"
+                  ? "translate-x-[100%]"
+                  : "translate-x-[200%]"
+            }`}
+          />
           <button
             type="button"
             onClick={() => setFloorTab("market")}
-            className={`flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              floorTab === "market"
-                ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-white shadow-md shadow-sky-900/30"
-                : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+            className={`relative z-10 flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
+              floorTab === "market" ? "text-white" : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
-            <span className="inline-flex items-center gap-1.5 leading-none">
-              <span aria-hidden="true">📈</span>
-              <span>Trading</span>
-            </span>
+            <span className="leading-none">Trading</span>
           </button>
           <button
             type="button"
             onClick={() => setFloorTab("news")}
-            className={`flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              floorTab === "news"
-                ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-white shadow-md shadow-sky-900/30"
-                : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+            className={`relative z-10 flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
+              floorTab === "news" ? "text-white" : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
-            <span className="inline-flex items-center gap-1.5 leading-none">
-              <span aria-hidden="true">📰</span>
-              <span>News</span>
-            </span>
+            <span className="leading-none">News</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFloorTab("board")}
+            className={`relative z-10 flex flex-1 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
+              floorTab === "board" ? "text-white" : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+            }`}
+          >
+            <span className="leading-none">게시판</span>
           </button>
         </div>
 
@@ -1655,6 +1664,12 @@ export default function TradingFloorPage() {
               </>
             )}
           </div>
+        )}
+
+        {floorTab === "board" && (
+          <section className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center">
+            <p className="text-sm text-slate-300">준비중입니다.</p>
+          </section>
         )}
       </div>
 
