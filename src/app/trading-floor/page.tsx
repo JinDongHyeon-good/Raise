@@ -1681,7 +1681,7 @@ export default function TradingFloorPage() {
                     </div>
                   </div>
 
-                  <div className="mb-3">
+                  <div className="mb-3 w-full sm:w-[360px]">
                     <button
                       type="button"
                       onClick={() => setIsIndicatorDropdownOpen((prev) => !prev)}

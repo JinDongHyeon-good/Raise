@@ -224,6 +224,7 @@ function calcStoch(highs: number[], lows: number[], closes: number[], period = 1
 
 function isCompleteAnalysis(text: string, market: "spot" | "linear") {
   if (!text || text.length < 120) return false;
+  if (!text.includes("[END_REPORT]")) return false;
   if (market === "linear") {
     return text.includes("7) 현재 캔들 기준 한줄 결론");
   }
@@ -363,6 +364,7 @@ export async function POST(request: NextRequest) {
       "- 불확실한 내용은 '데이터상 확인 어려움'으로 명시",
       "- 사실 근거 없는 단정 금지",
       "- 답변은 반드시 모든 섹션을 완성해서 끝내고, 중간에 끊긴 문장을 남기지 말 것",
+      "- 답변 마지막 줄에 반드시 [END_REPORT]를 정확히 출력",
     ];
 
     const spotPrompt = [
@@ -411,7 +413,7 @@ export async function POST(request: NextRequest) {
       "7) 현재 캔들 기준 한줄 결론",
     ];
 
-    const compactCandles = candles.slice(-80).map((c) => ({
+    const compactCandles = candles.slice(-60).map((c) => ({
       t: c.timestamp,
       o: Number(c.open.toFixed(4)),
       h: Number(c.high.toFixed(4)),
@@ -441,6 +443,8 @@ export async function POST(request: NextRequest) {
       `ATR14: ${atr14 ?? "N/A"}`,
       `현재 거래량 / 20평균 비율: ${volRatio.toFixed(2)}x`,
       `최근 캔들 JSON(최신 80봉, 압축): ${JSON.stringify(compactCandles)}`,
+      "",
+      "반드시 모든 섹션을 끝까지 작성하고 마지막 줄에 [END_REPORT]를 출력하라.",
     ].join("\n");
 
     const discovered = await listGenerateModels(apiKey);
@@ -457,8 +461,9 @@ export async function POST(request: NextRequest) {
     for (const model of candidateModels) {
       console.log("[gemini-analysis] trying model", model);
       let analysis = "";
+      let accumulated = "";
 
-      for (let attempt = 1; attempt <= 2; attempt += 1) {
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
         const attemptPrompt =
           attempt === 1
             ? prompt
@@ -466,7 +471,12 @@ export async function POST(request: NextRequest) {
                 prompt,
                 "",
                 "[재요청 지시]",
-                "직전 응답이 중간에 잘렸다. 번호 섹션을 빠짐없이 끝까지 완성해서 다시 작성해라.",
+                "직전 응답이 중간에 잘렸다.",
+                "아래 기존 응답에 이어서 누락된 부분만 작성하고, 이미 작성한 내용을 반복하지 마라.",
+                "반드시 번호 섹션을 끝까지 완성하고 마지막 줄에 [END_REPORT]를 출력해라.",
+                "",
+                "[기존 응답]",
+                accumulated || "(없음)",
               ].join("\n");
 
         const response = await fetch(
@@ -479,7 +489,7 @@ export async function POST(request: NextRequest) {
               generationConfig: {
                 temperature: 0.35,
                 topP: 0.9,
-                maxOutputTokens: 2200,
+                maxOutputTokens: 4096,
               },
             }),
           },
@@ -515,12 +525,24 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        analysis = text;
-        if (isCompleteAnalysis(text, body.market)) {
+        const normalizedChunk = text.replace(/\[END_REPORT\]\s*$/g, "").trim();
+        if (attempt === 1 || !accumulated) {
+          accumulated = normalizedChunk;
+        } else if (!accumulated.includes(normalizedChunk)) {
+          accumulated = `${accumulated}\n${normalizedChunk}`.trim();
+        }
+
+        const mergedAnalysis = text.includes("[END_REPORT]")
+          ? `${accumulated}\n[END_REPORT]`
+          : accumulated;
+
+        analysis = mergedAnalysis;
+        if (isCompleteAnalysis(mergedAnalysis, body.market)) {
+          const finalAnalysis = mergedAnalysis.replace(/\n?\[END_REPORT\]\s*$/g, "").trim();
           console.log("[gemini-analysis] success", { model, attempt, length: analysis.length });
-          analysisCache.set(cacheKey, { analysis, model, expiresAt: Date.now() + CACHE_TTL_MS });
+          analysisCache.set(cacheKey, { analysis: finalAnalysis, model, expiresAt: Date.now() + CACHE_TTL_MS });
           return NextResponse.json(
-            { analysis, model },
+            { analysis: finalAnalysis, model },
             {
               headers: {
                 "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
@@ -536,9 +558,15 @@ export async function POST(request: NextRequest) {
 
       if (analysis) {
         // 완전하지 않더라도 마지막으로 받은 분석을 반환하여 빈 화면을 방지
-        analysisCache.set(cacheKey, { analysis, model, warning: "partial_response", expiresAt: Date.now() + CACHE_TTL_MS });
+        const partialAnalysis = analysis.replace(/\n?\[END_REPORT\]\s*$/g, "").trim();
+        analysisCache.set(cacheKey, {
+          analysis: partialAnalysis,
+          model,
+          warning: "partial_response",
+          expiresAt: Date.now() + CACHE_TTL_MS,
+        });
         return NextResponse.json(
-          { analysis, model, warning: "partial_response" },
+          { analysis: partialAnalysis, model, warning: "partial_response" },
           {
             headers: {
               "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
