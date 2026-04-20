@@ -6,6 +6,8 @@ export const maxDuration = 300;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 const CACHE_TTL_MS = 30 * 1000;
+const GEMINI_HTTP_TIMEOUT_MS = 12000;
+const GEMINI_TOTAL_BUDGET_MS = 25000;
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
 const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();
@@ -82,6 +84,16 @@ function parseRetryAfterSeconds(message: string) {
   if (!match) return null;
   const seconds = Math.ceil(Number(match[1]));
   return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+}
+
+async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function getClientIp(request: NextRequest) {
@@ -232,10 +244,14 @@ function isCompleteAnalysis(text: string, market: "spot" | "linear") {
 }
 
 async function listGenerateModels(apiKey: string) {
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
-    method: "GET",
-    cache: "no-store",
-  });
+  const response = await fetchWithTimeout(
+    `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    },
+    6000,
+  );
 
   if (!response.ok) return [];
 
@@ -258,6 +274,7 @@ async function listGenerateModels(apiKey: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const requestStartedAt = Date.now();
     if (process.env.AI_ANALYSIS_ENABLED?.toLowerCase() === "false") {
       return NextResponse.json({ error: "현재 AI 분석 기능이 비활성화되어 있습니다." }, { status: 503 });
     }
@@ -464,6 +481,13 @@ export async function POST(request: NextRequest) {
       let accumulated = "";
 
       for (let attempt = 1; attempt <= 3; attempt += 1) {
+        if (Date.now() - requestStartedAt > GEMINI_TOTAL_BUDGET_MS) {
+          return NextResponse.json(
+            { error: "AI 분석 응답 대기 시간이 길어져 중단되었습니다. 잠시 후 다시 시도해 주세요." },
+            { status: 504 },
+          );
+        }
+
         const attemptPrompt =
           attempt === 1
             ? prompt
@@ -479,7 +503,7 @@ export async function POST(request: NextRequest) {
                 accumulated || "(없음)",
               ].join("\n");
 
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
           {
             method: "POST",
@@ -493,6 +517,7 @@ export async function POST(request: NextRequest) {
               },
             }),
           },
+          GEMINI_HTTP_TIMEOUT_MS,
         );
 
         const data = (await response.json()) as GeminiGenerateResponse;
@@ -582,6 +607,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: lastErrorMessage }, { status: 502 });
   } catch (error) {
     console.error("[gemini-analysis] unexpected error", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      return NextResponse.json(
+        { error: "AI 분석 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요." },
+        { status: 504 },
+      );
+    }
     return NextResponse.json({ error: "Gemini 분석 중 오류가 발생했습니다." }, { status: 500 });
   }
 }
