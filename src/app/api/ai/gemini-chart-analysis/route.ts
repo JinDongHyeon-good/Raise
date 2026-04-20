@@ -6,8 +6,8 @@ export const maxDuration = 300;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 const CACHE_TTL_MS = 30 * 1000;
-const GEMINI_HTTP_TIMEOUT_MS = 12000;
-const GEMINI_TOTAL_BUDGET_MS = 25000;
+const GEMINI_HTTP_TIMEOUT_MS = 60000;
+const GEMINI_TOTAL_BUDGET_MS = 90000;
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
 const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();
@@ -481,12 +481,15 @@ export async function POST(request: NextRequest) {
       let accumulated = "";
 
       for (let attempt = 1; attempt <= 3; attempt += 1) {
-        if (Date.now() - requestStartedAt > GEMINI_TOTAL_BUDGET_MS) {
+        const elapsedMs = Date.now() - requestStartedAt;
+        if (elapsedMs > GEMINI_TOTAL_BUDGET_MS) {
           return NextResponse.json(
             { error: "AI 분석 응답 대기 시간이 길어져 중단되었습니다. 잠시 후 다시 시도해 주세요." },
             { status: 504 },
           );
         }
+        const remainingBudgetMs = GEMINI_TOTAL_BUDGET_MS - elapsedMs;
+        const perRequestTimeoutMs = Math.max(7000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remainingBudgetMs - 1500));
 
         const attemptPrompt =
           attempt === 1
@@ -517,7 +520,7 @@ export async function POST(request: NextRequest) {
               },
             }),
           },
-          GEMINI_HTTP_TIMEOUT_MS,
+          perRequestTimeoutMs,
         );
 
         const data = (await response.json()) as GeminiGenerateResponse;
