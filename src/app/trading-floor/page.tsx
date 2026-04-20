@@ -1214,7 +1214,22 @@ export default function TradingFloorPage() {
                   ? `${selectedSymbols[tab].length}개 선택됨: ${selectedSymbols[tab].join(", ")}`
                   : "심볼을 선택해 주세요"}
               </span>
-              <span className="ml-3 shrink-0 text-slate-400">{isFilterOpen ? "닫기" : "열기"}</span>
+              <span className="ml-3 shrink-0 text-slate-400">
+                <svg
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                  className={`h-4 w-4 transition-transform duration-200 ${isFilterOpen ? "rotate-180" : "rotate-0"}`}
+                >
+                  <path
+                    d="M5.5 7.5L10 12l4.5-4.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </button>
 
             <div
@@ -1593,45 +1608,43 @@ export default function TradingFloorPage() {
             <div className="mx-auto box-border min-h-dvh w-full max-w-[100vw] overflow-x-hidden px-3 py-3 text-slate-100 sm:p-5">
               <div className="mb-5 flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-bold">
+                  <h2 className="flex items-center gap-2 text-xl font-bold">
                     {detailSymbol.baseCoin} ({getKoreanCoinName(detailSymbol.baseCoin)})
+                    <span
+                      className={`text-base leading-none font-semibold tabular-nums ${
+                        Number(detailTicker?.price24hPcnt ?? 0) > 0
+                          ? "text-emerald-300"
+                          : Number(detailTicker?.price24hPcnt ?? 0) < 0
+                            ? "text-rose-300"
+                            : "text-slate-300"
+                      }`}
+                    >
+                      {formatPercent(detailTicker?.price24hPcnt)}
+                    </span>
+                    <span className="text-base leading-none font-semibold tabular-nums text-slate-200">
+                      {formatPrice(detailTicker?.lastPrice)}
+                    </span>
                   </h2>
-                  <p className="text-sm text-slate-400">{detailSymbol.symbol} / 선물</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDetailSymbol(null);
-                    setKlineError(null);
-                    setKlineData([]);
-                    setAiAnalysis("");
-                    setAiError(null);
-                  }}
-                  className="rounded-md border border-slate-600 px-2.5 py-1 text-sm text-slate-200 transition hover:border-slate-400"
-                >
-                  닫기
-                </button>
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDetailSymbol(null);
+                      setKlineError(null);
+                      setKlineData([]);
+                      setAiAnalysis("");
+                      setAiError(null);
+                    }}
+                    className="rounded-md border border-slate-600 px-2.5 py-1 text-sm text-slate-200 transition hover:border-slate-400"
+                  >
+                    닫기
+                  </button>
+                </div>
               </div>
 
               <div className="grid min-w-0 gap-4">
                 <div className="grid min-w-0 gap-3">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-4 sm:bg-slate-950">
-                      <p className="mb-1 text-xs text-slate-400">현재가</p>
-                      <p className="text-xl font-semibold tabular-nums">{formatPrice(detailTicker?.lastPrice)}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-4 sm:bg-slate-950">
-                      <p className="mb-1 text-xs text-slate-400">24h 변동률</p>
-                      <p className="text-xl font-semibold tabular-nums">{formatPercent(detailTicker?.price24hPcnt)}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-4 sm:bg-slate-950">
-                      <p className="mb-1 text-xs text-slate-400">24h 거래량</p>
-                      <p className="text-xl font-semibold tabular-nums">
-                        {detailTicker?.volume24h ? Number(detailTicker.volume24h).toLocaleString("ko-KR") : "-"}
-                      </p>
-                    </div>
-                  </div>
-
                   <div className="min-w-0 rounded-xl border border-slate-700 bg-slate-900/40 p-4 sm:bg-slate-950">
                   <div className="mb-3 sm:hidden">
                     <label className="mb-1 block text-xs text-slate-400">기간 선택</label>
@@ -1642,7 +1655,24 @@ export default function TradingFloorPage() {
                         className="flex w-full items-center justify-between rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100"
                       >
                         <span>{selectedIntervalLabel}</span>
-                        <span className="text-slate-400">{isIntervalDropdownOpen ? "닫기" : "열기"}</span>
+                        <span className="text-slate-400">
+                          <svg
+                            viewBox="0 0 20 20"
+                            aria-hidden="true"
+                            className={`h-4 w-4 transition-transform duration-200 ${
+                              isIntervalDropdownOpen ? "rotate-180" : "rotate-0"
+                            }`}
+                          >
+                            <path
+                              d="M5.5 7.5L10 12l4.5-4.5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
                       </button>
 
                       <div
@@ -1692,13 +1722,31 @@ export default function TradingFloorPage() {
                   </div>
 
                   <div className="relative mb-3 w-full sm:w-[360px]">
+                    <label className="mb-1 block text-xs text-slate-400">지표 선택</label>
                     <button
                       type="button"
                       onClick={() => setIsIndicatorDropdownOpen((prev) => !prev)}
                       className="flex w-full items-center justify-between rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-left text-sm text-slate-100"
                     >
-                      <span>지표 선택</span>
-                      <span className="text-slate-400">{isIndicatorDropdownOpen ? "닫기" : "열기"}</span>
+                      <span>지표</span>
+                      <span className="text-slate-400">
+                        <svg
+                          viewBox="0 0 20 20"
+                          aria-hidden="true"
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            isIndicatorDropdownOpen ? "rotate-180" : "rotate-0"
+                          }`}
+                        >
+                          <path
+                            d="M5.5 7.5L10 12l4.5-4.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
                     </button>
                     <div
                       className={`absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-slate-700 bg-slate-950 shadow-xl transition-all duration-300 ease-out ${
