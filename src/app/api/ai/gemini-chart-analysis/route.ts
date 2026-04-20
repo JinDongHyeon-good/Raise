@@ -49,6 +49,41 @@ function sanitizePreferredModel(raw?: string) {
   return normalized || "gemini-3.1-pro-preview";
 }
 
+function sanitizeApiKey(raw?: string) {
+  if (!raw) return "";
+  return raw.trim().replace(/^['"]|['"]$/g, "");
+}
+
+function isValidModelName(model: string) {
+  return /^gemini[a-z0-9.-]*$/i.test(model);
+}
+
+function isAllowedOrigin(origin: string, host: string) {
+  try {
+    const originHost = new URL(origin).host.toLowerCase();
+    const requestHost = host.toLowerCase();
+    if (originHost === requestHost) return true;
+    const normalize = (value: string) => value.replace(/^www\./, "");
+    if (normalize(originHost) === normalize(requestHost)) return true;
+    if (originHost.startsWith("localhost") && requestHost.startsWith("localhost")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function isQuotaExceededError(message: string) {
+  const lower = message.toLowerCase();
+  return lower.includes("quota exceeded") || lower.includes("rate limit") || lower.includes("resource_exhausted");
+}
+
+function parseRetryAfterSeconds(message: string) {
+  const match = message.match(/retry in\s+([0-9.]+)s/i);
+  if (!match) return null;
+  const seconds = Math.ceil(Number(match[1]));
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+}
+
 function getClientIp(request: NextRequest) {
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -228,15 +263,8 @@ export async function POST(request: NextRequest) {
 
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
-    if (origin && host) {
-      try {
-        const originHost = new URL(origin).host;
-        if (originHost !== host) {
-          return NextResponse.json({ error: "허용되지 않은 요청 출처입니다." }, { status: 403 });
-        }
-      } catch {
-        return NextResponse.json({ error: "요청 출처 정보가 올바르지 않습니다." }, { status: 403 });
-      }
+    if (origin && host && !isAllowedOrigin(origin, host)) {
+      return NextResponse.json({ error: "허용되지 않은 요청 출처입니다." }, { status: 403 });
     }
 
     const clientIp = getClientIp(request);
@@ -462,6 +490,21 @@ export async function POST(request: NextRequest) {
         if (!response.ok) {
           lastErrorMessage = data.error?.message || `Gemini 요청 실패 (${model})`;
           console.error("[gemini-analysis] model failed", { model, attempt, error: lastErrorMessage });
+          if (isQuotaExceededError(lastErrorMessage)) {
+            const retryAfter = parseRetryAfterSeconds(lastErrorMessage) ?? 10;
+            return NextResponse.json(
+              {
+                error: `Gemini 쿼터가 초과되었습니다. 약 ${retryAfter}초 후 다시 시도해 주세요.`,
+                code: "quota_exceeded",
+              },
+              {
+                status: 429,
+                headers: {
+                  "Retry-After": String(retryAfter),
+                },
+              },
+            );
+          }
           break;
         }
 

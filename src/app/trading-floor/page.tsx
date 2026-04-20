@@ -57,6 +57,12 @@ type UsEventItem = {
   impact?: string;
   country?: string;
 };
+type IndicatorVisibility = {
+  ma5: boolean;
+  ma20: boolean;
+  ma60: boolean;
+  bollinger: boolean;
+};
 
 const DEFAULT_SELECTED_LIMIT = 20;
 const RECONNECT_BASE_MS = 1000;
@@ -290,6 +296,13 @@ export default function TradingFloorPage() {
   const [detailSymbol, setDetailSymbol] = useState<BybitSymbol | null>(null);
   const [klineInterval, setKlineInterval] = useState<KlineInterval>("15");
   const [isIntervalDropdownOpen, setIsIntervalDropdownOpen] = useState(false);
+  const [isIndicatorDropdownOpen, setIsIndicatorDropdownOpen] = useState(false);
+  const [indicatorVisibility, setIndicatorVisibility] = useState<IndicatorVisibility>({
+    ma5: true,
+    ma20: true,
+    ma60: true,
+    bollinger: true,
+  });
   const [klineData, setKlineData] = useState<CandlePoint[]>([]);
   const [liveSecondCloses, setLiveSecondCloses] = useState<Array<{ timestamp: number; close: number }>>([]);
   const [isKlineLoading, setIsKlineLoading] = useState(false);
@@ -792,6 +805,7 @@ export default function TradingFloorPage() {
 
   useEffect(() => {
     setIsIntervalDropdownOpen(false);
+    setIsIndicatorDropdownOpen(false);
   }, [klineInterval, detailSymbol]);
 
   const handleToggleSymbol = (symbol: string) => {
@@ -916,6 +930,7 @@ export default function TradingFloorPage() {
     const nextUsageCount = latestUsageCount + 1;
     writeAiDailyUsageCount(nextUsageCount);
     setAiDailyUsageCount(nextUsageCount);
+    let usageReserved = true;
 
     setIsAiLoading(true);
     setAiError(null);
@@ -936,14 +951,40 @@ export default function TradingFloorPage() {
           candles: klineData.slice(-120),
         }),
       });
-      const data = (await response.json()) as { analysis?: string; error?: string };
+      let data: { analysis?: string; error?: string } = {};
+      try {
+        data = (await response.json()) as { analysis?: string; error?: string };
+      } catch {
+        data = {};
+      }
       if (!response.ok) {
-        console.error("[ai-analysis] request failed", { status: response.status, error: data.error });
-        throw new Error(data.error || "분석 요청 실패");
+        console.error("[ai-analysis] request failed", {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+        });
+        if (usageReserved) {
+          writeAiDailyUsageCount(latestUsageCount);
+          setAiDailyUsageCount(latestUsageCount);
+          usageReserved = false;
+        }
+        const fallbackMessage =
+          response.status === 429
+            ? "요청이 많거나 외부 AI 쿼터가 초과되었습니다. 잠시 후 다시 시도해 주세요."
+            : response.status === 403
+              ? "요청 출처 검증에 실패했습니다. 새로고침 후 다시 시도해 주세요."
+              : response.status === 503
+                ? "AI 분석 기능이 현재 비활성화되어 있습니다."
+                : "분석 요청 실패";
+        throw new Error(data.error || fallbackMessage);
       }
       console.log("[ai-analysis] request success", { length: data.analysis?.length ?? 0 });
       setAiAnalysis(data.analysis || "");
     } catch (error) {
+      if (usageReserved) {
+        writeAiDailyUsageCount(latestUsageCount);
+        setAiDailyUsageCount(latestUsageCount);
+      }
       setAiAnalysis("");
       setAiError(error instanceof Error ? error.message : "분석 중 오류가 발생했습니다.");
       console.error("[ai-analysis] unexpected error", error);
@@ -974,7 +1015,6 @@ export default function TradingFloorPage() {
       { period: 60, color: "rgb(248 113 113)", points: calculateMovingAverage(displayKlineData, 60) },
     ];
   }, [displayKlineData]);
-
   const maPaths = useMemo(() => {
     if (displayKlineData.length < 2) return [];
     const allValues = [
@@ -1005,6 +1045,17 @@ export default function TradingFloorPage() {
       };
     });
   }, [displayKlineData, maSeriesList]);
+
+  const visibleMaPaths = useMemo(
+    () =>
+      maPaths.filter((ma) => {
+        if (ma.period === 5) return indicatorVisibility.ma5;
+        if (ma.period === 20) return indicatorVisibility.ma20;
+        if (ma.period === 60) return indicatorVisibility.ma60;
+        return true;
+      }),
+    [maPaths, indicatorVisibility],
+  );
 
   const bollingerPaths = useMemo(() => {
     if (displayKlineData.length < 20) return { upper: "", lower: "" };
@@ -1156,8 +1207,12 @@ export default function TradingFloorPage() {
               <span className="ml-3 shrink-0 text-slate-400">{isFilterOpen ? "닫기" : "열기"}</span>
             </button>
 
-            {isFilterOpen && (
-              <div className="mt-2 rounded-xl border border-slate-700 bg-slate-950 p-3 shadow-2xl">
+            <div
+              className={`mt-2 overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-2xl transition-all duration-300 ease-out ${
+                isFilterOpen ? "max-h-[560px] translate-y-0 p-3 opacity-100" : "max-h-0 -translate-y-1 p-0 opacity-0"
+              }`}
+            >
+              <div className={isFilterOpen ? "block" : "pointer-events-none"}>
                 <input
                   value={filterQuery}
                   onChange={(event) => setFilterQuery(event.target.value)}
@@ -1218,7 +1273,7 @@ export default function TradingFloorPage() {
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -1580,8 +1635,14 @@ export default function TradingFloorPage() {
                         <span className="text-slate-400">{isIntervalDropdownOpen ? "닫기" : "열기"}</span>
                       </button>
 
-                      {isIntervalDropdownOpen && (
-                        <div className="absolute left-0 right-0 z-20 mt-1 max-h-56 overflow-y-auto rounded-md border border-slate-700 bg-slate-950 p-1 shadow-xl">
+                      <div
+                        className={`absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-slate-700 bg-slate-950 shadow-xl transition-all duration-300 ease-out ${
+                          isIntervalDropdownOpen
+                            ? "max-h-56 translate-y-0 p-1 opacity-100"
+                            : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
+                        }`}
+                      >
+                        <div className={`overflow-y-auto ${isIntervalDropdownOpen ? "max-h-56" : "max-h-0"}`}>
                           {KLINE_INTERVAL_OPTIONS.map((option) => (
                             <button
                               key={option.value}
@@ -1597,7 +1658,7 @@ export default function TradingFloorPage() {
                             </button>
                           ))}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
 
@@ -1617,6 +1678,103 @@ export default function TradingFloorPage() {
                           {option.label}
                         </button>
                       ))}
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsIndicatorDropdownOpen((prev) => !prev)}
+                      className="flex w-full items-center justify-between rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-left text-sm text-slate-100"
+                    >
+                      <span>지표 선택</span>
+                      <span className="text-slate-400">{isIndicatorDropdownOpen ? "닫기" : "열기"}</span>
+                    </button>
+                    <div
+                      className={`mt-1 overflow-hidden rounded-md border border-slate-700 bg-slate-950 shadow-xl transition-all duration-300 ease-out ${
+                        isIndicatorDropdownOpen
+                          ? "max-h-[420px] translate-y-0 p-1 opacity-100"
+                          : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <label className="block rounded px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">
+                          <span className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={indicatorVisibility.ma5}
+                              onChange={(event) =>
+                                setIndicatorVisibility((prev) => ({
+                                  ...prev,
+                                  ma5: event.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+                            />
+                            MA5
+                          </span>
+                          <p className="mt-1 pl-6 text-xs leading-5 text-slate-400">
+                            최근 5개 봉 평균 가격으로 단기 흐름을 빠르게 보여줍니다.
+                          </p>
+                        </label>
+                        <label className="block rounded px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">
+                          <span className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={indicatorVisibility.ma20}
+                              onChange={(event) =>
+                                setIndicatorVisibility((prev) => ({
+                                  ...prev,
+                                  ma20: event.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+                            />
+                            MA20
+                          </span>
+                          <p className="mt-1 pl-6 text-xs leading-5 text-slate-400">
+                            최근 20개 봉 평균 가격으로 중단기 추세와 눌림/이탈 기준으로 자주 사용됩니다.
+                          </p>
+                        </label>
+                        <label className="block rounded px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">
+                          <span className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={indicatorVisibility.ma60}
+                              onChange={(event) =>
+                                setIndicatorVisibility((prev) => ({
+                                  ...prev,
+                                  ma60: event.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+                            />
+                            MA60
+                          </span>
+                          <p className="mt-1 pl-6 text-xs leading-5 text-slate-400">
+                            최근 60개 봉 평균 가격으로 더 큰 방향성(중기 추세)을 확인할 때 참고합니다.
+                          </p>
+                        </label>
+                        <label className="block rounded px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">
+                          <span className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={indicatorVisibility.bollinger}
+                              onChange={(event) =>
+                                setIndicatorVisibility((prev) => ({
+                                  ...prev,
+                                  bollinger: event.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+                            />
+                            Bollinger(20,2)
+                          </span>
+                          <p className="mt-1 pl-6 text-xs leading-5 text-slate-400">
+                            20기간 평균선 기준 표준편차 2배 상/하단 밴드로 변동성 확대/수축과 과열·과매도 구간을 봅니다.
+                          </p>
+                        </label>
+                      </div>
                     </div>
                   </div>
 
@@ -1680,7 +1838,7 @@ export default function TradingFloorPage() {
                           strokeWidth="1"
                         />
                         <path d={chartPath} fill="none" stroke="rgb(56 189 248)" strokeWidth="2.5" />
-                        {bollingerPaths.upper && (
+                        {indicatorVisibility.bollinger && bollingerPaths.upper && (
                           <path
                             d={bollingerPaths.upper}
                             fill="none"
@@ -1690,7 +1848,7 @@ export default function TradingFloorPage() {
                             opacity="0.95"
                           />
                         )}
-                        {bollingerPaths.lower && (
+                        {indicatorVisibility.bollinger && bollingerPaths.lower && (
                           <path
                             d={bollingerPaths.lower}
                             fill="none"
@@ -1700,38 +1858,25 @@ export default function TradingFloorPage() {
                             opacity="0.95"
                           />
                         )}
-                        {maPaths.map((ma) =>
+                        {visibleMaPaths.map((ma) =>
                           ma.d ? (
                             <path key={ma.period} d={ma.d} fill="none" stroke={ma.color} strokeWidth="1.7" opacity="0.95" />
                           ) : null,
                         )}
                       </svg>
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-300">
-                        {maPaths.map((ma) => (
+                        {visibleMaPaths.map((ma) => (
                           <span key={`legend-${ma.period}`} className="inline-flex items-center gap-1.5">
                             <span className="inline-block h-1.5 w-4 rounded-full" style={{ backgroundColor: ma.color }} />
                             MA{ma.period}
                           </span>
                         ))}
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="inline-block h-1.5 w-4 rounded-full bg-purple-300" />
-                          Bollinger(20,2)
-                        </span>
-                      </div>
-                      <div className="mt-2 text-xs leading-5 text-slate-400">
-                        <p>
-                          MA5: 최근 5개 봉 평균 가격으로 단기 흐름을 빠르게 보여줍니다.
-                        </p>
-                        <p>
-                          MA20: 최근 20개 봉 평균 가격으로 중단기 추세와 눌림/이탈 기준으로 자주 사용됩니다.
-                        </p>
-                        <p>
-                          MA60: 최근 60개 봉 평균 가격으로 더 큰 방향성(중기 추세)을 확인할 때 참고합니다.
-                        </p>
-                        <p>
-                          Bollinger(20,2): 20기간 평균선 기준으로 표준편차 2배 상/하단 밴드를 표시해 변동성 확대/수축과
-                          과열·과매도 구간 판단에 활용합니다.
-                        </p>
+                        {indicatorVisibility.bollinger && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="inline-block h-1.5 w-4 rounded-full bg-purple-300" />
+                            Bollinger(20,2)
+                          </span>
+                        )}
                       </div>
                       <div className="mt-3 border-t border-slate-800 pt-3">
                         <p className="mb-1 text-xs text-slate-400">RSI(14)</p>
