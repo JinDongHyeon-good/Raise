@@ -310,6 +310,7 @@ export default function TradingFloorPage() {
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [isAiCopied, setIsAiCopied] = useState(false);
   const [aiDailyUsageCount, setAiDailyUsageCount] = useState(0);
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsError, setNewsError] = useState<string | null>(null);
@@ -836,6 +837,7 @@ export default function TradingFloorPage() {
 
     const normalizedInterval = klineInterval === "1s" ? "1" : klineInterval;
     let isInitialFetch = true;
+    let hasSuccessfulFetch = false;
 
     const fetchKline = async () => {
       try {
@@ -854,6 +856,8 @@ export default function TradingFloorPage() {
           throw new Error("차트 데이터 형식이 올바르지 않습니다.");
         }
         if (!cancelled) {
+          hasSuccessfulFetch = true;
+          setKlineError(null);
           setKlineData(
             data.candles.map((c) => ({
               timestamp: c.timestamp,
@@ -867,8 +871,13 @@ export default function TradingFloorPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          setKlineError(error instanceof Error ? error.message : "차트 조회 실패");
-          setKlineData([]);
+          // 초기 진입에서만 에러를 노출하고, 이후 주기 갱신 실패는 기존 차트를 유지한다.
+          if (isInitialFetch && !hasSuccessfulFetch) {
+            setKlineError(error instanceof Error ? error.message : "차트 조회 실패");
+            setKlineData([]);
+          } else {
+            console.warn("[kline] transient fetch failure, keeping previous chart", error);
+          }
         }
       } finally {
         if (!cancelled) {
@@ -1002,6 +1011,18 @@ export default function TradingFloorPage() {
       console.error("[ai-analysis] unexpected error", error);
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  const handleCopyAiAnalysis = async () => {
+    if (!aiAnalysis.trim()) return;
+    try {
+      await navigator.clipboard.writeText(aiAnalysis);
+      setIsAiCopied(true);
+      window.setTimeout(() => setIsAiCopied(false), 1400);
+    } catch (error) {
+      console.error("[ai-analysis] copy failed", error);
+      setAiError("복사에 실패했습니다. 다시 시도해 주세요.");
     }
   };
 
@@ -2082,14 +2103,23 @@ export default function TradingFloorPage() {
                           <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                           <p className="text-xs font-medium tracking-wide text-slate-300">AI REPORT</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleAnalyzeClick}
-                          disabled={isAiLimitReached}
-                          className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 transition hover:brightness-110"
-                        >
-                          {isAiLimitReached ? "오늘 사용 한도 도달" : `${selectedIntervalLabel} 기준 다시 분석하기`}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCopyAiAnalysis}
+                            className="rounded-md border border-slate-600 bg-slate-900/70 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-slate-400"
+                          >
+                            {isAiCopied ? "복사됨" : "복사하기"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleAnalyzeClick}
+                            disabled={isAiLimitReached}
+                            className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 transition hover:brightness-110"
+                          >
+                            {isAiLimitReached ? "오늘 사용 한도 도달" : `${selectedIntervalLabel} 기준 다시 분석하기`}
+                          </button>
+                        </div>
                       </div>
                       <div className="space-y-3">
                         {analysisSections.map((section, idx) => (
@@ -2120,7 +2150,7 @@ export default function TradingFloorPage() {
                                     return (
                                       <p
                                         key={`${idx}-${itemIdx}`}
-                                        className="mt-2 break-words pl-2 font-semibold text-sky-100"
+                                        className="mt-2 break-words pl-4 font-semibold text-sky-100"
                                       >
                                         {bulletLabelOnlyMatch[1]}
                                       </p>
@@ -2131,9 +2161,10 @@ export default function TradingFloorPage() {
                                     return (
                                       <p
                                         key={`${idx}-${itemIdx}`}
-                                        className="mt-2 break-words pl-2 text-slate-100"
+                                        className="mt-2 break-words pl-6 text-slate-100"
                                       >
                                         <span className="mr-1 font-semibold text-sky-100">{bulletLabelDescMatch[1]}</span>
+                                        <span className="mr-1 text-slate-300">•</span>
                                         <span>{bulletLabelDescMatch[2]}</span>
                                       </p>
                                     );
@@ -2141,7 +2172,7 @@ export default function TradingFloorPage() {
 
                                   if (isBullet) {
                                     return (
-                                      <p key={`${idx}-${itemIdx}`} className="break-words pl-5 text-slate-200">
+                                      <p key={`${idx}-${itemIdx}`} className="break-words pl-7 text-slate-200">
                                         • {bulletText}
                                       </p>
                                     );

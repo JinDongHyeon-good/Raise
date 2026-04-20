@@ -8,6 +8,7 @@ const RATE_LIMIT_MAX_REQUESTS = 8;
 const CACHE_TTL_MS = 30 * 1000;
 const GEMINI_HTTP_TIMEOUT_MS = 60000;
 const GEMINI_TOTAL_BUDGET_MS = 90000;
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
 const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();
@@ -45,10 +46,10 @@ function normalizeModelName(name: string) {
 }
 
 function sanitizePreferredModel(raw?: string) {
-  if (!raw) return "gemini-3.1-pro-preview";
+  if (!raw) return DEFAULT_GEMINI_MODEL;
   const trimmed = raw.trim().replace(/^['"]|['"]$/g, "");
   const normalized = normalizeModelName(trimmed);
-  return normalized || "gemini-3.1-pro-preview";
+  return normalized || DEFAULT_GEMINI_MODEL;
 }
 
 function sanitizeApiKey(raw?: string) {
@@ -302,7 +303,7 @@ export async function POST(request: NextRequest) {
     }
 
     const apiKey = sanitizeApiKey(process.env.GEMINI_API_KEY);
-    const preferredModel = sanitizePreferredModel(process.env.GEMINI_MODEL);
+    const preferredModel = sanitizePreferredModel(DEFAULT_GEMINI_MODEL);
     if (!apiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
     }
