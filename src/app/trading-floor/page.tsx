@@ -1195,8 +1195,6 @@ export default function TradingFloorPage() {
                 className="h-8 w-8 rounded-full border border-slate-700 object-cover sm:h-10 sm:w-10"
               />
             </h1>
-            <p className="text-xs text-slate-400 sm:text-sm">명심하라 서울역 가던가 시그니엘 가던가 우리에게 중간은 없다.</p>
-            <div className="mt-1 h-px w-full bg-gradient-to-r from-sky-400/50 via-violet-400/30 to-transparent" />
           </div>
         </div>
 
