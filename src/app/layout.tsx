@@ -24,8 +24,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: {
-    default: "jjindong Trading",
-    template: "%s | jjindong Trading",
+    default: "JJINDONG",
+    template: "%s | JJINDONG",
   },
   description: "아직도 선물거래 감으로 하시나요? 전문 트레이딩 AI를 통해 이제 근거 있게 매매하세요.",
   keywords: [
@@ -55,10 +55,10 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "JJINDONG TRADING",
+    title: "JJINDONG",
     description: "아직도 선물거래 감으로 하시나요? 전문 트레이딩 AI를 통해 이제 근거 있게 매매하세요.",
     url: "/",
-    siteName: "JJINDONG TRADING",
+    siteName: "JJINDONG",
     locale: "ko_KR",
     type: "website",
     images: [
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "JJINDONG TRADING",
+    title: "JJINDONG",
     description: "아직도 선물거래 감으로 하시나요? 전문 트레이딩 AI를 통해 이제 근거 있게 매매하세요.",
     images: ["https://auth.moast.ai/storage/v1/object/public/moast/temp/doge.jpg"],
   },

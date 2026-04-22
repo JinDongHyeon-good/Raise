@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 type MarketTab = "spot" | "linear";
 type FloorTab = "market" | "news" | "board";
@@ -224,6 +225,22 @@ function extractDateKey(raw?: string) {
   return `${match[1]}-${match[2]}-${match[3]}`;
 }
 
+function getDefaultNicknameFromSessionUser(user: { email?: string; user_metadata?: Record<string, unknown> } | null) {
+  if (!user) return "트레이더";
+  const userMeta = user.user_metadata ?? {};
+  const displayName =
+    (typeof userMeta.display_name === "string" && userMeta.display_name.trim()) ||
+    (typeof userMeta.full_name === "string" && userMeta.full_name.trim()) ||
+    (typeof userMeta.name === "string" && userMeta.name.trim()) ||
+    (typeof userMeta.user_name === "string" && userMeta.user_name.trim()) ||
+    (typeof userMeta.nickname === "string" && userMeta.nickname.trim()) ||
+    (typeof userMeta.preferred_username === "string" && userMeta.preferred_username.trim()) ||
+    "";
+  if (displayName) return displayName;
+  if (user.email) return user.email.split("@")[0] || "트레이더";
+  return "트레이더";
+}
+
 function calculateMovingAverage(data: CandlePoint[], period: number) {
   return data.map((_, index) => {
     if (index < period - 1) return null;
@@ -324,6 +341,16 @@ export default function TradingFloorPage() {
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const [isFilterInfoOpen, setIsFilterInfoOpen] = useState(false);
   const [isFilterInfoHovered, setIsFilterInfoHovered] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [nicknameDraft, setNicknameDraft] = useState("");
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [isNicknameSaving, setIsNicknameSaving] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -332,8 +359,84 @@ export default function TradingFloorPage() {
   const tickerBufferRef = useRef<Record<string, TickerPatch>>({});
   const flushTimerRef = useRef<number | null>(null);
   const filterPanelRef = useRef<HTMLDivElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const detailPriceRef = useRef<number | null>(null);
   const latestKlineCloseRef = useRef<number | null>(null);
+
+  const ensureUserProfile = async (
+    user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null,
+    options?: { openModalIfMissing?: boolean },
+  ) => {
+    if (!user) {
+      setIsNicknameModalOpen(false);
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase.from("USER_MST").select("auth_id, nickname").eq("auth_id", user.id).maybeSingle();
+
+    if (error) {
+      console.error("[user-profile] fetch failed", error);
+      return;
+    }
+
+    if (data?.auth_id) {
+      setIsNicknameModalOpen(false);
+      return;
+    }
+
+    const defaultNickname = getDefaultNicknameFromSessionUser(user);
+    setNicknameDraft(defaultNickname);
+    if (options?.openModalIfMissing !== false) {
+      setNicknameError(null);
+      setIsNicknameModalOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const supabase = getSupabaseBrowserClient();
+
+    const syncAuthState = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      const sessionUser = data.session?.user ?? null;
+      setIsLoggedIn(Boolean(sessionUser));
+      setUserAvatarUrl(
+        (sessionUser?.user_metadata?.avatar_url as string | undefined) ??
+          (sessionUser?.user_metadata?.picture as string | undefined) ??
+          null,
+      );
+      await ensureUserProfile(
+        sessionUser
+          ? { id: sessionUser.id, email: sessionUser.email, user_metadata: sessionUser.user_metadata as Record<string, unknown> }
+          : null,
+      );
+    };
+
+    syncAuthState();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const sessionUser = session?.user ?? null;
+      setIsLoggedIn(Boolean(sessionUser));
+      setUserAvatarUrl(
+        (sessionUser?.user_metadata?.avatar_url as string | undefined) ??
+          (sessionUser?.user_metadata?.picture as string | undefined) ??
+          null,
+      );
+      setIsUserMenuOpen(false);
+      await ensureUserProfile(
+        sessionUser
+          ? { id: sessionUser.id, email: sessionUser.email, user_metadata: sessionUser.user_metadata as Record<string, unknown> }
+          : null,
+      );
+    });
+
+    return () => {
+      mounted = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -399,6 +502,9 @@ export default function TradingFloorPage() {
       if (!filterPanelRef.current) return;
       if (!filterPanelRef.current.contains(event.target as Node)) {
         setIsFilterOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
       }
     };
 
@@ -829,6 +935,45 @@ export default function TradingFloorPage() {
     });
   };
 
+  const handleOpenAnalysisModal = async (symbol: BybitSymbol) => {
+    if (!isLoggedIn) {
+      setAuthError(null);
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const userResult = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise<{
+          data: { user: null };
+          error: Error;
+        }>((resolve) =>
+          window.setTimeout(
+            () => resolve({ data: { user: null }, error: new Error("로그인 확인 시간이 초과되었습니다.") }),
+            3500,
+          ),
+        ),
+      ]);
+      const { data, error } = userResult;
+      if (error) {
+        setAuthError(null);
+        setIsAuthModalOpen(true);
+        return;
+      }
+      if (!data.user) {
+        setAuthError(null);
+        setIsAuthModalOpen(true);
+        return;
+      }
+      setDetailSymbol(symbol);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "로그인 상태 확인 중 오류가 발생했습니다.");
+      setIsAuthModalOpen(true);
+    }
+  };
+
   useEffect(() => {
     if (!detailSymbol) return;
     let cancelled = false;
@@ -928,6 +1073,42 @@ export default function TradingFloorPage() {
   }, [klineData, klineInterval, liveSecondCloses]);
 
   const handleAnalyzeClick = async () => {
+    if (!isLoggedIn) {
+      setAuthError(null);
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const userResult = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise<{
+          data: { user: null };
+          error: Error;
+        }>((resolve) =>
+          window.setTimeout(
+            () => resolve({ data: { user: null }, error: new Error("로그인 확인 시간이 초과되었습니다.") }),
+            3500,
+          ),
+        ),
+      ]);
+      const { data, error } = userResult;
+      if (error) {
+        setAuthError(null);
+        setIsAuthModalOpen(true);
+        return;
+      }
+      if (!data.user) {
+        setAuthError(null);
+        setIsAuthModalOpen(true);
+        return;
+      }
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "로그인 상태 확인 중 오류가 발생했습니다.");
+      return;
+    }
+
     const latestUsageCount = readAiDailyUsageCount();
     if (latestUsageCount >= AI_DAILY_LIMIT) {
       setAiDailyUsageCount(latestUsageCount);
@@ -1011,6 +1192,81 @@ export default function TradingFloorPage() {
       console.error("[ai-analysis] unexpected error", error);
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setAuthError(null);
+    setIsAuthLoading(true);
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      callbackUrl.searchParams.set("next", "/");
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Google 로그인 요청에 실패했습니다.");
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      setIsUserMenuOpen(false);
+      setIsLoggedIn(false);
+      setUserAvatarUrl(null);
+      setIsNicknameModalOpen(false);
+      window.location.href = "/";
+    } catch {
+      setIsUserMenuOpen(false);
+    }
+  };
+
+  const saveUserNickname = async (nicknameInput?: string) => {
+    try {
+      setIsNicknameSaving(true);
+      setNicknameError(null);
+      const supabase = getSupabaseBrowserClient();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.user) {
+        throw new Error("로그인 세션을 확인할 수 없습니다.");
+      }
+
+      const user = sessionData.session.user;
+      const fallbackNickname = getDefaultNicknameFromSessionUser({
+        email: user.email,
+        user_metadata: user.user_metadata as Record<string, unknown>,
+      });
+      const isSkipped = nicknameInput !== undefined;
+      const finalNickname = isSkipped ? fallbackNickname : nicknameDraft.trim() || fallbackNickname;
+
+      const { error } = await supabase.from("USER_MST").upsert(
+        {
+          auth_id: user.id,
+          nickname: finalNickname,
+        },
+        { onConflict: "auth_id" },
+      );
+      if (error) throw error;
+
+      setNicknameDraft(finalNickname);
+      setIsNicknameModalOpen(false);
+    } catch (error) {
+      setNicknameError(error instanceof Error ? error.message : "닉네임 저장 중 오류가 발생했습니다.");
+    } finally {
+      setIsNicknameSaving(false);
     }
   };
 
@@ -1180,23 +1436,82 @@ export default function TradingFloorPage() {
   }, [klineData]);
 
   return (
-    <main className="trading-floor-page relative min-h-dvh overflow-hidden bg-slate-950 px-3 py-8 text-slate-100 sm:px-6 sm:py-12">
+    <main className="trading-floor-page relative min-h-dvh overflow-hidden bg-slate-950 px-0 py-0 text-slate-100 sm:px-0 sm:py-0">
       <div className="trading-floor-stars" />
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-6 sm:gap-6 sm:px-6 sm:py-8">
+        <header className="sticky top-0 z-[220] -mx-3 -mt-6 overflow-visible border-b border-slate-800/90 bg-slate-950/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:-mt-8 sm:px-6">
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-sky-500/20 blur-3xl" />
           <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-fuchsia-500/20 blur-2xl" />
-          <div className="relative z-10 flex flex-col gap-2">
-            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-4xl">
-              <span>JJINDONG TRADING</span>
+          <div className="relative z-10 flex items-start justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => (window.location.href = "/")}
+              className="flex cursor-pointer items-center gap-2 text-lg font-bold tracking-tight transition hover:text-sky-200 sm:text-2xl"
+            >
+              <span>JJINDONG</span>
               <img
                 src="/doge.png"
                 alt="Doge"
                 className="h-8 w-8 rounded-full border border-slate-700 object-cover sm:h-10 sm:w-10"
               />
-            </h1>
+            </button>
+            <div ref={userMenuRef} className="relative shrink-0">
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  aria-label="사용자 메뉴 열기"
+                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  className="group relative h-10 w-10 overflow-hidden rounded-full border border-slate-600 bg-slate-900 transition hover:border-sky-400"
+                >
+                  {userAvatarUrl ? (
+                    <img src={userAvatarUrl} alt="Google avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="inline-flex h-full w-full items-center justify-center text-xs font-semibold text-slate-200">
+                      USER
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthError(null);
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-[11px] font-semibold text-slate-100 transition hover:border-sky-400 hover:text-white"
+                >
+                  Login
+                </button>
+              )}
+
+              <div
+                className={`absolute right-0 top-12 z-[120] w-40 overflow-hidden rounded-xl border border-slate-700 bg-slate-950/95 shadow-xl transition-all duration-300 ease-out ${
+                  isLoggedIn && isUserMenuOpen
+                    ? "max-h-40 translate-y-0 p-1.5 opacity-100"
+                    : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                      window.location.href = "/mypage";
+                  }}
+                  className="w-full rounded-md px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-slate-800"
+                >
+                  마이페이지
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="mt-1 w-full rounded-md px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-slate-800"
+                >
+                  로그아웃
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </header>
 
         <div className="relative inline-flex w-full rounded-2xl border border-slate-700 bg-slate-900/80 p-1">
           <span
@@ -1405,7 +1720,13 @@ export default function TradingFloorPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setDetailSymbol({ symbol: row.symbol, baseCoin: row.baseCoin, quoteCoin: row.quoteCoin })}
+                        onClick={() =>
+                          handleOpenAnalysisModal({
+                            symbol: row.symbol,
+                            baseCoin: row.baseCoin,
+                            quoteCoin: row.quoteCoin,
+                          })
+                        }
                         className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-2.5 py-1 text-xs font-semibold text-white shadow-md shadow-violet-900/40 transition hover:scale-[1.03] hover:brightness-110"
                       >
                         AI 분석하기
@@ -1459,7 +1780,13 @@ export default function TradingFloorPage() {
                       <td className="px-4 py-3 text-center">
                         <button
                           type="button"
-                          onClick={() => setDetailSymbol({ symbol: row.symbol, baseCoin: row.baseCoin, quoteCoin: row.quoteCoin })}
+                          onClick={() =>
+                            handleOpenAnalysisModal({
+                              symbol: row.symbol,
+                              baseCoin: row.baseCoin,
+                              quoteCoin: row.quoteCoin,
+                            })
+                          }
                           className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 transition hover:scale-[1.03] hover:brightness-110"
                         >
                           AI 분석하기
@@ -2247,6 +2574,129 @@ export default function TradingFloorPage() {
           />
         </svg>
       </button>
+
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-[300] flex items-end justify-center px-0 sm:items-center sm:px-4">
+          <div className="relative w-full max-w-full overflow-hidden rounded-t-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:max-w-sm sm:rounded-3xl">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-sky-500/15 blur-3xl" />
+            <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-fuchsia-500/10 blur-2xl" />
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-600/70 sm:hidden" />
+
+            <button
+              type="button"
+              aria-label="로그인 모달 닫기"
+              onClick={() => {
+                setIsAuthModalOpen(false);
+                setAuthError(null);
+                setIsAuthLoading(false);
+              }}
+              className="absolute right-4 top-4 z-20 grid h-9 w-9 place-items-center rounded-full border border-slate-600/80 bg-slate-900/85 p-0 text-slate-300 leading-none transition hover:border-slate-400 hover:text-white"
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true" className="pointer-events-none h-4 w-4">
+                <path
+                  d="M5 5l10 10M15 5L5 15"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+
+            <div className="relative z-10">
+              <h2 className="text-center text-2xl font-semibold tracking-tight text-white">Login</h2>
+              <p className="mt-2 text-center text-sm leading-6 text-slate-300">
+                지금 시작하고, AI 차트 분석과 포지션 인사이트를
+                <br />
+                무료로 가장 먼저 받아보세요.
+              </p>
+
+              {authError && (
+                <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{authError}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isAuthLoading}
+                className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-black/20 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+                  <path
+                    d="M21.35 12.2c0-.72-.06-1.25-.2-1.8H12v3.4h5.37c-.1.84-.66 2.1-1.9 2.95l-.02.11 2.76 2.13.19.02c1.73-1.6 2.95-3.95 2.95-6.81Z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 21.7c2.63 0 4.84-.87 6.45-2.37l-3.08-2.38c-.83.58-1.95.99-3.37.99-2.57 0-4.74-1.69-5.52-4.02l-.11.01-2.86 2.22-.04.1C5.08 19.44 8.29 21.7 12 21.7Z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M6.48 13.92A5.8 5.8 0 0 1 6.16 12c0-.67.11-1.32.3-1.92l-.01-.13-2.9-2.25-.09.04A9.72 9.72 0 0 0 2.3 12c0 1.55.37 3.02 1.15 4.26l3.03-2.34Z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 6.06c1.8 0 3.01.78 3.7 1.44l2.7-2.63C16.83 3.4 14.63 2.3 12 2.3c-3.71 0-6.92 2.25-8.55 5.44l3 2.34C7.25 7.75 9.43 6.06 12 6.06Z"
+                    fill="#EA4335"
+                  />
+                </svg>
+                <span>{isAuthLoading ? "Google로 이동 중..." : "Google로 가입/로그인"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isNicknameModalOpen && (
+        <div className="fixed inset-0 z-[320] flex items-end justify-center px-0 sm:items-center sm:px-4">
+          <div className="relative w-full max-w-full overflow-hidden rounded-t-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:max-w-sm sm:rounded-3xl">
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-600/70 sm:hidden" />
+            <p className="text-center text-lg font-extrabold tracking-wide text-sky-300 sm:text-xl">WELCOME!!</p>
+            <p className="mt-2 text-center text-sm text-slate-300">
+              가입을 환영합니다! 닉네임을 입력해 주세요
+              <br />
+              닉네임을 설정하지 않으면 구글 표시이름으로 세팅되며
+              <br />
+              마이페이에서 수정 가능합니다.
+            </p>
+
+            <div className="mt-5">
+              <label htmlFor="welcome-nickname-input" className="mb-1 block text-xs text-slate-400">
+                닉네임 설정
+              </label>
+              <input
+                id="welcome-nickname-input"
+                value={nicknameDraft}
+                onChange={(event) => setNicknameDraft(event.target.value)}
+                placeholder="닉네임 입력"
+                maxLength={30}
+                className="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400"
+              />
+              {nicknameError && (
+                <p className="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{nicknameError}</p>
+              )}
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => saveUserNickname()}
+                disabled={isNicknameSaving}
+                className="rounded-lg bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isNicknameSaving ? "저장 중..." : "저장"}
+              </button>
+              <button
+                type="button"
+                onClick={() => saveUserNickname("")}
+                disabled={isNicknameSaving}
+                className="rounded-lg border border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                건너뛰기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
