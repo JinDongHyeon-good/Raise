@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { Toaster, toast } from "react-hot-toast";
 
 type UserMstRow = {
@@ -109,6 +110,13 @@ export default function MyPage() {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData.session?.user) {
         throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
+      }
+
+      const uid = sessionData.session.user.id;
+      const taken = await isNicknameTakenByOther(supabase, trimmed, uid);
+      if (taken) {
+        toast.error("이미 사용 중인 닉네임입니다.", { position: "top-right" });
+        return;
       }
 
       const { error } = await supabase

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { isNicknameTakenByOther, resolveUniqueNicknameCandidate } from "@/lib/nickname-duplicate";
 
 type MarketTab = "spot" | "linear";
 type FloorTab = "market" | "news" | "board";
@@ -393,6 +394,34 @@ export default function TradingFloorPage() {
     }
   };
 
+  const resolveSessionUser = async () => {
+    const supabase = getSupabaseBrowserClient();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    if (sessionError) console.warn("[auth] getSession", sessionError);
+    let user = session?.user ?? null;
+    if (user) {
+      setIsLoggedIn(true);
+      return user;
+    }
+
+    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) console.warn("[auth] refreshSession", refreshError);
+    user = refreshed.session?.user ?? null;
+    if (user) {
+      setIsLoggedIn(true);
+      return user;
+    }
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) console.warn("[auth] getUser", userError);
+    user = userData.user ?? null;
+    setIsLoggedIn(Boolean(user));
+    return user;
+  };
+
   useEffect(() => {
     let mounted = true;
     const supabase = getSupabaseBrowserClient();
@@ -437,6 +466,29 @@ export default function TradingFloorPage() {
       subscription.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!isNicknameModalOpen) return;
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user?.id;
+      if (!uid || cancelled) return;
+      const nick = nicknameDraft.trim();
+      if (!nick) {
+        if (!cancelled) setNicknameError(null);
+        return;
+      }
+      const taken = await isNicknameTakenByOther(supabase, nick, uid);
+      if (cancelled) return;
+      setNicknameError(taken ? "이미 사용 중인 닉네임입니다." : null);
+    }, 450);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [nicknameDraft, isNicknameModalOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -936,40 +988,16 @@ export default function TradingFloorPage() {
   };
 
   const handleOpenAnalysisModal = async (symbol: BybitSymbol) => {
-    if (!isLoggedIn) {
-      setAuthError(null);
-      setIsAuthModalOpen(true);
-      return;
-    }
-
     try {
-      const supabase = getSupabaseBrowserClient();
-      const userResult = await Promise.race([
-        supabase.auth.getUser(),
-        new Promise<{
-          data: { user: null };
-          error: Error;
-        }>((resolve) =>
-          window.setTimeout(
-            () => resolve({ data: { user: null }, error: new Error("로그인 확인 시간이 초과되었습니다.") }),
-            3500,
-          ),
-        ),
-      ]);
-      const { data, error } = userResult;
-      if (error) {
-        setAuthError(null);
-        setIsAuthModalOpen(true);
-        return;
-      }
-      if (!data.user) {
+      const user = await resolveSessionUser();
+      if (!user) {
         setAuthError(null);
         setIsAuthModalOpen(true);
         return;
       }
       setDetailSymbol(symbol);
-    } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "로그인 상태 확인 중 오류가 발생했습니다.");
+    } catch {
+      setAuthError(null);
       setIsAuthModalOpen(true);
     }
   };
@@ -1073,39 +1101,16 @@ export default function TradingFloorPage() {
   }, [klineData, klineInterval, liveSecondCloses]);
 
   const handleAnalyzeClick = async () => {
-    if (!isLoggedIn) {
+    try {
+      const user = await resolveSessionUser();
+      if (!user) {
+        setAuthError(null);
+        setIsAuthModalOpen(true);
+        return;
+      }
+    } catch {
       setAuthError(null);
       setIsAuthModalOpen(true);
-      return;
-    }
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const userResult = await Promise.race([
-        supabase.auth.getUser(),
-        new Promise<{
-          data: { user: null };
-          error: Error;
-        }>((resolve) =>
-          window.setTimeout(
-            () => resolve({ data: { user: null }, error: new Error("로그인 확인 시간이 초과되었습니다.") }),
-            3500,
-          ),
-        ),
-      ]);
-      const { data, error } = userResult;
-      if (error) {
-        setAuthError(null);
-        setIsAuthModalOpen(true);
-        return;
-      }
-      if (!data.user) {
-        setAuthError(null);
-        setIsAuthModalOpen(true);
-        return;
-      }
-    } catch (error) {
-      setAiError(error instanceof Error ? error.message : "로그인 상태 확인 중 오류가 발생했습니다.");
       return;
     }
 
@@ -1250,7 +1255,18 @@ export default function TradingFloorPage() {
         user_metadata: user.user_metadata as Record<string, unknown>,
       });
       const isSkipped = nicknameInput !== undefined;
-      const finalNickname = isSkipped ? fallbackNickname : nicknameDraft.trim() || fallbackNickname;
+      let finalNickname: string;
+      if (isSkipped) {
+        finalNickname = await resolveUniqueNicknameCandidate(supabase, fallbackNickname, user.id);
+      } else {
+        const trimmed = nicknameDraft.trim() || fallbackNickname;
+        const taken = await isNicknameTakenByOther(supabase, trimmed, user.id);
+        if (taken) {
+          setNicknameError("이미 사용 중인 닉네임입니다.");
+          return;
+        }
+        finalNickname = trimmed;
+      }
 
       const { error } = await supabase.from("USER_MST").upsert(
         {
@@ -2680,7 +2696,7 @@ export default function TradingFloorPage() {
               <button
                 type="button"
                 onClick={() => saveUserNickname()}
-                disabled={isNicknameSaving}
+                disabled={isNicknameSaving || nicknameDraft.trim().length === 0 || Boolean(nicknameError)}
                 className="rounded-lg bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isNicknameSaving ? "저장 중..." : "저장"}
