@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { isNicknameTakenByOther, resolveUniqueNicknameCandidate } from "@/lib/nickname-duplicate";
+import { getPublicSiteOrigin } from "@/lib/site-origin";
 
 type MarketTab = "spot" | "linear";
 type FloorTab = "market" | "news" | "board";
@@ -1206,7 +1207,7 @@ export default function TradingFloorPage() {
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      const callbackUrl = new URL("/auth/callback", getPublicSiteOrigin());
       callbackUrl.searchParams.set("next", "/");
 
       const { error } = await supabase.auth.signInWithOAuth({

@@ -12,6 +12,7 @@ frontend:
           cat > .env.production <<EOF
           GEMINI_API_KEY=$GEMINI_API_KEY
           CRYPTOPANIC_API_KEY=$CRYPTOPANIC_API_KEY
+          NEXT_PUBLIC_SITE_URL=https://jjindong.com
           EOF
         - pnpm run build
   artifacts:
