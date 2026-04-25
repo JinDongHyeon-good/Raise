@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LogOut } from "lucide-react";
+import { BoardTab } from "@/components/board/board-tab";
+import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
-import { isNicknameTakenByOther, resolveUniqueNicknameCandidate } from "@/lib/nickname-duplicate";
+import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { getPublicSiteOrigin } from "@/lib/site-origin";
 
 type MarketTab = "spot" | "linear";
@@ -67,7 +70,7 @@ type IndicatorVisibility = {
   bollinger: boolean;
 };
 
-const DEFAULT_SELECTED_LIMIT = 20;
+const DEFAULT_SELECTED_LIMIT = 10;
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 15000;
 const TICKER_FLUSH_INTERVAL_MS = 250;
@@ -227,22 +230,6 @@ function extractDateKey(raw?: string) {
   return `${match[1]}-${match[2]}-${match[3]}`;
 }
 
-function getDefaultNicknameFromSessionUser(user: { email?: string; user_metadata?: Record<string, unknown> } | null) {
-  if (!user) return "트레이더";
-  const userMeta = user.user_metadata ?? {};
-  const displayName =
-    (typeof userMeta.display_name === "string" && userMeta.display_name.trim()) ||
-    (typeof userMeta.full_name === "string" && userMeta.full_name.trim()) ||
-    (typeof userMeta.name === "string" && userMeta.name.trim()) ||
-    (typeof userMeta.user_name === "string" && userMeta.user_name.trim()) ||
-    (typeof userMeta.nickname === "string" && userMeta.nickname.trim()) ||
-    (typeof userMeta.preferred_username === "string" && userMeta.preferred_username.trim()) ||
-    "";
-  if (displayName) return displayName;
-  if (user.email) return user.email.split("@")[0] || "트레이더";
-  return "트레이더";
-}
-
 function calculateMovingAverage(data: CandlePoint[], period: number) {
   return data.map((_, index) => {
     if (index < period - 1) return null;
@@ -374,6 +361,14 @@ export default function TradingFloorPage() {
       return;
     }
 
+    const welcomeFromSignup =
+      typeof window !== "undefined" && new URLSearchParams(window.location.search).get("welcome") === "1";
+    if (welcomeFromSignup && typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      u.searchParams.delete("welcome");
+      window.history.replaceState(null, "", `${u.pathname}${u.search}${u.hash}`);
+    }
+
     const supabase = getSupabaseBrowserClient();
     const { data, error } = await supabase.from("USER_MST").select("auth_id, nickname").eq("auth_id", user.id).maybeSingle();
 
@@ -382,17 +377,30 @@ export default function TradingFloorPage() {
       return;
     }
 
-    if (data?.auth_id) {
-      setIsNicknameModalOpen(false);
+    if (!data?.auth_id) {
+      const defaultNickname = getDefaultNicknameFromUser({
+        email: user.email,
+        user_metadata: user.user_metadata ?? null,
+      });
+      setNicknameDraft(defaultNickname);
+      if (options?.openModalIfMissing !== false) {
+        setNicknameError(null);
+        setIsNicknameModalOpen(true);
+      }
       return;
     }
 
-    const defaultNickname = getDefaultNicknameFromSessionUser(user);
-    setNicknameDraft(defaultNickname);
-    if (options?.openModalIfMissing !== false) {
+    if (welcomeFromSignup) {
+      setNicknameDraft(
+        data.nickname?.trim() ||
+          getDefaultNicknameFromUser({ email: user.email, user_metadata: user.user_metadata ?? null }),
+      );
       setNicknameError(null);
       setIsNicknameModalOpen(true);
+      return;
     }
+
+    setIsNicknameModalOpen(false);
   };
 
   const resolveSessionUser = async () => {
@@ -989,16 +997,23 @@ export default function TradingFloorPage() {
   };
 
   const handleOpenAnalysisModal = async (symbol: BybitSymbol) => {
+    setAuthError(null);
+
+    if (isLoggedIn) {
+      setIsAuthModalOpen(false);
+      setDetailSymbol(symbol);
+      return;
+    }
+
     try {
       const user = await resolveSessionUser();
       if (!user) {
-        setAuthError(null);
         setIsAuthModalOpen(true);
         return;
       }
+      setIsAuthModalOpen(false);
       setDetailSymbol(symbol);
     } catch {
-      setAuthError(null);
       setIsAuthModalOpen(true);
     }
   };
@@ -1227,20 +1242,26 @@ export default function TradingFloorPage() {
   };
 
   const handleLogout = async () => {
+    setIsUserMenuOpen(false);
     try {
       const supabase = getSupabaseBrowserClient();
       await supabase.auth.signOut();
-      setIsUserMenuOpen(false);
-      setIsLoggedIn(false);
-      setUserAvatarUrl(null);
-      setIsNicknameModalOpen(false);
-      window.location.href = "/";
     } catch {
-      setIsUserMenuOpen(false);
+      /* 클라이언트 스토리지 정리 실패해도 서버 쿠키 삭제로 이어짐 */
     }
+    setIsLoggedIn(false);
+    setUserAvatarUrl(null);
+    setIsNicknameModalOpen(false);
+    window.location.assign(`${window.location.origin}/auth/signout`);
   };
 
   const saveUserNickname = async (nicknameInput?: string) => {
+    const isSkipped = nicknameInput !== undefined;
+    if (isSkipped) {
+      setIsNicknameModalOpen(false);
+      return;
+    }
+
     try {
       setIsNicknameSaving(true);
       setNicknameError(null);
@@ -1251,34 +1272,32 @@ export default function TradingFloorPage() {
       }
 
       const user = sessionData.session.user;
-      const fallbackNickname = getDefaultNicknameFromSessionUser({
-        email: user.email,
-        user_metadata: user.user_metadata as Record<string, unknown>,
-      });
-      const isSkipped = nicknameInput !== undefined;
-      let finalNickname: string;
-      if (isSkipped) {
-        finalNickname = await resolveUniqueNicknameCandidate(supabase, fallbackNickname, user.id);
-      } else {
-        const trimmed = nicknameDraft.trim() || fallbackNickname;
-        const taken = await isNicknameTakenByOther(supabase, trimmed, user.id);
-        if (taken) {
-          setNicknameError("이미 사용 중인 닉네임입니다.");
-          return;
-        }
-        finalNickname = trimmed;
+      const fallbackNickname = getDefaultNicknameFromUser(user);
+      const trimmed = nicknameDraft.trim() || fallbackNickname;
+      const taken = await isNicknameTakenByOther(supabase, trimmed, user.id);
+      if (taken) {
+        setNicknameError("이미 사용 중인 닉네임입니다.");
+        return;
       }
 
-      const { error } = await supabase.from("USER_MST").upsert(
-        {
-          auth_id: user.id,
-          nickname: finalNickname,
-        },
-        { onConflict: "auth_id" },
-      );
+      const { data: updatedRow, error } = await supabase
+        .from("USER_MST")
+        .update({ nickname: trimmed })
+        .eq("auth_id", user.id)
+        .select("auth_id")
+        .maybeSingle();
+
       if (error) throw error;
 
-      setNicknameDraft(finalNickname);
+      if (!updatedRow) {
+        const { error: upErr } = await supabase.from("USER_MST").upsert(
+          { auth_id: user.id, nickname: trimmed },
+          { onConflict: "auth_id" },
+        );
+        if (upErr) throw upErr;
+      }
+
+      setNicknameDraft(trimmed);
       setIsNicknameModalOpen(false);
     } catch (error) {
       setNicknameError(error instanceof Error ? error.message : "닉네임 저장 중 오류가 발생했습니다.");
@@ -1459,11 +1478,11 @@ export default function TradingFloorPage() {
         <header className="sticky top-0 z-[220] -mx-3 -mt-6 overflow-visible border-b border-slate-800/90 bg-slate-950/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:-mt-8 sm:px-6">
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-sky-500/20 blur-3xl" />
           <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-fuchsia-500/20 blur-2xl" />
-          <div className="relative z-10 flex items-start justify-between gap-3">
+          <div className="relative z-10 flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => (window.location.href = "/")}
-              className="flex cursor-pointer items-center gap-2 text-lg font-bold tracking-tight transition hover:text-sky-200 sm:text-2xl"
+              className="flex min-h-10 cursor-pointer items-center gap-2 text-lg font-bold leading-none tracking-tight transition hover:text-sky-200 sm:min-h-0 sm:text-2xl"
             >
               <span>JJINDONG</span>
               <img
@@ -1520,9 +1539,10 @@ export default function TradingFloorPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  className="mt-1 w-full rounded-md px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-slate-800"
+                  onClick={() => void handleLogout()}
+                  className="mt-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-slate-800"
                 >
+                  <LogOut className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
                   로그아웃
                 </button>
               </div>
@@ -1698,21 +1718,70 @@ export default function TradingFloorPage() {
         </div>
 
         {isSymbolsLoading && (
-          <div className="space-y-4">
-            <div className="h-14 animate-pulse rounded-xl border border-slate-800 bg-slate-900/50" />
-            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50">
-              <div className="grid grid-cols-4 gap-0 border-b border-slate-800">
-                <div className="h-11 animate-pulse bg-slate-800/60" />
-                <div className="h-11 animate-pulse bg-slate-800/40" />
-                <div className="h-11 animate-pulse bg-slate-800/60" />
-                <div className="h-11 animate-pulse bg-slate-800/40" />
+          <div className="space-y-4" aria-busy="true" aria-label="코인 목록 불러오는 중">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="h-4 w-28 rounded-md bg-slate-800/90 tf-skel-pulse" />
+                <div className="h-5 w-5 shrink-0 rounded-full bg-slate-800/80 tf-skel-pulse" />
               </div>
-              {Array.from({ length: 6 }).map((_, idx) => (
-                <div key={idx} className="grid grid-cols-4 gap-0 border-b border-slate-800/60 last:border-none">
-                  <div className="h-12 animate-pulse bg-slate-900/70" />
-                  <div className="h-12 animate-pulse bg-slate-900/50" />
-                  <div className="h-12 animate-pulse bg-slate-900/70" />
-                  <div className="h-12 animate-pulse bg-slate-900/50" />
+              <div className="flex h-12 items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/40 px-4">
+                <div className="h-3.5 max-w-[70%] flex-1 rounded bg-slate-800/80 tf-skel-pulse" />
+                <div className="h-4 w-4 shrink-0 rounded bg-slate-800/60 tf-skel-pulse" />
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:hidden">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div
+                  key={`sk-m-${idx}`}
+                  className="rounded-xl border border-slate-800 bg-slate-950 p-4 shadow-sm shadow-black/20"
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="h-4 w-36 rounded bg-slate-800/90 tf-skel-pulse" />
+                      <div className="h-3 w-28 rounded bg-slate-800/60 tf-skel-pulse" />
+                    </div>
+                    <div className="h-7 w-[4.5rem] shrink-0 rounded-md bg-gradient-to-r from-slate-800 via-slate-700/80 to-slate-800 tf-skel-pulse" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2 rounded-lg border border-slate-800/80 bg-slate-900/50 p-3">
+                      <div className="h-2.5 w-14 rounded bg-slate-800/70 tf-skel-pulse" />
+                      <div className="h-4 w-24 rounded bg-slate-800/50 tf-skel-pulse" />
+                    </div>
+                    <div className="space-y-2 rounded-lg border border-slate-800/80 bg-slate-900/50 p-3">
+                      <div className="h-2.5 w-16 rounded bg-slate-800/70 tf-skel-pulse" />
+                      <div className="h-4 w-20 rounded bg-slate-800/50 tf-skel-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden overflow-hidden rounded-xl border border-slate-800 bg-slate-950 sm:block">
+              <div className="grid grid-cols-4 gap-0 border-b border-slate-800 bg-slate-900/30 px-2 py-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={`sk-h-${i}`} className="flex justify-center px-2">
+                    <div className="h-3 w-16 rounded bg-slate-800/70 tf-skel-pulse" />
+                  </div>
+                ))}
+              </div>
+              {Array.from({ length: 10 }).map((_, idx) => (
+                <div
+                  key={`sk-r-${idx}`}
+                  className="grid grid-cols-4 gap-0 border-b border-slate-800/50 py-3 last:border-none"
+                >
+                  <div className="flex items-center justify-center px-4">
+                    <div className="h-4 w-[72%] max-w-[9rem] rounded bg-slate-800/80 tf-skel-pulse" />
+                  </div>
+                  <div className="flex items-center justify-center px-4">
+                    <div className="mx-auto h-4 w-24 rounded bg-slate-800/60 tf-skel-pulse" />
+                  </div>
+                  <div className="flex items-center justify-center px-4">
+                    <div className="mx-auto h-4 w-16 rounded bg-slate-800/60 tf-skel-pulse" />
+                  </div>
+                  <div className="flex items-center justify-center px-4">
+                    <div className="h-7 w-[5.5rem] rounded-md bg-gradient-to-r from-fuchsia-900/40 via-violet-900/35 to-sky-900/40 tf-skel-pulse" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -2009,9 +2078,9 @@ export default function TradingFloorPage() {
         )}
 
         {floorTab === "board" && (
-          <section className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center">
-            <p className="text-sm text-slate-300">준비중입니다.</p>
-          </section>
+          <div className="relative z-10 isolate pointer-events-auto">
+            <BoardTab onNeedLogin={() => setIsAuthModalOpen(true)} />
+          </div>
         )}
       </div>
 

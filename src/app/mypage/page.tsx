@@ -92,9 +92,13 @@ export default function MyPage() {
   }, []);
 
   const handleLogout = async () => {
-    const supabase = getSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    window.location.href = "/";
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch {
+      /* ignore */
+    }
+    window.location.assign(`${window.location.origin}/auth/signout`);
   };
 
   const handleSaveNickname = async () => {

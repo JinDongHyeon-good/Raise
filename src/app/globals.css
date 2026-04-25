@@ -523,7 +523,26 @@ body {
 
 }
 
+@keyframes tf-skel-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.tf-skel-pulse {
+  animation: tf-skel-pulse 1.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .tf-skel-pulse {
+    animation: none !important;
+    opacity: 0.55 !important;
+  }
+
   .fade-up,
   .scale-in,
   .resume-card,
