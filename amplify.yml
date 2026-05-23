@@ -3,26 +3,27 @@ frontend:
   phases:
     preBuild:
       commands:
+        - nvm use 20
         - corepack enable
-        - corepack prepare pnpm@8.15.5 --activate
-        - pnpm install
+        - corepack prepare pnpm@10.5.2 --activate
+        - pnpm install --frozen-lockfile
     build:
       commands:
         - |
           cat > .env.production <<EOF
           GEMINI_API_KEY=$GEMINI_API_KEY
           CRYPTOPANIC_API_KEY=$CRYPTOPANIC_API_KEY
-          NEXT_PUBLIC_SITE_URL=https://jjindong.com
+          NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://jjindong.com}
+          NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
           EOF
         - pnpm run build
+        - node scripts/resolve-next-symlinks.js
   artifacts:
     baseDirectory: .next
     files:
-      - '**/*'
+      - "**/*"
   cache:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
-  # (선택) SSR 자동 인식 보장용
-  config:
-    SSR: true
