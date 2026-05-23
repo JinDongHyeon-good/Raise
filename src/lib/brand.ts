@@ -1,6 +1,24 @@
 export const SERVICE_NAME = "멜로타로";
 export const SERVICE_NAME_EN = "Melotaro";
 
+export const MELOBALLOON_NAME = "멜로벌룬";
+export const MELOBALLOON_DISPLAY_NAME = "멜로벌룬🫧";
+
+export const MELOBALLOON_KEYWORDS = [
+  "생일",
+  "돌잔치",
+  "웨딩",
+  "칠순",
+  "환갑",
+  "기념일",
+  "행사",
+  "헬륨풍선",
+  "레터링풍선",
+] as const;
+
+export const MELOBALLOON_STORE_URL =
+  "https://smartstore.naver.com/meloballoon?NaPm=ct%3Dmpi88l8w%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3D7233c1e0208dc28c1f927112a949d95e743e4a6c";
+
 export const SERVICE_TAGLINE = "AI 타로 서비스 멜로타로";
 
 export const SERVICE_DESCRIPTION =

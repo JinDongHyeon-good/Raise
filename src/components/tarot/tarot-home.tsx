@@ -6,6 +6,7 @@ import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { getPublicSiteOrigin } from "@/lib/site-origin";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
+import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
 import { TarotBackgroundScatter } from "@/components/tarot/tarot-background-scatter";
 import { TarotReadingView } from "@/components/tarot/tarot-reading-view";
 import {
@@ -605,11 +606,11 @@ export default function TarotHome() {
   };
 
   return (
-    <main className="tarot-home-page relative min-h-dvh overflow-x-hidden">
+    <main className="tarot-home-page relative flex min-h-dvh flex-col overflow-x-hidden">
       <div className="tarot-home-glow" aria-hidden />
       <TarotBackgroundScatter />
 
-      <div className="tarot-page-inner">
+      <div className="tarot-page-inner flex-1">
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
@@ -896,6 +897,8 @@ export default function TarotHome() {
           </div>
         </section>
       </div>
+
+      <MeloballoonPromoBanner />
 
       {isLoginModalOpen && (
         <div className="tarot-login-modal-backdrop fixed inset-0 z-[300] flex items-end justify-center p-0 sm:items-center sm:p-4">

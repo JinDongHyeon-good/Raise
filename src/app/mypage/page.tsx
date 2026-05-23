@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
 import { TarotBackgroundScatter } from "@/components/tarot/tarot-background-scatter";
 import { SERVICE_NAME } from "@/lib/brand";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
@@ -146,7 +147,7 @@ export default function MyPage() {
   };
 
   return (
-    <main className="tarot-home-page relative min-h-dvh overflow-x-hidden">
+    <main className="tarot-home-page relative flex min-h-dvh flex-col overflow-x-hidden">
       <div className="tarot-home-glow" aria-hidden />
       <TarotBackgroundScatter />
       <Toaster
@@ -161,7 +162,7 @@ export default function MyPage() {
         }}
       />
 
-      <div className="tarot-page-inner">
+      <div className="tarot-page-inner flex-1">
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
@@ -272,10 +273,12 @@ export default function MyPage() {
           )}
         </section>
 
-        <p className="text-pretty pb-2 text-center text-[11px] leading-5 text-slate-400 sm:pb-4">
+        <p className="text-pretty pb-2 text-center text-[11px] leading-5 text-slate-400">
           멜로타로 AI 타로는 참고용 인사이트입니다. 중요한 결정은 본인의 판단과 전문가 상담을 함께 고려해 주세요.
         </p>
       </div>
+
+      <MeloballoonPromoBanner />
     </main>
   );
 }
