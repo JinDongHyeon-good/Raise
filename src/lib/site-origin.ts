@@ -1,3 +1,5 @@
+import { getSiteUrl } from "@/lib/brand";
+
 /**
  * OAuth redirect 등 공개 URL이 필요할 때 사용합니다.
  * 운영 빌드에 로컬 origin이 박히는 문제를 막기 위해 NEXT_PUBLIC_SITE_URL을 우선합니다.
@@ -15,5 +17,5 @@ export function getPublicSiteOrigin() {
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
-  return "https://jjindong.com";
+  return new URL(getSiteUrl()).origin;
 }

@@ -1,1 +1,1 @@
-export { default } from "./trading-floor/page";
+export { default } from "@/components/tarot/tarot-home-entry";

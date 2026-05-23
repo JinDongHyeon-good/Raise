@@ -3,7 +3,7 @@ export function getDefaultNicknameFromUser(user: {
   email?: string | null;
   user_metadata?: Record<string, unknown> | null;
 } | null) {
-  if (!user) return "트레이더";
+  if (!user) return "방문자";
   const userMeta = user.user_metadata ?? {};
   const displayName =
     (typeof userMeta.display_name === "string" && userMeta.display_name.trim()) ||
@@ -14,6 +14,6 @@ export function getDefaultNicknameFromUser(user: {
     (typeof userMeta.preferred_username === "string" && userMeta.preferred_username.trim()) ||
     "";
   if (displayName) return displayName;
-  if (user.email) return user.email.split("@")[0] || "트레이더";
-  return "트레이더";
+  if (user.email) return user.email.split("@")[0] || "방문자";
+  return "방문자";
 }

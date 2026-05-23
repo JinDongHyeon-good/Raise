@@ -23,7 +23,7 @@ export async function isNicknameTakenByOther(supabase: SupabaseClient, nickname:
 }
 
 export async function resolveUniqueNicknameCandidate(supabase: SupabaseClient, baseRaw: string, excludeAuthId: string) {
-  const base = baseRaw.trim() || "트레이더";
+  const base = baseRaw.trim() || "방문자";
   for (let i = 0; i < 40; i += 1) {
     const candidate =
       i === 0 ? base.slice(0, 30) : `${base.slice(0, Math.max(1, 29 - String(i).length))}${i}`.slice(0, 30);

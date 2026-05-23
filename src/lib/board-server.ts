@@ -16,7 +16,7 @@ export async function fetchNicknameMap(supabase: Awaited<ReturnType<typeof creat
   const { data } = await supabase.from("USER_MST").select("auth_id, nickname").in("auth_id", uniqueIds);
   const map = new Map<string, string>();
   (data ?? []).forEach((row: { auth_id: string; nickname: string }) => {
-    map.set(row.auth_id, row.nickname || "트레이더");
+    map.set(row.auth_id, row.nickname || "방문자");
   });
   return map;
 }
@@ -53,7 +53,7 @@ export async function hydratePostSummaries(
 
   return posts.map((post) => ({
     ...post,
-    author_nickname: nicknameMap.get(post.author_auth_id) ?? "트레이더",
+    author_nickname: nicknameMap.get(post.author_auth_id) ?? "방문자",
     comment_count: commentCount.get(post.id) ?? 0,
     like_count: likeCount.get(post.id) ?? 0,
     liked_by_me: likedSet.has(post.id),
@@ -70,6 +70,6 @@ export async function hydrateComments(
   );
   return comments.map<BoardCommentView>((comment) => ({
     ...comment,
-    author_nickname: nicknameMap.get(comment.author_auth_id) ?? "트레이더",
+    author_nickname: nicknameMap.get(comment.author_auth_id) ?? "방문자",
   }));
 }

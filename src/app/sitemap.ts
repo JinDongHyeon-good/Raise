@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/brand";
 
-const SITE_URL = "https://jjindong.com";
-const siteUrl = new URL(SITE_URL);
+const siteUrl = new URL(getSiteUrl());
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = ["/"];

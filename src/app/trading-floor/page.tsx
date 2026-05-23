@@ -1484,12 +1484,7 @@ export default function TradingFloorPage() {
               onClick={() => (window.location.href = "/")}
               className="flex min-h-10 cursor-pointer items-center gap-2 text-lg font-bold leading-none tracking-tight transition hover:text-sky-200 sm:min-h-0 sm:text-2xl"
             >
-              <span>JJINDONG</span>
-              <img
-                src="/doge.png"
-                alt="Doge"
-                className="h-8 w-8 rounded-full border border-slate-700 object-cover sm:h-10 sm:w-10"
-              />
+              <span>멜로타로</span>
             </button>
             <div ref={userMenuRef} className="relative shrink-0">
               {isLoggedIn ? (
@@ -2692,7 +2687,7 @@ export default function TradingFloorPage() {
             <div className="relative z-10">
               <h2 className="text-center text-2xl font-semibold tracking-tight text-white">Login</h2>
               <p className="mt-2 text-center text-sm leading-6 text-slate-300">
-                지금 시작하고, AI 차트 분석과 포지션 인사이트를
+                지금 시작하고, AI 타로 리딩과 오늘의 카드 메시지를
                 <br />
                 무료로 가장 먼저 받아보세요.
               </p>

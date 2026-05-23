@@ -8,7 +8,7 @@ const RATE_LIMIT_MAX_REQUESTS = 8;
 const CACHE_TTL_MS = 30 * 1000;
 const GEMINI_HTTP_TIMEOUT_MS = 60000;
 const GEMINI_TOTAL_BUDGET_MS = 90000;
-const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+const DEFAULT_GEMINI_MODEL = "gemini-3.1-pro-preview";
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
 const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();

@@ -41,8 +41,192 @@ body {
 
 .trading-floor-page button,
 .trading-floor-page a,
-.trading-floor-page input[type="checkbox"] {
+.trading-floor-page input[type="checkbox"],
+.tarot-home-page button,
+.tarot-home-page a {
   cursor: pointer;
+}
+
+.font-brand-display {
+  font-family: var(--font-brand-display), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+.tarot-home-page {
+  background:
+    radial-gradient(ellipse 110% 70% at 50% -15%, rgb(253 242 248 / 0.45), transparent 62%),
+    radial-gradient(ellipse 85% 55% at 100% 20%, rgb(252 231 243 / 0.32), transparent 58%),
+    radial-gradient(ellipse 75% 50% at 0% 75%, rgb(251 207 232 / 0.22), transparent 58%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgb(244 114 182 / 0.05), transparent 52%),
+    linear-gradient(180deg, #ffffff 0%, #ffffff 55%, #fffbfb 85%, #fff5f9 100%);
+  color: rgb(30 27 75);
+}
+
+.tarot-home-page .tarot-home-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 20% 10%, rgb(251 113 133 / 0.06), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 85% 30%, rgb(244 114 182 / 0.05), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgb(249 168 212 / 0.05), transparent 58%);
+}
+
+.tarot-login-modal-backdrop {
+  background: rgb(30 27 75 / 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.tarot-login-modal {
+  background:
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgb(253 242 248 / 0.9), transparent 70%),
+    #ffffff;
+}
+
+.tarot-bg-scatter {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tarot-bg-scatter__card {
+  position: absolute;
+  width: auto;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  max-width: none;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgb(251 113 133 / 0.12);
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+@media (min-width: 640px) {
+  .tarot-bg-scatter__card {
+    border-radius: 8px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tarot-bg-scatter__card {
+    border-radius: 10px;
+  }
+}
+
+.tarot-step-track {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 18rem;
+}
+
+@media (min-width: 640px) {
+  .tarot-step-track {
+    max-width: 20rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .tarot-step-track {
+    max-width: 22rem;
+  }
+}
+
+.tarot-page-inner {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 48rem;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+  margin-inline: auto;
+  padding-inline: max(1rem, env(safe-area-inset-left, 0px)) max(1rem, env(safe-area-inset-right, 0px));
+  padding-top: max(1.25rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 640px) {
+  .tarot-page-inner {
+    padding-inline: 1.5rem;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+}
+
+.tarot-topic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .tarot-topic-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tarot-topic-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+.tarot-cards-single {
+  display: flex;
+  justify-content: center;
+  padding-inline: 0.25rem;
+}
+
+.tarot-cards-multi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  justify-items: center;
+}
+
+@media (min-width: 640px) {
+  .tarot-cards-multi {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: stretch;
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .tarot-cards-multi {
+    gap: 1rem;
+  }
+}
+
+.tarot-step-nav {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .tarot-step-nav {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .tarot-step-nav--split {
+    justify-content: space-between;
+  }
+
+  .tarot-step-nav--end {
+    justify-content: flex-end;
+  }
 }
 
 .trading-floor-stars {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TarotBackgroundScatter } from "@/components/tarot/tarot-background-scatter";
+import { SERVICE_NAME } from "@/lib/brand";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { Toaster, toast } from "react-hot-toast";
@@ -61,7 +63,9 @@ export default function MyPage() {
       const user = sessionData.session.user;
       setIsLoggedIn(true);
       setUserAvatarUrl(
-        (user.user_metadata?.avatar_url as string | undefined) ?? (user.user_metadata?.picture as string | undefined) ?? null,
+        (user.user_metadata?.avatar_url as string | undefined) ??
+          (user.user_metadata?.picture as string | undefined) ??
+          null,
       );
       setJoinedAt(formatDateTime(user.created_at));
 
@@ -142,98 +146,96 @@ export default function MyPage() {
   };
 
   return (
-    <main className="relative min-h-dvh bg-slate-950 text-slate-100">
+    <main className="tarot-home-page relative min-h-dvh overflow-x-hidden">
+      <div className="tarot-home-glow" aria-hidden />
+      <TarotBackgroundScatter />
       <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            background: "#0f172a",
-            color: "#e2e8f0",
-            border: "1px solid #334155",
+            background: "#ffffff",
+            color: "#881337",
+            border: "1px solid #fecdd3",
+            boxShadow: "0 4px 14px rgb(251 113 133 / 0.15)",
           },
         }}
       />
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-6 sm:px-6 sm:py-8">
-        <header className="sticky top-0 z-[220] -mx-3 -mt-6 overflow-visible border-b border-slate-800/90 bg-slate-950/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:-mt-8 sm:px-6">
-          <div className="relative z-10 flex items-start justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => (window.location.href = "/")}
-              className="flex cursor-pointer items-center gap-2 text-lg font-bold tracking-tight transition hover:text-sky-200 sm:text-2xl"
-            >
-              <span>JJINDONG</span>
-              <img
-                src="/doge.png"
-                alt="Doge"
-                className="h-8 w-8 rounded-full border border-slate-700 object-cover sm:h-10 sm:w-10"
-              />
-            </button>
-            <div ref={menuRef} className="relative shrink-0">
-              {isLoggedIn ? (
-                <button
-                  type="button"
-                  aria-label="사용자 메뉴 열기"
-                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                  className="relative h-10 w-10 overflow-hidden rounded-full border border-slate-600 bg-slate-900 transition hover:border-sky-400"
-                >
-                  {userAvatarUrl ? (
-                    <img src={userAvatarUrl} alt="Google avatar" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="inline-flex h-full w-full items-center justify-center text-xs font-semibold text-slate-200">USER</span>
-                  )}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => (window.location.href = "/")}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-[11px] font-semibold text-slate-100 transition hover:border-sky-400 hover:text-white"
-                >
-                  Login
-                </button>
-              )}
 
-              <div
-                className={`absolute right-0 top-12 z-[120] w-40 overflow-hidden rounded-xl border border-slate-700 bg-slate-950/95 shadow-xl transition-all duration-300 ease-out ${
-                  isLoggedIn && isUserMenuOpen ? "max-h-40 translate-y-0 p-1.5 opacity-100" : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
-                }`}
+      <div className="tarot-page-inner">
+        <header className="flex min-w-0 items-center justify-between gap-3">
+          <a
+            href="/"
+            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-black sm:text-2xl md:text-3xl"
+          >
+            <span className="block truncate">{SERVICE_NAME}</span>
+          </a>
+
+          <div ref={menuRef} className="relative shrink-0">
+            {isLoggedIn ? (
+              <button
+                type="button"
+                aria-label="사용자 메뉴"
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                className="h-10 w-10 overflow-hidden rounded-full border border-rose-200 bg-white shadow-sm transition hover:border-rose-400"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    window.location.href = "/mypage";
-                  }}
-                  className="w-full rounded-md px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-slate-800"
-                >
-                  마이페이지
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="mt-1 w-full rounded-md px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-slate-800"
-                >
-                  로그아웃
-                </button>
-              </div>
+                {userAvatarUrl ? (
+                  <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="inline-flex h-full w-full items-center justify-center bg-rose-50 text-xs font-semibold text-rose-700">
+                    ME
+                  </span>
+                )}
+              </button>
+            ) : (
+              <a
+                href="/"
+                className="rounded-full border border-rose-300 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-400 hover:bg-rose-50"
+              >
+                로그인
+              </a>
+            )}
+
+            <div
+              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-rose-100 bg-white/95 shadow-lg shadow-rose-100/50 transition-all duration-300 ${
+                isLoggedIn && isUserMenuOpen
+                  ? "max-h-40 translate-y-0 p-1.5 opacity-100"
+                  : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
+              }`}
+            >
+              <a
+                href="/mypage"
+                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-rose-50"
+              >
+                마이페이지
+              </a>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+              >
+                로그아웃
+              </button>
             </div>
           </div>
         </header>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
-          <h2 className="text-lg font-semibold text-white">마이페이지</h2>
-          <p className="mt-1 text-sm text-slate-400">회원 정보 및 닉네임을 관리합니다.</p>
+        <section className="w-full min-w-0 rounded-2xl border border-rose-100/90 bg-white/75 p-4 shadow-lg shadow-rose-100/30 backdrop-blur-sm sm:p-5 md:p-6">
+          <div className="border-b border-rose-100 pb-4">
+            <h1 className="text-lg font-semibold text-rose-950">마이페이지</h1>
+            <p className="mt-1 text-sm text-slate-500">회원 정보 및 닉네임을 관리합니다.</p>
+          </div>
 
           {pageError ? (
-            <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{pageError}</p>
+            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{pageError}</p>
           ) : (
             <div className="mt-5 space-y-5">
-              <div>
-                <p className="mb-1 text-xs text-slate-400">가입일자</p>
-                <p className="text-sm text-slate-100">{joinedAt}</p>
+              <div className="rounded-xl border border-rose-100 bg-rose-50/40 px-4 py-3">
+                <p className="text-xs font-medium text-rose-400">가입일</p>
+                <p className="mt-1 text-sm text-slate-800">{joinedAt}</p>
               </div>
 
               <div>
-                <label htmlFor="nickname-input" className="mb-1 block text-xs text-slate-400">
+                <label htmlFor="nickname-input" className="mb-1 block text-xs font-medium text-rose-400">
                   닉네임
                 </label>
                 <input
@@ -242,14 +244,14 @@ export default function MyPage() {
                   onChange={(event) => setNicknameDraft(event.target.value)}
                   maxLength={30}
                   placeholder="닉네임을 입력해 주세요"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400"
+                  className="w-full rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-rose-400 focus:ring-1 focus:ring-rose-200"
                 />
-                <div className="mt-3 flex justify-end">
+                <div className="mt-3 flex justify-stretch sm:justify-end">
                   <button
                     type="button"
                     onClick={handleSaveNickname}
                     disabled={isSaving || !hasNicknameChanged}
-                    className="rounded-md bg-gradient-to-r from-fuchsia-500 via-violet-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-xl bg-gradient-to-r from-rose-400 via-pink-500 to-fuchsia-400 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-200/60 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[88px]"
                   >
                     {isSaving ? "저장 중..." : "저장"}
                   </button>
@@ -257,7 +259,22 @@ export default function MyPage() {
               </div>
             </div>
           )}
+
+          {!pageError && (
+            <div className="mt-6 border-t border-rose-100 pt-4">
+              <a
+                href="/"
+                className="inline-flex text-sm font-medium text-rose-600 transition hover:text-rose-800"
+              >
+                ← 타로 리딩으로 돌아가기
+              </a>
+            </div>
+          )}
         </section>
+
+        <p className="text-pretty pb-2 text-center text-[11px] leading-5 text-slate-400 sm:pb-4">
+          멜로타로 AI 타로는 참고용 인사이트입니다. 중요한 결정은 본인의 판단과 전문가 상담을 함께 고려해 주세요.
+        </p>
       </div>
     </main>
   );
