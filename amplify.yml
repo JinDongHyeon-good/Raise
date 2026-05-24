@@ -19,10 +19,13 @@ frontend:
           EOF
         - pnpm run build
         - node scripts/resolve-next-symlinks.js
+        - node scripts/prepare-amplify-static.js
   artifacts:
-    baseDirectory: .next
+    baseDirectory: .
     files:
-      - "**/*"
+      - ".next/**/*"
+      - "public/**/*"
+      - ".amplify-hosting/**/*"
   cache:
     paths:
       - node_modules/**/*

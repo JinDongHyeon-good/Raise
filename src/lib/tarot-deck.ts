@@ -300,8 +300,12 @@ export type DrawnTarotCard = TarotCardDef & {
 };
 
 export function getTarotImageUrl(card: Pick<TarotCardDef, "imageBase" | "imageFile">) {
-  const encodedBase = card.imageBase.split("/").filter(Boolean).map(encodeURIComponent).join("/");
-  const encodedFile = encodeURIComponent(card.imageFile);
+  const encodedBase = card.imageBase
+    .split("/")
+    .filter(Boolean)
+    .map((part) => encodeURIComponent(part.normalize("NFC")))
+    .join("/");
+  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFC"));
   return `/${encodedBase}/${encodedFile}`;
 }
 
