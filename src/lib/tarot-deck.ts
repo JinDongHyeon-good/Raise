@@ -299,14 +299,8 @@ export type DrawnTarotCard = TarotCardDef & {
   orientation: CardOrientation;
 };
 
-export function getTarotImageUrl(card: Pick<TarotCardDef, "imageBase" | "imageFile">) {
-  const encodedBase = card.imageBase
-    .split("/")
-    .filter(Boolean)
-    .map((part) => encodeURIComponent(part.normalize("NFC")))
-    .join("/");
-  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFC"));
-  return `/${encodedBase}/${encodedFile}`;
+export function getTarotImageUrl(card: Pick<TarotCardDef, "id">) {
+  return `/tarot/${card.id}.jpg`;
 }
 
 export function suitLabel(suit: TarotSuit) {

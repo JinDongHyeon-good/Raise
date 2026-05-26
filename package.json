@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
+    "prebuild": "node --experimental-strip-types scripts/sync-tarot-assets.js",
     "start": "next start",
     "lint": "eslint"
   },
