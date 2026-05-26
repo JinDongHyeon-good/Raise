@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import {
   GOOGLE_ADSENSE_CLIENT,
   SERVICE_DESCRIPTION,
@@ -99,16 +98,15 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} ${brandDisplayFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#fffbfb] text-slate-900">
-        <Script
-          id="google-adsense"
+      <head>
+        <script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT}`}
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          suppressHydrationWarning
         />
-        {children}
-      </body>
+      </head>
+      <body className="min-h-full flex flex-col bg-[#fffbfb] text-slate-900">{children}</body>
     </html>
   );
 }
