@@ -13,6 +13,7 @@ import {
   TAROT_SPREADS,
   TAROT_TOPICS,
   drawTarotHand,
+  getTarotCardApiUrl,
   getTarotImageUrl,
   suitLabel,
   topicPlaceholder,
@@ -50,8 +51,9 @@ function TarotCardBack({ label }: { label?: string }) {
 
 function TarotCardFace({ card }: { card: DrawnTarotCard }) {
   const [loaded, setLoaded] = useState(false);
+  const [useApiFallback, setUseApiFallback] = useState(false);
   const [error, setError] = useState(false);
-  const src = getTarotImageUrl(card);
+  const src = useApiFallback ? getTarotCardApiUrl(card.id) : getTarotImageUrl(card);
 
   return (
     <div className="relative mx-auto w-full max-w-[200px]">
@@ -79,6 +81,11 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
             decoding="async"
             onLoad={() => setLoaded(true)}
             onError={() => {
+              if (!useApiFallback) {
+                setUseApiFallback(true);
+                setLoaded(false);
+                return;
+              }
               setError(true);
               setLoaded(true);
             }}

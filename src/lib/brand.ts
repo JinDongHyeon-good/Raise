@@ -1,6 +1,8 @@
 export const SERVICE_NAME = "멜로타로";
 export const SERVICE_NAME_EN = "Melotaro";
 
+export const GOOGLE_ADSENSE_CLIENT = "ca-pub-7677744293773918";
+
 export const MELOBALLOON_NAME = "멜로벌룬";
 export const MELOBALLOON_DISPLAY_NAME = "멜로벌룬🫧";
 

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import {
+  GOOGLE_ADSENSE_CLIENT,
   SERVICE_DESCRIPTION,
   SERVICE_KEYWORDS,
   SERVICE_NAME,
@@ -83,6 +85,7 @@ export const metadata: Metadata = {
   other: {
     "apple-mobile-web-app-title": SERVICE_NAME,
     "application-name": SERVICE_NAME_EN,
+    "google-adsense-account": GOOGLE_ADSENSE_CLIENT,
   },
 };
 
@@ -96,7 +99,16 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} ${brandDisplayFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#fffbfb] text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#fffbfb] text-slate-900">
+        <Script
+          id="google-adsense"
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        {children}
+      </body>
     </html>
   );
 }
