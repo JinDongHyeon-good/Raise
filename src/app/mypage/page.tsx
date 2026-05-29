@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
-import { TarotBackgroundScatter } from "@/components/tarot/tarot-background-scatter";
 import { SERVICE_NAME } from "@/lib/brand";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
@@ -149,15 +148,14 @@ export default function MyPage() {
   return (
     <main className="tarot-home-page relative flex min-h-dvh flex-col overflow-x-hidden">
       <div className="tarot-home-glow" aria-hidden />
-      <TarotBackgroundScatter />
       <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            background: "#ffffff",
-            color: "#881337",
-            border: "1px solid #fecdd3",
-            boxShadow: "0 4px 14px rgb(251 113 133 / 0.15)",
+            background: "#1c141f",
+            color: "#fce7f3",
+            border: "1px solid rgb(244 114 182 / 0.25)",
+            boxShadow: "0 4px 14px rgb(0 0 0 / 0.4)",
           },
         }}
       />
@@ -166,7 +164,7 @@ export default function MyPage() {
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
-            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-black sm:text-2xl md:text-3xl"
+            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-rose-50 sm:text-2xl md:text-3xl"
           >
             <span className="block truncate">{SERVICE_NAME}</span>
           </a>
@@ -177,12 +175,12 @@ export default function MyPage() {
                 type="button"
                 aria-label="사용자 메뉴"
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                className="h-10 w-10 overflow-hidden rounded-full border border-rose-200 bg-white shadow-sm transition hover:border-rose-400"
+                className="h-10 w-10 overflow-hidden rounded-full border border-rose-500/30 bg-zinc-900 shadow-sm transition hover:border-rose-400"
               >
                 {userAvatarUrl ? (
                   <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="inline-flex h-full w-full items-center justify-center bg-rose-50 text-xs font-semibold text-rose-700">
+                  <span className="inline-flex h-full w-full items-center justify-center bg-rose-950/60 text-xs font-semibold text-rose-300">
                     ME
                   </span>
                 )}
@@ -190,14 +188,14 @@ export default function MyPage() {
             ) : (
               <a
                 href="/"
-                className="rounded-full border border-rose-300 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-400 hover:bg-rose-50"
+                className="rounded-full border border-rose-500/35 bg-zinc-900/90 px-4 py-2 text-xs font-semibold text-rose-200 shadow-sm transition hover:border-rose-400 hover:bg-rose-950/50"
               >
                 로그인
               </a>
             )}
 
             <div
-              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-rose-100 bg-white/95 shadow-lg shadow-rose-100/50 transition-all duration-300 ${
+              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-rose-500/25 bg-zinc-900/95 shadow-lg shadow-black/50 transition-all duration-300 ${
                 isLoggedIn && isUserMenuOpen
                   ? "max-h-40 translate-y-0 p-1.5 opacity-100"
                   : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
@@ -205,14 +203,14 @@ export default function MyPage() {
             >
               <a
                 href="/mypage"
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-rose-50"
+                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-rose-950/50"
               >
                 마이페이지
               </a>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+                className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 transition hover:bg-red-950/40"
               >
                 로그아웃
               </button>
@@ -220,19 +218,19 @@ export default function MyPage() {
           </div>
         </header>
 
-        <section className="w-full min-w-0 rounded-2xl border border-rose-100/90 bg-white/75 p-4 shadow-lg shadow-rose-100/30 backdrop-blur-sm sm:p-5 md:p-6">
-          <div className="border-b border-rose-100 pb-4">
-            <h1 className="text-lg font-semibold text-rose-950">마이페이지</h1>
-            <p className="mt-1 text-sm text-slate-500">회원 정보 및 닉네임을 관리합니다.</p>
+        <section className="w-full min-w-0 rounded-2xl border border-rose-500/20 bg-zinc-900/75 p-4 shadow-lg shadow-black/40 backdrop-blur-sm sm:p-5 md:p-6">
+          <div className="border-b border-rose-500/20 pb-4">
+            <h1 className="text-lg font-semibold text-rose-50">마이페이지</h1>
+            <p className="mt-1 text-sm text-slate-400">회원 정보 및 닉네임을 관리합니다.</p>
           </div>
 
           {pageError ? (
-            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{pageError}</p>
+            <p className="mt-4 rounded-lg border border-red-500/30 bg-red-950/40 px-3 py-2 text-sm text-red-300">{pageError}</p>
           ) : (
             <div className="mt-5 space-y-5">
-              <div className="rounded-xl border border-rose-100 bg-rose-50/40 px-4 py-3">
+              <div className="rounded-xl border border-rose-500/20 bg-rose-950/35 px-4 py-3">
                 <p className="text-xs font-medium text-rose-400">가입일</p>
-                <p className="mt-1 text-sm text-slate-800">{joinedAt}</p>
+                <p className="mt-1 text-sm text-slate-200">{joinedAt}</p>
               </div>
 
               <div>
@@ -245,14 +243,14 @@ export default function MyPage() {
                   onChange={(event) => setNicknameDraft(event.target.value)}
                   maxLength={30}
                   placeholder="닉네임을 입력해 주세요"
-                  className="w-full rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-rose-400 focus:ring-1 focus:ring-rose-200"
+                  className="w-full rounded-xl border border-rose-500/25 bg-zinc-950 px-4 py-3 text-sm text-slate-200 outline-none placeholder:text-slate-500 focus:border-rose-400 focus:ring-1 focus:ring-rose-500/30"
                 />
                 <div className="mt-3 flex justify-stretch sm:justify-end">
                   <button
                     type="button"
                     onClick={handleSaveNickname}
                     disabled={isSaving || !hasNicknameChanged}
-                    className="w-full rounded-xl bg-gradient-to-r from-rose-400 via-pink-500 to-fuchsia-400 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-200/60 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[88px]"
+                    className="w-full rounded-xl bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-900/50 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[88px]"
                   >
                     {isSaving ? "저장 중..." : "저장"}
                   </button>
@@ -262,10 +260,10 @@ export default function MyPage() {
           )}
 
           {!pageError && (
-            <div className="mt-6 border-t border-rose-100 pt-4">
+            <div className="mt-6 border-t border-rose-500/20 pt-4">
               <a
                 href="/"
-                className="inline-flex text-sm font-medium text-rose-600 transition hover:text-rose-800"
+                className="inline-flex text-sm font-medium text-rose-400 transition hover:text-rose-200"
               >
                 ← 타로 리딩으로 돌아가기
               </a>

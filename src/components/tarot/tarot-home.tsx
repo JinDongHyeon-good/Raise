@@ -7,7 +7,6 @@ import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { getPublicSiteOrigin } from "@/lib/site-origin";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
-import { TarotBackgroundScatter } from "@/components/tarot/tarot-background-scatter";
 import { TarotReadingView } from "@/components/tarot/tarot-reading-view";
 import {
   TAROT_SPREADS,
@@ -26,7 +25,7 @@ function CardLoadingSpinner({ label = "불러오는 중" }: { label?: string }) 
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-6" role="status" aria-live="polite">
       <div
-        className="h-9 w-9 animate-spin border-2 border-rose-200 border-t-rose-500"
+        className="h-9 w-9 animate-spin border-2 border-rose-800 border-t-rose-400"
         aria-hidden
       />
       <span className="text-[10px] text-rose-400">{label}</span>
@@ -37,7 +36,7 @@ function CardLoadingSpinner({ label = "불러오는 중" }: { label?: string }) 
 function TarotCardBack({ label }: { label?: string }) {
   return (
     <div
-      className="relative mx-auto flex aspect-[2/3] w-full max-w-[200px] items-center justify-center border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 shadow-sm shadow-rose-100/50"
+      className="relative mx-auto flex aspect-[2/3] w-full max-w-[200px] items-center justify-center border border-rose-500/30 bg-gradient-to-br from-zinc-900 via-rose-950 to-fuchsia-950 shadow-sm shadow-black/40"
       aria-hidden={!label}
     >
       <div className="flex flex-col items-center gap-1 p-3 text-center">
@@ -58,12 +57,12 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
   return (
     <div className="relative mx-auto w-full max-w-[200px]">
       <div
-        className={`relative flex aspect-[2/3] w-full items-center justify-center bg-rose-50/60 ${
+        className={`relative flex aspect-[2/3] w-full items-center justify-center bg-zinc-900/80 ${
           card.orientation === "reversed" ? "rotate-180" : ""
         }`}
       >
         {!loaded && !error ? (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-950/85">
             <CardLoadingSpinner />
           </div>
         ) : null}
@@ -103,14 +102,14 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
 
 function DrawnCardPanel({ card }: { card: DrawnTarotCard }) {
   return (
-    <article className="border border-rose-100 bg-white/90 p-3 text-center shadow-sm shadow-rose-100/40">
-      <p className="text-[11px] font-semibold tracking-wide text-rose-600">{card.position}</p>
-      <p className="mt-0.5 text-[10px] text-slate-500">{suitLabel(card.suit)}</p>
+    <article className="border border-rose-500/20 bg-zinc-900/85 p-3 text-center shadow-sm shadow-black/30">
+      <p className="text-[11px] font-semibold tracking-wide text-rose-400">{card.position}</p>
+      <p className="mt-0.5 text-[10px] text-slate-400">{suitLabel(card.suit)}</p>
       <div className="mt-2">
         <TarotCardFace card={card} />
       </div>
-      <p className="mt-2 text-base font-bold text-slate-900">{card.nameKo}</p>
-      <p className="mt-0.5 text-xs text-slate-500">{card.nameEn}</p>
+      <p className="mt-2 text-base font-bold text-rose-50">{card.nameKo}</p>
+      <p className="mt-0.5 text-xs text-slate-400">{card.nameEn}</p>
       <p
         className={`mt-2 text-[11px] font-medium ${
           card.orientation === "reversed" ? "text-amber-700" : "text-emerald-700"
@@ -161,7 +160,7 @@ function StepTopProgressBar({ current }: { current: number }) {
               {index > 0 ? (
                 <div
                   className={`h-0.5 min-w-[1.25rem] flex-1 transition-colors duration-300 ${
-                    lineDone ? "bg-rose-300" : "bg-rose-100"
+                    lineDone ? "bg-rose-500/60" : "bg-rose-900/50"
                   }`}
                   aria-hidden
                 />
@@ -171,8 +170,8 @@ function StepTopProgressBar({ current }: { current: number }) {
                   isActive
                     ? "bg-gradient-to-br from-rose-400 via-pink-500 to-fuchsia-400 text-white shadow-md shadow-rose-200/60 ring-2 ring-rose-200 ring-offset-2 ring-offset-white"
                     : isDone
-                      ? "bg-rose-100 text-rose-600"
-                      : "border border-rose-200 bg-white text-rose-300"
+                      ? "bg-rose-500/25 text-rose-300"
+                      : "border border-rose-500/25 bg-zinc-900 text-rose-600/70"
                 }`}
                 aria-current={isActive ? "step" : undefined}
               >
@@ -183,7 +182,7 @@ function StepTopProgressBar({ current }: { current: number }) {
         })}
       </div>
 
-      <div className="tarot-step-track mt-3 h-1.5 overflow-hidden rounded-full bg-rose-100">
+      <div className="tarot-step-track mt-3 h-1.5 overflow-hidden rounded-full bg-rose-950/80">
         <div
           className="h-full rounded-full bg-gradient-to-r from-rose-400 via-pink-500 to-fuchsia-400 transition-[width] duration-300 ease-out"
           style={{ width: `${percent}%` }}
@@ -617,13 +616,12 @@ export default function TarotHome() {
   return (
     <main className="tarot-home-page relative flex min-h-dvh flex-col overflow-x-hidden">
       <div className="tarot-home-glow" aria-hidden />
-      <TarotBackgroundScatter />
 
       <div className="tarot-page-inner flex-1">
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
-            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-black sm:text-2xl md:text-3xl"
+            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-rose-50 sm:text-2xl md:text-3xl"
           >
             <span className="block truncate">{SERVICE_NAME}</span>
           </a>
@@ -634,12 +632,12 @@ export default function TarotHome() {
                 type="button"
                 aria-label="사용자 메뉴"
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                className="h-10 w-10 overflow-hidden rounded-full border border-rose-200 bg-white shadow-sm transition hover:border-rose-400"
+                className="h-10 w-10 overflow-hidden rounded-full border border-rose-500/30 bg-zinc-900 shadow-sm transition hover:border-rose-400"
               >
                 {userAvatarUrl ? (
                   <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="inline-flex h-full w-full items-center justify-center bg-rose-50 text-xs font-semibold text-rose-700">
+                  <span className="inline-flex h-full w-full items-center justify-center bg-rose-950/60 text-xs font-semibold text-rose-300">
                     ME
                   </span>
                 )}
@@ -651,14 +649,14 @@ export default function TarotHome() {
                   setPendingAuthAction(null);
                   setIsLoginModalOpen(true);
                 }}
-                className="rounded-full border border-rose-300 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-400 hover:bg-rose-50"
+                className="rounded-full border border-rose-500/35 bg-zinc-900/90 px-4 py-2 text-xs font-semibold text-rose-200 shadow-sm transition hover:border-rose-400 hover:bg-rose-950/50"
               >
                 Google 로그인
               </button>
             )}
 
             <div
-              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-rose-100 bg-white/95 shadow-lg shadow-rose-100/50 transition-all duration-300 ${
+              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-rose-500/25 bg-zinc-900/95 shadow-lg shadow-black/50 transition-all duration-300 ${
                 isLoggedIn && isUserMenuOpen
                   ? "max-h-40 translate-y-0 p-1.5 opacity-100"
                   : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
@@ -666,7 +664,7 @@ export default function TarotHome() {
             >
               <a
                 href="/mypage"
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-rose-50"
+                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-rose-950/50"
               >
                 마이페이지
               </a>
@@ -683,22 +681,22 @@ export default function TarotHome() {
 
         <StepTopProgressBar current={step} />
 
-        <section className="w-full min-w-0 rounded-2xl border border-rose-100/90 bg-white/75 p-4 shadow-lg shadow-rose-100/30 backdrop-blur-sm sm:p-5 md:p-6">
-          <div className="border-b border-rose-100 pb-4 text-center">
+        <section className="w-full min-w-0 rounded-2xl border border-rose-500/20 bg-zinc-900/75 p-4 shadow-lg shadow-black/40 backdrop-blur-sm sm:p-5 md:p-6">
+          <div className="border-b border-rose-500/20 pb-4 text-center">
             {step === 1 ? (
               <>
-                <h1 className="font-brand-display text-balance text-2xl tracking-tight text-rose-950 sm:text-3xl md:text-[2rem]">
+                <h1 className="font-brand-display text-balance text-2xl tracking-tight text-rose-50 sm:text-3xl md:text-[2rem]">
                   AI 타로
                 </h1>
-                <p className="mt-1 text-pretty text-sm text-rose-700/90 sm:text-base">{SERVICE_TAGLINE}</p>
+                <p className="mt-1 text-pretty text-sm text-rose-300/90 sm:text-base">{SERVICE_TAGLINE}</p>
               </>
             ) : null}
             <h2
-              className={`text-balance text-base font-semibold text-rose-950 sm:text-lg ${step === 1 ? "mt-5 sm:mt-6" : ""}`}
+              className={`text-balance text-base font-semibold text-rose-50 sm:text-lg ${step === 1 ? "mt-5 sm:mt-6" : ""}`}
             >
               {stepMeta.title}
             </h2>
-            <p className="mt-1 text-pretty text-xs leading-5 text-slate-500 sm:text-sm">{stepMeta.description}</p>
+            <p className="mt-1 text-pretty text-xs leading-5 text-slate-400 sm:text-sm">{stepMeta.description}</p>
           </div>
 
           {step === 1 && (
@@ -715,8 +713,8 @@ export default function TarotHome() {
                     }}
                     className={`flex min-h-[4.25rem] flex-col justify-center rounded-xl border px-2.5 py-2.5 text-left transition sm:min-h-[4.5rem] sm:px-3 sm:py-3 ${
                       topic === item.id
-                        ? "border-rose-400 bg-rose-50 text-rose-950 ring-1 ring-rose-300/50 shadow-sm"
-                        : "border-rose-100 bg-white/80 text-slate-700 hover:border-rose-200 hover:bg-rose-50/50"
+                        ? "border-rose-400/70 bg-rose-950/50 text-rose-50 ring-1 ring-rose-500/40 shadow-sm"
+                        : "border-rose-500/20 bg-zinc-900/70 text-slate-300 hover:border-rose-500/35 hover:bg-rose-950/40"
                     }`}
                   >
                     <span className="block text-[13px] font-semibold leading-snug sm:text-sm">{item.label}</span>
@@ -735,7 +733,7 @@ export default function TarotHome() {
                 maxLength={400}
                 rows={4}
                 placeholder={topicPlaceholder(topic)}
-                className="w-full resize-none rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-rose-400 focus:ring-1 focus:ring-rose-200"
+                className="w-full resize-none rounded-xl border border-rose-500/25 bg-zinc-900 px-4 py-3 text-sm text-slate-200 outline-none placeholder:text-slate-500 focus:border-rose-400 focus:ring-1 focus:ring-rose-500/30"
               />
               <p className="mt-2 text-[11px] text-slate-500">입력하지 않아도 다음 단계로 진행할 수 있어요.</p>
             </div>
@@ -752,8 +750,8 @@ export default function TarotHome() {
                     onClick={() => handleSpreadChange(item.id)}
                     className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                       spread === item.id
-                        ? "border-rose-400 bg-rose-50 text-rose-900 shadow-sm"
-                        : "border-rose-100 bg-white/80 text-slate-600 hover:border-rose-200"
+                        ? "border-rose-400/70 bg-rose-950/50 text-rose-100 shadow-sm"
+                        : "border-rose-500/20 bg-zinc-900/70 text-slate-400 hover:border-rose-500/35"
                     }`}
                   >
                     {item.label}
@@ -775,12 +773,12 @@ export default function TarotHome() {
                   {Array.from({ length: spreadConfig.count }).map((_, index) => (
                     <article
                       key={`drawing-${index}`}
-                      className={`border border-rose-100 bg-white/90 p-3 text-center shadow-sm ${cardSlotClass}`}
+                      className={`border border-rose-500/20 bg-zinc-900/85 p-3 text-center shadow-sm ${cardSlotClass}`}
                     >
-                      <p className="text-[11px] font-semibold text-rose-600">
+                      <p className="text-[11px] font-semibold text-rose-400">
                         {spreadConfig.positions[index] ?? `카드 ${index + 1}`}
                       </p>
-                      <div className="mx-auto mt-2 flex aspect-[2/3] w-full max-w-[200px] items-center justify-center bg-rose-50/80">
+                      <div className="mx-auto mt-2 flex aspect-[2/3] w-full max-w-[200px] items-center justify-center bg-zinc-900/80">
                         <CardLoadingSpinner label="카드를 섞는 중" />
                       </div>
                     </article>
@@ -803,7 +801,7 @@ export default function TarotHome() {
                   {Array.from({ length: spreadConfig.count }).map((_, index) => (
                     <div
                       key={`placeholder-${index}`}
-                      className={`border border-rose-100 bg-white/60 p-3 text-center ${cardSlotClass}`}
+                      className={`border border-rose-500/20 bg-zinc-900/60 p-3 text-center ${cardSlotClass}`}
                     >
                       <p className="text-[11px] text-slate-500">{spreadConfig.positions[index]}</p>
                       <div className="mt-2">
@@ -818,20 +816,20 @@ export default function TarotHome() {
 
           {step === 4 && (
             <div className="mt-4 space-y-4">
-              <div className="rounded-xl border border-rose-100 bg-rose-50/50 p-3 text-sm text-slate-600">
+              <div className="rounded-xl border border-rose-500/20 bg-rose-950/35 p-3 text-sm text-slate-400">
                 <p>
                   <span className="text-slate-500">리딩 테마</span>{" "}
-                  <span className="font-medium text-rose-950">{selectedTopic.label}</span>
+                  <span className="font-medium text-rose-100">{selectedTopic.label}</span>
                 </p>
                 {question.trim() ? (
                   <p className="mt-2">
                     <span className="text-slate-500">질문</span>{" "}
-                    <span className="text-slate-700">{question.trim()}</span>
+                    <span className="text-slate-300">{question.trim()}</span>
                   </p>
                 ) : null}
                 <p className="mt-2">
                   <span className="text-slate-500">스프레드</span>{" "}
-                  <span className="font-medium text-rose-950">{spreadConfig.label}</span>
+                  <span className="font-medium text-rose-100">{spreadConfig.label}</span>
                 </p>
               </div>
 
@@ -844,7 +842,7 @@ export default function TarotHome() {
                   ))}
                 </div>
               ) : (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                <p className="rounded-lg border border-amber-500/30 bg-amber-950/40 px-3 py-2 text-sm text-amber-200">
                   카드가 없습니다. 이전 단계에서 카드를 뽑아 주세요.
                 </p>
               )}
@@ -854,8 +852,8 @@ export default function TarotHome() {
               ) : null}
 
               {reading && (
-                <div className="space-y-2 rounded-xl border border-rose-100 bg-white p-4 text-sm shadow-sm">
-                  <p className="mb-3 text-xs font-semibold text-rose-600">리딩 결과</p>
+                <div className="space-y-2 rounded-xl border border-rose-500/20 bg-zinc-900/90 p-4 text-sm shadow-sm">
+                  <p className="mb-3 text-xs font-semibold text-rose-400">리딩 결과</p>
                   <TarotReadingView text={reading} />
                 </div>
               )}
@@ -863,7 +861,7 @@ export default function TarotHome() {
               <button
                 type="button"
                 onClick={restartTarot}
-                className="w-full rounded-xl border border-dashed border-rose-200 bg-white/80 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50"
+                className="w-full rounded-xl border border-dashed border-rose-500/30 bg-zinc-900/80 px-4 py-3 text-sm font-semibold text-rose-300 transition hover:border-rose-400 hover:bg-rose-950/40"
               >
                 타로 다시하기
               </button>
@@ -871,7 +869,7 @@ export default function TarotHome() {
           )}
 
           {readingError && (
-            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{readingError}</p>
+            <p className="mt-4 rounded-lg border border-red-500/30 bg-red-950/40 px-3 py-2 text-sm text-red-300">{readingError}</p>
           )}
 
           <div
@@ -881,7 +879,7 @@ export default function TarotHome() {
               <button
                 type="button"
                 onClick={goToPrevStep}
-                className="w-full rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:bg-rose-50 min-[480px]:w-auto min-[480px]:min-w-[88px]"
+                className="w-full rounded-xl border border-rose-500/25 bg-zinc-900 px-4 py-3 text-sm font-semibold text-slate-300 transition hover:border-rose-400 hover:bg-rose-950/50 min-[480px]:w-auto min-[480px]:min-w-[88px]"
               >
                 이전
               </button>
@@ -892,7 +890,7 @@ export default function TarotHome() {
                 type="button"
                 onClick={goToNextStep}
                 disabled={step === 3 && isDrawing}
-                className="w-full min-w-0 rounded-xl bg-gradient-to-r from-rose-400 via-pink-500 to-fuchsia-400 px-8 py-3 text-sm font-semibold text-white shadow-md shadow-rose-200/60 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 min-[480px]:w-auto min-[480px]:min-w-[108px]"
+                className="w-full min-w-0 rounded-xl bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-8 py-3 text-sm font-semibold text-white shadow-md shadow-rose-900/50 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
                 다음
               </button>
@@ -901,7 +899,7 @@ export default function TarotHome() {
                 type="button"
                 onClick={() => void handleStartReading()}
                 disabled={isReadingLoading || drawnCards.length !== spreadConfig.count}
-                className="w-full max-w-full rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-center text-sm font-semibold text-rose-900 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:px-6"
+                className="w-full max-w-full rounded-xl border border-rose-500/40 bg-rose-600/90 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:px-6"
               >
                 {isReadingLoading ? "AI가 카드를 읽는 중..." : reading ? "다시 리딩하기" : "결과 보기"}
               </button>
@@ -914,8 +912,8 @@ export default function TarotHome() {
 
       {isLoginModalOpen && (
         <div className="tarot-login-modal-backdrop fixed inset-0 z-[300] flex items-end justify-center p-0 sm:items-center sm:p-4">
-          <div className="tarot-login-modal relative max-h-[min(90dvh,100%)] w-full max-w-sm overflow-hidden rounded-t-3xl border border-rose-100 bg-white pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-rose-200/30 sm:rounded-3xl">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-rose-50 via-pink-50/80 to-transparent" />
+          <div className="tarot-login-modal relative max-h-[min(90dvh,100%)] w-full max-w-sm overflow-hidden rounded-t-3xl border border-rose-500/25 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-black/50 sm:rounded-3xl">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-rose-900/40 via-pink-950/30 to-transparent" />
             <button
               type="button"
               aria-label="닫기"
@@ -923,15 +921,15 @@ export default function TarotHome() {
                 setIsLoginModalOpen(false);
                 setPendingAuthAction(null);
               }}
-              className="absolute right-4 top-4 z-10 rounded-full p-1 text-slate-400 transition hover:bg-rose-50 hover:text-rose-900"
+              className="absolute right-4 top-4 z-10 rounded-full p-1 text-slate-400 transition hover:bg-rose-950/50 hover:text-rose-100"
             >
               ✕
             </button>
             <div className="relative px-6 pb-2 pt-10 text-center">
-              <p className="font-brand-display text-[2rem] leading-none tracking-tight text-rose-950 sm:text-[2.25rem]">
+              <p className="font-brand-display text-[2rem] leading-none tracking-tight text-rose-50 sm:text-[2.25rem]">
                 {SERVICE_NAME}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
                 Google 계정으로 로그인하고
                 <br />
                 나만의 타로 리딩을 시작해 보세요.
@@ -974,15 +972,15 @@ export default function TarotHome() {
 
       {isNicknameModalOpen && (
         <div className="fixed inset-0 z-[310] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
-          <div className="max-h-[min(90dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-rose-100 bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-rose-100/40 sm:rounded-3xl">
-            <p className="text-center text-lg font-bold text-rose-700">환영합니다</p>
-            <p className="mt-2 text-center text-sm text-slate-600">닉네임을 설정하거나 건너뛸 수 있어요.</p>
+          <div className="max-h-[min(90dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-rose-500/25 bg-zinc-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-black/50 sm:rounded-3xl">
+            <p className="text-center text-lg font-bold text-rose-300">환영합니다</p>
+            <p className="mt-2 text-center text-sm text-slate-400">닉네임을 설정하거나 건너뛸 수 있어요.</p>
             <input
               value={nicknameDraft}
               onChange={(event) => setNicknameDraft(event.target.value)}
               maxLength={30}
               placeholder="닉네임"
-              className="mt-4 w-full rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-200"
+              className="mt-4 w-full rounded-xl border border-rose-500/25 bg-zinc-950 px-4 py-3 text-sm text-slate-200 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-500/30"
             />
             {nicknameError && <p className="mt-2 text-sm text-red-600">{nicknameError}</p>}
             <div className="mt-4 grid grid-cols-2 gap-2">

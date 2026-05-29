@@ -4,6 +4,7 @@ import {
   SERVICE_KEYWORDS,
   SERVICE_NAME,
   SERVICE_NAME_EN,
+  SERVICE_TAGLINE,
   getSiteUrl,
 } from "@/lib/brand";
 
@@ -182,3 +183,27 @@ export function getHomeJsonLd(): JsonLdObject[] {
     },
   ];
 }
+
+/** 크롤러·스크린리더용 (화면에는 sr-only로 숨김) */
+export const HOME_SEO_INTRO = {
+  heading: "AI 타로 온라인 — 멜로타로",
+  body: `${SERVICE_TAGLINE}. 78장 타로 카드와 AI 해석으로 연애 타로, 오늘의 운세, 직장·재물 운세까지 한곳에서 받아 보세요.`,
+};
+
+export const HOME_SEO_FAQ: Array<{ question: string; answer: string }> = [
+  {
+    question: "멜로타로 AI 타로는 무엇인가요?",
+    answer:
+      "질문 주제와 뽑은 타로 카드를 바탕으로 AI가 리딩을 작성해 주는 온라인 AI 타로 서비스입니다. 연애, 직장, 재물, 오늘의 운세 등에서 활용할 수 있습니다.",
+  },
+  {
+    question: "AI 타로는 어떻게 이용하나요?",
+    answer:
+      "리딩 영역 선택 → 궁금한 점 입력(선택) → 카드 스프레드 선택 후 뽑기 → AI 타로 리딩 결과 확인 순서로 진행합니다.",
+  },
+  {
+    question: "어떤 주제의 타로를 볼 수 있나요?",
+    answer:
+      "오늘의 운세, 연애·썸, 커플, 재물, 취업·이직, 사업, 학업, 마음·힐링, 선택·결정 등 다양한 AI 타로 주제를 제공합니다.",
+  },
+];

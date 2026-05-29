@@ -53,12 +53,11 @@ body {
 
 .tarot-home-page {
   background:
-    radial-gradient(ellipse 110% 70% at 50% -15%, rgb(253 242 248 / 0.45), transparent 62%),
-    radial-gradient(ellipse 85% 55% at 100% 20%, rgb(252 231 243 / 0.32), transparent 58%),
-    radial-gradient(ellipse 75% 50% at 0% 75%, rgb(251 207 232 / 0.22), transparent 58%),
-    radial-gradient(ellipse 60% 40% at 80% 90%, rgb(244 114 182 / 0.05), transparent 52%),
-    linear-gradient(180deg, #ffffff 0%, #ffffff 55%, #fffbfb 85%, #fff5f9 100%);
-  color: rgb(30 27 75);
+    radial-gradient(ellipse 100% 65% at 50% -10%, rgb(190 24 93 / 0.22), transparent 58%),
+    radial-gradient(ellipse 80% 50% at 100% 25%, rgb(131 24 67 / 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 0% 80%, rgb(88 28 135 / 0.14), transparent 55%),
+    linear-gradient(180deg, #0a070c 0%, #0f0a14 45%, #120c18 100%);
+  color: rgb(253 242 248);
 }
 
 .tarot-home-page .tarot-home-glow {
@@ -67,54 +66,21 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 70% 45% at 20% 10%, rgb(251 113 133 / 0.06), transparent 58%),
-    radial-gradient(ellipse 55% 40% at 85% 30%, rgb(244 114 182 / 0.05), transparent 55%),
-    radial-gradient(ellipse 50% 35% at 50% 100%, rgb(249 168 212 / 0.05), transparent 58%);
+    radial-gradient(ellipse 70% 45% at 20% 10%, rgb(244 114 182 / 0.12), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 85% 30%, rgb(192 38 211 / 0.08), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgb(225 29 72 / 0.06), transparent 58%);
 }
 
 .tarot-login-modal-backdrop {
-  background: rgb(30 27 75 / 0.35);
-  backdrop-filter: blur(4px);
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(6px);
 }
 
 .tarot-login-modal {
   background:
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgb(253 242 248 / 0.9), transparent 70%),
-    #ffffff;
-}
-
-.tarot-bg-scatter {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.tarot-bg-scatter__card {
-  position: absolute;
-  width: auto;
-  height: auto;
-  aspect-ratio: 2 / 3;
-  max-width: none;
-  object-fit: contain;
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgb(251 113 133 / 0.12);
-  image-rendering: auto;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-@media (min-width: 640px) {
-  .tarot-bg-scatter__card {
-    border-radius: 8px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .tarot-bg-scatter__card {
-    border-radius: 10px;
-  }
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgb(190 24 93 / 0.2), transparent 70%),
+    rgb(24 18 28);
+  border-color: rgb(244 114 182 / 0.2);
 }
 
 .tarot-step-track {
