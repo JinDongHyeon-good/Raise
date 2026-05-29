@@ -159,7 +159,7 @@ function DrawnCardPanel({ card, showMeta = true }: { card: DrawnTarotCard; showM
   );
 }
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 3;
 const PENDING_AUTH_STORAGE_KEY = "melotaro-pending-auth";
 
 type PendingAuthAction = "advance-step" | "start-reading";
@@ -170,8 +170,10 @@ const STEP_META: Array<{ title: string; description: string }> = [
     description: "지금 가장 깊이 들여다보고 싶은 질문의 영역을 골라 주세요. 선택하신 테마에 맞춰 카드의 흐름을 읽습니다.",
   },
   { title: "궁금한 점", description: "마음속 질문을 적어 주세요. (선택)" },
-  { title: "카드 뽑기", description: "한 장 또는 세 장을 고른 뒤 카드를 뽑아 주세요." },
-  { title: "AI 타로 리딩", description: "뽑은 카드를 바탕으로 AI 리딩을 받아 보세요." },
+  {
+    title: "카드 뽑기",
+    description: "카드를 뽑은 뒤 결과 보기를 누르면 AI 타로 리딩을 확인할 수 있습니다.",
+  },
 ];
 
 function StepTopProgressBar({ current }: { current: number }) {
@@ -225,6 +227,7 @@ export default function TarotHome() {
   const [reading, setReading] = useState("");
   const [readingError, setReadingError] = useState<string | null>(null);
   const [isReadingLoading, setIsReadingLoading] = useState(false);
+  const [readingCopied, setReadingCopied] = useState(false);
   const [remainingToday, setRemainingToday] = useState<number | null>(null);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -281,6 +284,9 @@ export default function TarotHome() {
     const nextStep = Math.max(1, step - 1);
     if (nextStep === 1) {
       resetLaterStepInputs();
+    } else if (step === 3) {
+      setReading("");
+      setIsReadingLoading(false);
     }
     setStep(nextStep);
   };
@@ -295,10 +301,6 @@ export default function TarotHome() {
           setIsLoginModalOpen(true);
           return;
         }
-      }
-      if (step === 3 && drawnCards.length !== spreadConfig.count) {
-        setReadingError("카드를 뽑은 뒤 다음으로 진행해 주세요.");
-        return;
       }
       setStep((prev) => Math.min(TOTAL_STEPS, prev + 1));
     })();
@@ -551,6 +553,7 @@ export default function TarotHome() {
     }
 
     setReadingError(null);
+    setReadingCopied(false);
     setIsReadingLoading(true);
     setReading("");
 
@@ -620,6 +623,18 @@ export default function TarotHome() {
     }
 
     await runReading();
+  };
+
+  const handleCopyReading = async () => {
+    if (!reading.trim()) return;
+
+    try {
+      await navigator.clipboard.writeText(reading);
+      setReadingCopied(true);
+      window.setTimeout(() => setReadingCopied(false), 2000);
+    } catch {
+      setReadingError("결과를 복사하지 못했습니다. 브라우저 권한을 확인해 주세요.");
+    }
   };
 
   useLayoutEffect(() => {
@@ -844,60 +859,44 @@ export default function TarotHome() {
               >
                 {isDrawing ? "뽑는 중..." : drawnCards.length > 0 ? "카드 다시 뽑기" : "카드 뽑기"}
               </button>
-            </div>
-          )}
 
-          {step === 4 && (
-            <div className="mt-4 space-y-4">
-              <div className="rounded-xl border border-violet-200 bg-violet-50 p-3 text-sm text-slate-400">
-                <p>
-                  <span className="text-slate-500">리딩 테마</span>{" "}
-                  <span className="font-medium text-violet-900">{selectedTopic.label}</span>
-                </p>
-                {question.trim() ? (
-                  <p className="mt-2">
-                    <span className="text-slate-500">질문</span>{" "}
-                    <span className="text-slate-700">{question.trim()}</span>
-                  </p>
-                ) : null}
-                <p className="mt-2">
-                  <span className="text-slate-500">스프레드</span>{" "}
-                  <span className="font-medium text-violet-900">{spreadConfig.label}</span>
-                </p>
-              </div>
-
-              {drawnCards.length > 0 ? (
-                <div className={`${cardsLayoutClass} mt-4`}>
-                  {drawnCards.map((card) => (
-                    <TarotDrawSlot key={`summary-${card.id}-${card.position}`} positionLabel={card.position}>
-                      <DrawnCardPanel card={card} showMeta={false} />
-                    </TarotDrawSlot>
-                  ))}
+              {isReadingLoading ? (
+                <div className="flex flex-col items-center justify-center gap-2 py-6" role="status" aria-live="polite">
+                  <div className="relative h-9 w-9" aria-hidden>
+                    <div className="absolute inset-0 rounded-full border border-violet-200" />
+                    <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-violet-500" />
+                  </div>
+                  <span className="text-xs text-violet-600">AI가 카드를 읽는 중...</span>
                 </div>
-              ) : (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                  카드가 없습니다. 이전 단계에서 카드를 뽑아 주세요.
-                </p>
-              )}
-
-              {isLoggedIn && remainingToday !== null ? (
-                <p className="text-xs text-slate-400">오늘 남은 리딩: {remainingToday}회</p>
               ) : null}
 
-              {reading && (
-                <div className="space-y-2 rounded-xl border border-violet-200 bg-white/95 p-4 text-sm shadow-sm">
-                  <p className="mb-3 text-xs font-semibold text-violet-600">리딩 결과</p>
-                  <TarotReadingView text={reading} />
+              {reading ? (
+                <div className="space-y-4">
+                  {isLoggedIn && remainingToday !== null ? (
+                    <p className="text-xs text-slate-500">오늘 남은 리딩: {remainingToday}회</p>
+                  ) : null}
+                  <div className="space-y-2 rounded-xl border border-violet-200 bg-white/95 p-4 text-sm shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-semibold text-violet-600">리딩 결과</p>
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyReading()}
+                        className="shrink-0 rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-[11px] font-semibold text-violet-700 transition hover:border-violet-300 hover:bg-violet-100"
+                      >
+                        {readingCopied ? "복사됨" : "결과 복사하기"}
+                      </button>
+                    </div>
+                    <TarotReadingView text={reading} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={restartTarot}
+                    className="w-full rounded-xl border border-dashed border-violet-200 bg-white/90 px-4 py-3 text-sm font-semibold text-violet-700 transition hover:border-violet-400 hover:bg-violet-50"
+                  >
+                    타로 다시하기
+                  </button>
                 </div>
-              )}
-
-              <button
-                type="button"
-                onClick={restartTarot}
-                className="w-full rounded-xl border border-dashed border-violet-200 bg-white/90 px-4 py-3 text-sm font-semibold text-violet-700 transition hover:border-violet-400 hover:bg-violet-50"
-              >
-                타로 다시하기
-              </button>
+              ) : null}
             </div>
           )}
 
@@ -918,23 +917,22 @@ export default function TarotHome() {
               </button>
             ) : null}
 
-            {step < TOTAL_STEPS ? (
+            {step === 3 ? (
               <button
                 type="button"
-                onClick={goToNextStep}
-                disabled={step === 3 && isDrawing}
-                className="w-full min-w-0 rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-8 py-3 text-sm font-semibold text-white shadow-md shadow-violet-300/45 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 min-[480px]:w-auto min-[480px]:min-w-[108px]"
+                onClick={() => void handleStartReading()}
+                disabled={isDrawing || isReadingLoading || drawnCards.length !== spreadConfig.count}
+                className="w-full min-w-0 rounded-xl border border-violet-300 bg-violet-600 px-8 py-3 text-sm font-semibold text-white shadow-md shadow-violet-300/35 transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
-                다음
+                {isReadingLoading ? "읽는 중..." : reading ? "다시 리딩하기" : "결과 보기"}
               </button>
             ) : (
               <button
                 type="button"
-                onClick={() => void handleStartReading()}
-                disabled={isReadingLoading || drawnCards.length !== spreadConfig.count}
-                className="w-full max-w-full rounded-xl border border-violet-300 bg-violet-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:px-6"
+                onClick={goToNextStep}
+                className="w-full min-w-0 rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-8 py-3 text-sm font-semibold text-white shadow-md shadow-violet-300/45 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
-                {isReadingLoading ? "AI가 카드를 읽는 중..." : reading ? "다시 리딩하기" : "결과 보기"}
+                다음
               </button>
             )}
           </div>
