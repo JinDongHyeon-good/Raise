@@ -1,6 +1,14 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { SERVICE_NAME, SERVICE_TAGLINE } from "@/lib/brand";
 import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
@@ -614,16 +622,18 @@ export default function TarotHome() {
     await runReading();
   };
 
-  flushPendingAuthActionRef.current = () => {
-    const action = pendingAuthActionRef.current;
-    setPendingAuthAction(null);
-    setIsLoginModalOpen(false);
-    if (action === "advance-step") {
-      setStep((prev) => Math.min(TOTAL_STEPS, prev + 1));
-    } else if (action === "start-reading") {
-      void runReading();
-    }
-  };
+  useLayoutEffect(() => {
+    flushPendingAuthActionRef.current = () => {
+      const action = pendingAuthActionRef.current;
+      setPendingAuthAction(null);
+      setIsLoginModalOpen(false);
+      if (action === "advance-step") {
+        setStep((prev) => Math.min(TOTAL_STEPS, prev + 1));
+      } else if (action === "start-reading") {
+        void runReading();
+      }
+    };
+  });
 
   return (
     <main className="tarot-home-page relative flex min-h-dvh flex-col overflow-x-hidden">

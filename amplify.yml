@@ -7,7 +7,7 @@ frontend:
         - corepack enable
         - corepack prepare pnpm@10.5.2 --activate
         - pnpm install --frozen-lockfile
-        - node --experimental-strip-types scripts/sync-tarot-assets.js
+        - node scripts/sync-tarot-assets.js
     build:
       commands:
         - |

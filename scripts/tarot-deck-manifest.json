@@ -1,0 +1,392 @@
+[
+  {
+    "id": "fool",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "바보.jpg"
+  },
+  {
+    "id": "magician",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "마법사.jpg"
+  },
+  {
+    "id": "high_priestess",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "여사제.jpg"
+  },
+  {
+    "id": "empress",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "여황제.jpg"
+  },
+  {
+    "id": "emperor",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "황제.jpg"
+  },
+  {
+    "id": "hierophant",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "교황.jpg"
+  },
+  {
+    "id": "lovers",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "연인.jpg"
+  },
+  {
+    "id": "chariot",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "전차.jpg"
+  },
+  {
+    "id": "strength",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "힘.jpg"
+  },
+  {
+    "id": "hermit",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "은둔자.jpg"
+  },
+  {
+    "id": "wheel",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "운명의수레바퀴.jpg"
+  },
+  {
+    "id": "justice",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "정의.jpg"
+  },
+  {
+    "id": "hanged",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "행맨.jpg"
+  },
+  {
+    "id": "death",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "죽음.jpg"
+  },
+  {
+    "id": "temperance",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "절제.jpg"
+  },
+  {
+    "id": "devil",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "악마.jpg"
+  },
+  {
+    "id": "tower",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "타워.jpg"
+  },
+  {
+    "id": "star",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "별.jpg"
+  },
+  {
+    "id": "moon",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "달.jpg"
+  },
+  {
+    "id": "sun",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "태양카드.jpg"
+  },
+  {
+    "id": "judgement",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "심판.jpg"
+  },
+  {
+    "id": "world",
+    "imageBase": "/메이저아르카나",
+    "imageFile": "세계카드.jpg"
+  },
+  {
+    "id": "cups_ace",
+    "imageBase": "/컵",
+    "imageFile": "컵에이스.jpg"
+  },
+  {
+    "id": "cups_02",
+    "imageBase": "/컵",
+    "imageFile": "컵2.jpg"
+  },
+  {
+    "id": "cups_03",
+    "imageBase": "/컵",
+    "imageFile": "컵3.jpg"
+  },
+  {
+    "id": "cups_04",
+    "imageBase": "/컵",
+    "imageFile": "컵4.jpg"
+  },
+  {
+    "id": "cups_05",
+    "imageBase": "/컵",
+    "imageFile": "컵5.jpg"
+  },
+  {
+    "id": "cups_06",
+    "imageBase": "/컵",
+    "imageFile": "컵6.jpg"
+  },
+  {
+    "id": "cups_07",
+    "imageBase": "/컵",
+    "imageFile": "컵7.jpg"
+  },
+  {
+    "id": "cups_08",
+    "imageBase": "/컵",
+    "imageFile": "컵8.jpg"
+  },
+  {
+    "id": "cups_09",
+    "imageBase": "/컵",
+    "imageFile": "컵9.jpg"
+  },
+  {
+    "id": "cups_10",
+    "imageBase": "/컵",
+    "imageFile": "컵10.jpg"
+  },
+  {
+    "id": "cups_page",
+    "imageBase": "/컵",
+    "imageFile": "컵페이지.jpg"
+  },
+  {
+    "id": "cups_knight",
+    "imageBase": "/컵",
+    "imageFile": "컵나이트.jpg"
+  },
+  {
+    "id": "cups_queen",
+    "imageBase": "/컵",
+    "imageFile": "컵퀸.jpg"
+  },
+  {
+    "id": "cups_king",
+    "imageBase": "/컵",
+    "imageFile": "컵킹.jpg"
+  },
+  {
+    "id": "swords_ace",
+    "imageBase": "/소드",
+    "imageFile": "소드에이스.jpg"
+  },
+  {
+    "id": "swords_02",
+    "imageBase": "/소드",
+    "imageFile": "소드2.jpg"
+  },
+  {
+    "id": "swords_03",
+    "imageBase": "/소드",
+    "imageFile": "소드3.jpg"
+  },
+  {
+    "id": "swords_04",
+    "imageBase": "/소드",
+    "imageFile": "소드4.jpg"
+  },
+  {
+    "id": "swords_05",
+    "imageBase": "/소드",
+    "imageFile": "소드5.jpg"
+  },
+  {
+    "id": "swords_06",
+    "imageBase": "/소드",
+    "imageFile": "소드6.jpg"
+  },
+  {
+    "id": "swords_07",
+    "imageBase": "/소드",
+    "imageFile": "소드7.jpg"
+  },
+  {
+    "id": "swords_08",
+    "imageBase": "/소드",
+    "imageFile": "소드8.jpg"
+  },
+  {
+    "id": "swords_09",
+    "imageBase": "/소드",
+    "imageFile": "소드9.jpg"
+  },
+  {
+    "id": "swords_10",
+    "imageBase": "/소드",
+    "imageFile": "소드10.jpg"
+  },
+  {
+    "id": "swords_page",
+    "imageBase": "/소드",
+    "imageFile": "소드페이지.jpg"
+  },
+  {
+    "id": "swords_knight",
+    "imageBase": "/소드",
+    "imageFile": "소드나이트.jpg"
+  },
+  {
+    "id": "swords_queen",
+    "imageBase": "/소드",
+    "imageFile": "소드퀸.jpg"
+  },
+  {
+    "id": "swords_king",
+    "imageBase": "/소드",
+    "imageFile": "소드킹.jpg"
+  },
+  {
+    "id": "pentacles_ace",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클에이스.jpg"
+  },
+  {
+    "id": "pentacles_02",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클2.jpg"
+  },
+  {
+    "id": "pentacles_03",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클3.jpg"
+  },
+  {
+    "id": "pentacles_04",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클4.jpg"
+  },
+  {
+    "id": "pentacles_05",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클5.jpg"
+  },
+  {
+    "id": "pentacles_06",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클6.jpg"
+  },
+  {
+    "id": "pentacles_07",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클7.jpg"
+  },
+  {
+    "id": "pentacles_08",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클8.jpg"
+  },
+  {
+    "id": "pentacles_09",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클9.jpg"
+  },
+  {
+    "id": "pentacles_10",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클10.jpg"
+  },
+  {
+    "id": "pentacles_page",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클페이지.jpg"
+  },
+  {
+    "id": "pentacles_knight",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클나이트.jpg"
+  },
+  {
+    "id": "pentacles_queen",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클퀸.jpg"
+  },
+  {
+    "id": "pentacles_king",
+    "imageBase": "/펜타클",
+    "imageFile": "펜타클킹.jpg"
+  },
+  {
+    "id": "wands_ace",
+    "imageBase": "/완드",
+    "imageFile": "완드에이스.jpg"
+  },
+  {
+    "id": "wands_02",
+    "imageBase": "/완드",
+    "imageFile": "완드2.jpg"
+  },
+  {
+    "id": "wands_03",
+    "imageBase": "/완드",
+    "imageFile": "완드3.jpg"
+  },
+  {
+    "id": "wands_04",
+    "imageBase": "/완드",
+    "imageFile": "완드4.jpg"
+  },
+  {
+    "id": "wands_05",
+    "imageBase": "/완드",
+    "imageFile": "완드5.jpg"
+  },
+  {
+    "id": "wands_06",
+    "imageBase": "/완드",
+    "imageFile": "완드6.jpg"
+  },
+  {
+    "id": "wands_07",
+    "imageBase": "/완드",
+    "imageFile": "완드7.jpg"
+  },
+  {
+    "id": "wands_08",
+    "imageBase": "/완드",
+    "imageFile": "완드8.jpg"
+  },
+  {
+    "id": "wands_09",
+    "imageBase": "/완드",
+    "imageFile": "완드9.jpg"
+  },
+  {
+    "id": "wands_10",
+    "imageBase": "/완드",
+    "imageFile": "완드10.jpg"
+  },
+  {
+    "id": "wands_page",
+    "imageBase": "/완드",
+    "imageFile": "완드페이지.jpg"
+  },
+  {
+    "id": "wands_knight",
+    "imageBase": "/완드",
+    "imageFile": "완드나이트.jpg"
+  },
+  {
+    "id": "wands_queen",
+    "imageBase": "/완드",
+    "imageFile": "완드퀸.jpg"
+  },
+  {
+    "id": "wands_king",
+    "imageBase": "/완드",
+    "imageFile": "완드킹.jpg"
+  }
+]

@@ -1,16 +1,17 @@
 /**
  * Copy tarot card images to ASCII-only paths: public/tarot/{cardId}.jpg
  * Run: node scripts/sync-tarot-assets.js
+ *
+ * Deck metadata: scripts/tarot-deck-manifest.json
+ * (tarot-deck.ts 변경 시 로컬 Node 22+에서 manifest 재생성)
  */
 
 const fs = require("fs");
 const path = require("path");
-const { pathToFileURL } = require("url");
 
-async function loadDeck() {
-  const deckUrl = pathToFileURL(path.join(__dirname, "..", "src", "lib", "tarot-deck.ts")).href;
-  const mod = await import(deckUrl);
-  return mod.FULL_TAROT_DECK;
+function loadDeck() {
+  const manifestPath = path.join(__dirname, "tarot-deck-manifest.json");
+  return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 }
 
 function resolveSourcePath(card) {
@@ -42,11 +43,11 @@ function resolveSourcePath(card) {
   return null;
 }
 
-async function main() {
+function main() {
   const root = path.join(__dirname, "..");
   process.chdir(root);
 
-  const deck = await loadDeck();
+  const deck = loadDeck();
   const outDir = path.join("public", "tarot");
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -74,7 +75,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error("[sync-tarot-assets]", error);
   process.exit(1);
-});
+}
