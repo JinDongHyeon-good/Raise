@@ -6,7 +6,7 @@ frontend:
         - nvm use 20
         - corepack enable
         - corepack prepare pnpm@10.5.2 --activate
-        - pnpm install --frozen-lockfile
+        - pnpm install
         - node scripts/sync-tarot-assets.js
     build:
       commands:
