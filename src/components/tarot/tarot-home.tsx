@@ -686,9 +686,12 @@ export default function TarotHome() {
         <section className="w-full min-w-0 rounded-2xl border border-rose-100/90 bg-white/75 p-4 shadow-lg shadow-rose-100/30 backdrop-blur-sm sm:p-5 md:p-6">
           <div className="border-b border-rose-100 pb-4 text-center">
             {step === 1 ? (
-              <h1 className="font-brand-display text-balance text-2xl tracking-tight text-rose-950 sm:text-3xl md:text-[2rem]">
-                {SERVICE_TAGLINE}
-              </h1>
+              <>
+                <h1 className="font-brand-display text-balance text-2xl tracking-tight text-rose-950 sm:text-3xl md:text-[2rem]">
+                  AI 타로
+                </h1>
+                <p className="mt-1 text-pretty text-sm text-rose-700/90 sm:text-base">{SERVICE_TAGLINE}</p>
+              </>
             ) : null}
             <h2
               className={`text-balance text-base font-semibold text-rose-950 sm:text-lg ${step === 1 ? "mt-5 sm:mt-6" : ""}`}
