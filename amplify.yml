@@ -6,10 +6,13 @@ frontend:
         - nvm use 20
         - corepack enable
         - corepack prepare pnpm@10.5.2 --activate
-        - pnpm install
-        - node scripts/sync-tarot-assets.js
+        # 무한 대기를 방지하기 위해 기존에 꼬인 의존성 파일 강제 삭제
+        - rm -rf node_modules .next .pnpm-store
     build:
       commands:
+        # pnpm install을 본 빌드 단계의 최상단으로 이동
+        - pnpm install
+        - node scripts/sync-tarot-assets.js
         - |
           cat > .env.production <<EOF
           GEMINI_API_KEY=$GEMINI_API_KEY
@@ -31,3 +34,4 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+      - .pnpm-store/**/* # 👈 pnpm 캐시 경로를 명시적으로 추가
