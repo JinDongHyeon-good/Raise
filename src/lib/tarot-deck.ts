@@ -154,9 +154,27 @@ export const TAROT_TOPICS: Array<{
   },
 ];
 
-export const TAROT_SPREADS: Array<{ id: TarotSpreadId; label: string; count: number; positions: string[] }> = [
-  { id: "single", label: "오늘의 한 장", count: 1, positions: ["핵심 메시지"] },
-  { id: "three", label: "세 장 스프레드", count: 3, positions: ["과거", "현재", "미래"] },
+export const TAROT_SPREADS: Array<{
+  id: TarotSpreadId;
+  label: string;
+  description: string;
+  count: number;
+  positions: string[];
+}> = [
+  {
+    id: "single",
+    label: "한 장",
+    description: "지금 가장 필요한 핵심 메시지 한 가지에 집중해 읽습니다.",
+    count: 1,
+    positions: ["핵심 메시지"],
+  },
+  {
+    id: "three",
+    label: "세 장",
+    description: "과거·현재·미래 흐름을 이어서 짧게 살펴봅니다.",
+    count: 3,
+    positions: ["과거", "현재", "미래"],
+  },
 ];
 
 const MAJOR_RAW: Omit<TarotCardDef, "suit" | "imageBase">[] = [
