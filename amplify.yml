@@ -6,12 +6,10 @@ frontend:
         - nvm use 20
         - corepack enable
         - corepack prepare pnpm@10.5.2 --activate
-        # 무한 대기를 방지하기 위해 기존에 꼬인 의존성 파일 강제 삭제
-        - rm -rf node_modules .next .pnpm-store
     build:
       commands:
-        # pnpm install을 본 빌드 단계의 최상단으로 이동
-        - pnpm install
+        # 캐시를 안 쓰므로 의존성을 깨끗하게 처음부터 설치합니다.
+        - pnpm install --no-frozen-lockfile
         - node scripts/sync-tarot-assets.js
         - |
           cat > .env.production <<EOF
@@ -30,8 +28,9 @@ frontend:
       - ".next/**/*"
       - "public/**/*"
       - ".amplify-hosting/**/*"
-  cache:
-    paths:
-      - node_modules/**/*
-      - .next/cache/**/*
-      - .pnpm-store/**/* # 👈 pnpm 캐시 경로를 명시적으로 추가
+
+# 🛑 아래 cache 설정을 통째로 지우거나 주석(#) 처리하세요!
+# cache:
+#   paths:
+#     - node_modules/**/*
+#     - .next/cache/**/*
