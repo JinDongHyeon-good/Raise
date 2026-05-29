@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   FULL_TAROT_DECK,
+  getTarotCardApiUrl,
   getTarotImageUrl,
-  getTarotImageUrlNfd,
-  getTarotImageUrlNfdFileOnly,
 } from "@/lib/tarot-deck";
 
 const SCATTER_STORAGE_KEY = "melotaro-bg-scatter-v4";
@@ -25,9 +24,8 @@ type ScatterLayoutItem = {
 };
 
 type ScatterRenderItem = ScatterLayoutItem & {
-  srcNfc: string;
-  srcNfdFileOnly: string;
-  srcNfd: string;
+  src: string;
+  srcApi: string;
 };
 
 function randomBetween(min: number, max: number) {
@@ -173,9 +171,8 @@ function resolveLayout(layout: ScatterLayoutItem[]): ScatterRenderItem[] {
       if (!card) return null;
       return {
         ...item,
-        srcNfc: getTarotImageUrl(card),
-        srcNfdFileOnly: getTarotImageUrlNfdFileOnly(card),
-        srcNfd: getTarotImageUrlNfd(card),
+        src: getTarotImageUrl(card),
+        srcApi: getTarotCardApiUrl(card.id),
       };
     })
     .filter((item): item is ScatterRenderItem => item !== null);
@@ -198,14 +195,7 @@ function loadScatterLayout(viewportW: number, viewportH: number): ScatterRenderI
 
 export function TarotBackgroundScatter() {
   const [cards, setCards] = useState<ScatterRenderItem[]>([]);
-  const [fallbackStageById, setFallbackStageById] = useState<Record<string, number>>({});
-
-  const getSrc = (card: ScatterRenderItem) => {
-    const stage = fallbackStageById[card.cardId] ?? 0;
-    if (stage === 0) return card.srcNfc;
-    if (stage === 1) return card.srcNfdFileOnly;
-    return card.srcNfd;
-  };
+  const [useApiById, setUseApiById] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const viewportW = window.innerWidth;
@@ -219,7 +209,7 @@ export function TarotBackgroundScatter() {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={card.cardId}
-          src={getSrc(card)}
+          src={useApiById[card.cardId] ? card.srcApi : card.src}
           alt=""
           className="tarot-bg-scatter__card"
           style={{
@@ -232,11 +222,7 @@ export function TarotBackgroundScatter() {
           loading="lazy"
           decoding="async"
           onError={() => {
-            setFallbackStageById((prev) => {
-              const stage = prev[card.cardId] ?? 0;
-              if (stage >= 2) return prev;
-              return { ...prev, [card.cardId]: stage + 1 };
-            });
+            setUseApiById((prev) => (prev[card.cardId] ? prev : { ...prev, [card.cardId]: true }));
           }}
         />
       ))}

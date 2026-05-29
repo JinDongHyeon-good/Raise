@@ -299,40 +299,9 @@ export type DrawnTarotCard = TarotCardDef & {
   orientation: CardOrientation;
 };
 
-export function getTarotImageUrl(card: Pick<TarotCardDef, "imageBase" | "imageFile">) {
-  const encodedBase = card.imageBase
-    .split("/")
-    .filter(Boolean)
-    .map((part) => encodeURIComponent(part.normalize("NFC")))
-    .join("/");
-  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFC"));
-  return `/${encodedBase}/${encodedFile}`;
-}
-
-export function getTarotImageUrlNfd(card: Pick<TarotCardDef, "imageBase" | "imageFile">) {
-  const encodedBase = card.imageBase
-    .split("/")
-    .filter(Boolean)
-    .map((part) => encodeURIComponent(part.normalize("NFD")))
-    .join("/");
-  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFD"));
-  return `/${encodedBase}/${encodedFile}`;
-}
-
-/**
- * 폴더(imageBase)는 NFC(완성형)로, 파일(imageFile)만 NFD(분리형)로.
- * 운영에서 파일명 NFC/NFD가 섞이는 경우를 대비한 폴백용.
- */
-export function getTarotImageUrlNfdFileOnly(
-  card: Pick<TarotCardDef, "imageBase" | "imageFile">,
-) {
-  const encodedBase = card.imageBase
-    .split("/")
-    .filter(Boolean)
-    .map((part) => encodeURIComponent(part.normalize("NFC")))
-    .join("/");
-  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFD"));
-  return `/${encodedBase}/${encodedFile}`;
+/** prebuild가 만드는 ASCII 경로 — Linux 배포에서 한글 경로 NFC/NFD 불일치를 피함 */
+export function getTarotImageUrl(card: Pick<TarotCardDef, "id">) {
+  return `/tarot/${card.id}.jpg`;
 }
 
 export function getTarotCardApiUrl(cardId: string) {

@@ -13,9 +13,8 @@ import {
   TAROT_SPREADS,
   TAROT_TOPICS,
   drawTarotHand,
+  getTarotCardApiUrl,
   getTarotImageUrl,
-  getTarotImageUrlNfd,
-  getTarotImageUrlNfdFileOnly,
   suitLabel,
   topicPlaceholder,
   type DrawnTarotCard,
@@ -85,14 +84,7 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
               if (attempt === 0) {
                 setAttempt(1);
                 setLoaded(false);
-                setSrc(getTarotImageUrlNfdFileOnly(card));
-                return;
-              }
-
-              if (attempt === 1) {
-                setAttempt(2);
-                setLoaded(false);
-                setSrc(getTarotImageUrlNfd(card));
+                setSrc(getTarotCardApiUrl(card.id));
                 return;
               }
 
