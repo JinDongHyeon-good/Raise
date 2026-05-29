@@ -13,8 +13,9 @@ import {
   TAROT_SPREADS,
   TAROT_TOPICS,
   drawTarotHand,
-  getTarotCardApiUrl,
   getTarotImageUrl,
+  getTarotImageUrlNfd,
+  getTarotImageUrlNfdFileOnly,
   suitLabel,
   topicPlaceholder,
   type DrawnTarotCard,
@@ -51,9 +52,9 @@ function TarotCardBack({ label }: { label?: string }) {
 
 function TarotCardFace({ card }: { card: DrawnTarotCard }) {
   const [loaded, setLoaded] = useState(false);
-  const [useApiFallback, setUseApiFallback] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [error, setError] = useState(false);
-  const src = useApiFallback ? getTarotCardApiUrl(card.id) : getTarotImageUrl(card);
+  const [src, setSrc] = useState(() => getTarotImageUrl(card));
 
   return (
     <div className="relative mx-auto w-full max-w-[200px]">
@@ -81,11 +82,20 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
             decoding="async"
             onLoad={() => setLoaded(true)}
             onError={() => {
-              if (!useApiFallback) {
-                setUseApiFallback(true);
+              if (attempt === 0) {
+                setAttempt(1);
                 setLoaded(false);
+                setSrc(getTarotImageUrlNfdFileOnly(card));
                 return;
               }
+
+              if (attempt === 1) {
+                setAttempt(2);
+                setLoaded(false);
+                setSrc(getTarotImageUrlNfd(card));
+                return;
+              }
+
               setError(true);
               setLoaded(true);
             }}

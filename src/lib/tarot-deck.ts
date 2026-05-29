@@ -309,6 +309,32 @@ export function getTarotImageUrl(card: Pick<TarotCardDef, "imageBase" | "imageFi
   return `/${encodedBase}/${encodedFile}`;
 }
 
+export function getTarotImageUrlNfd(card: Pick<TarotCardDef, "imageBase" | "imageFile">) {
+  const encodedBase = card.imageBase
+    .split("/")
+    .filter(Boolean)
+    .map((part) => encodeURIComponent(part.normalize("NFD")))
+    .join("/");
+  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFD"));
+  return `/${encodedBase}/${encodedFile}`;
+}
+
+/**
+ * 폴더(imageBase)는 NFC(완성형)로, 파일(imageFile)만 NFD(분리형)로.
+ * 운영에서 파일명 NFC/NFD가 섞이는 경우를 대비한 폴백용.
+ */
+export function getTarotImageUrlNfdFileOnly(
+  card: Pick<TarotCardDef, "imageBase" | "imageFile">,
+) {
+  const encodedBase = card.imageBase
+    .split("/")
+    .filter(Boolean)
+    .map((part) => encodeURIComponent(part.normalize("NFC")))
+    .join("/");
+  const encodedFile = encodeURIComponent(card.imageFile.normalize("NFD"));
+  return `/${encodedBase}/${encodedFile}`;
+}
+
 export function getTarotCardApiUrl(cardId: string) {
   return `/api/tarot-card/${cardId}`;
 }
