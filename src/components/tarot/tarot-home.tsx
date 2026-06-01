@@ -15,6 +15,7 @@ import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { getPublicSiteOrigin } from "@/lib/site-origin";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
+import { TarotReadingSkeleton } from "@/components/tarot/tarot-reading-skeleton";
 import { TarotReadingView } from "@/components/tarot/tarot-reading-view";
 import {
   TAROT_SPREADS,
@@ -269,6 +270,9 @@ export default function TarotHome() {
   const cardsLayoutClass = isSingleSpread ? "tarot-cards-single" : "tarot-cards-multi";
   const selectedTopic = TAROT_TOPICS.find((item) => item.id === topic) ?? TAROT_TOPICS[0];
   const stepMeta = STEP_META[step - 1] ?? STEP_META[0];
+  const showStepPrev = step > 1 && !(step === TOTAL_STEPS && reading);
+  const showStepPrimary = step !== TOTAL_STEPS || !reading;
+  const showStepNav = showStepPrev || showStepPrimary;
 
   const resetLaterStepInputs = () => {
     setQuestion("");
@@ -721,12 +725,9 @@ export default function TarotHome() {
         <section className="w-full min-w-0 rounded-2xl border border-violet-200 bg-white/85 p-4 shadow-lg shadow-violet-200/50 backdrop-blur-sm sm:p-5 md:p-6">
           <div className="border-b border-violet-200 pb-4 text-center">
             {step === 1 ? (
-              <>
-                <h1 className="font-brand-display text-balance text-2xl tracking-tight text-violet-950 sm:text-3xl md:text-[2rem]">
-                  AI 타로
-                </h1>
-                <p className="mt-1 text-pretty text-sm text-violet-700/90 sm:text-base">{SERVICE_TAGLINE}</p>
-              </>
+              <h1 className="font-brand-display text-balance text-2xl tracking-tight text-violet-950 sm:text-3xl md:text-[2rem]">
+                {SERVICE_TAGLINE}
+              </h1>
             ) : null}
             <h2
               className={`text-balance text-base font-semibold text-violet-950 sm:text-lg ${step === 1 ? "mt-5 sm:mt-6" : ""}`}
@@ -851,22 +852,23 @@ export default function TarotHome() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleDrawCards}
-                disabled={isDrawing}
-                className="w-full rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-4 py-3.5 text-sm font-semibold text-white shadow-md shadow-violet-300/45 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
-              >
-                {isDrawing ? "뽑는 중..." : drawnCards.length > 0 ? "카드 다시 뽑기" : "카드 뽑기"}
-              </button>
+              {drawnCards.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={handleDrawCards}
+                  disabled={isDrawing}
+                  className="w-full rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-4 py-3.5 text-sm font-semibold text-white shadow-md shadow-violet-300/45 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  {isDrawing ? "뽑는 중..." : "카드 뽑기"}
+                </button>
+              ) : null}
 
               {isReadingLoading ? (
-                <div className="flex flex-col items-center justify-center gap-2 py-6" role="status" aria-live="polite">
-                  <div className="relative h-9 w-9" aria-hidden>
-                    <div className="absolute inset-0 rounded-full border border-violet-200" />
-                    <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-violet-500" />
+                <div className="space-y-2 rounded-xl border border-violet-200 bg-white/95 p-4 text-sm shadow-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-violet-600">리딩 결과</p>
                   </div>
-                  <span className="text-xs text-violet-600">AI가 카드를 읽는 중...</span>
+                  <TarotReadingSkeleton sectionCount={spreadConfig.count} />
                 </div>
               ) : null}
 
@@ -904,10 +906,11 @@ export default function TarotHome() {
             <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{readingError}</p>
           )}
 
+          {showStepNav ? (
           <div
-            className={`tarot-step-nav mt-6 ${step > 1 ? "tarot-step-nav--split" : "tarot-step-nav--end"}`}
+            className={`tarot-step-nav mt-6 ${showStepPrev && showStepPrimary ? "tarot-step-nav--split" : "tarot-step-nav--end"}`}
           >
-            {step > 1 ? (
+            {showStepPrev ? (
               <button
                 type="button"
                 onClick={goToPrevStep}
@@ -917,16 +920,16 @@ export default function TarotHome() {
               </button>
             ) : null}
 
-            {step === 3 ? (
+            {step === TOTAL_STEPS && !reading ? (
               <button
                 type="button"
                 onClick={() => void handleStartReading()}
                 disabled={isDrawing || isReadingLoading || drawnCards.length !== spreadConfig.count}
                 className="w-full min-w-0 rounded-xl border border-violet-300 bg-violet-600 px-8 py-3 text-sm font-semibold text-white shadow-md shadow-violet-300/35 transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
-                {isReadingLoading ? "읽는 중..." : reading ? "다시 리딩하기" : "결과 보기"}
+                {isReadingLoading ? "읽는 중..." : "결과 보기"}
               </button>
-            ) : (
+            ) : step !== TOTAL_STEPS ? (
               <button
                 type="button"
                 onClick={goToNextStep}
@@ -934,8 +937,9 @@ export default function TarotHome() {
               >
                 다음
               </button>
-            )}
+            ) : null}
           </div>
+          ) : null}
         </section>
       </div>
 
