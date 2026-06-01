@@ -8,15 +8,19 @@ frontend:
         - corepack prepare pnpm@10.5.2 --activate
     build:
       commands:
-        # 캐시를 안 쓰므로 의존성을 깨끗하게 처음부터 설치합니다.
-        - pnpm install --no-frozen-lockfile
-        - node scripts/sync-tarot-assets.js
+        # 1. 환경 변수들을 .env.production 파일로 올바르게 씁니다.
         - |
-          GEMINI_API_KEY=$GEMINI_API_KEY
-          NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://jjindong.com}
-          NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-          EOF
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env.production
+          echo "GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.1-pro-preview}" >> .env.production
+          echo "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://jjindong.com}" >> .env.production
+          echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" >> .env.production
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" >> .env.production
+
+        # 2. 의존성 설치
+        - pnpm install --no-frozen-lockfile
+
+        # 3. 커스텀 스크립트 및 빌드 실행
+        - node scripts/sync-tarot-assets.js
         - pnpm run build
         - node scripts/resolve-next-symlinks.js
         - node scripts/prepare-amplify-static.js
@@ -26,9 +30,3 @@ frontend:
       - ".next/**/*"
       - "public/**/*"
       - ".amplify-hosting/**/*"
-
-# 🛑 아래 cache 설정을 통째로 지우거나 주석(#) 처리하세요!
-# cache:
-#   paths:
-#     - node_modules/**/*
-#     - .next/cache/**/*
