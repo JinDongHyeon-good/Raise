@@ -8,18 +8,17 @@ frontend:
         - corepack prepare pnpm@10.5.2 --activate
     build:
       commands:
-        # 1. AWS 콘솔의 환경 변수들을 .env.production 파일로 안전하게 생성
-        - |
-          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env.production
-          echo "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://jjindong.com}" >> .env.production
-          echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" >> .env.production
-          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" >> .env.production
+        # 한 줄씩 안전하게 .env.production 파일 생성
+        - echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env.production
+        - echo "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://jjindong.com}" >> .env.production
+        - echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" >> .env.production
+        - echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" >> .env.production
 
-        # 2. 의존성 설치 및 타로 에셋 동기화
+        # 의존성 설치 및 에셋 동기화
         - pnpm install --no-frozen-lockfile
         - node scripts/sync-tarot-assets.js
 
-        # 3. 넥스트 빌드 및 후처리 스크립트 실행
+        # 빌드 진행
         - pnpm run build
         - node scripts/resolve-next-symlinks.js
         - node scripts/prepare-amplify-static.js
