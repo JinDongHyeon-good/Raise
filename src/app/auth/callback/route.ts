@@ -86,6 +86,7 @@ export async function GET(request: Request) {
         const { error: insertError } = await supabase.from("USER_MST").insert({
           auth_id: user.id,
           nickname,
+          use_count: 0,
         });
         if (insertError) {
           console.error("[auth/callback] USER_MST insert", insertError.message);

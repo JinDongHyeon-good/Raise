@@ -5,15 +5,19 @@ export default function ContactPage() {
     <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-800 sm:px-6">
       <h1 className="font-brand-display text-3xl text-violet-950 sm:text-4xl">문의</h1>
       <p className="mt-4 leading-7">
-        서비스 오류, 계정 문제, 제휴 제안, 정책 문의는 아래 이메일로 연락해 주세요. 접수된 문의는 영업일 기준 순차적으로
-        확인합니다.
+        서비스 오류, 계정 문제, 제휴 제안, 정책 문의는 아래 연락처(이메일 또는 전화)로 연락해 주세요. 접수된 문의는 영업일
+        기준 순차적으로 확인합니다.
       </p>
 
       <section className="mt-8 rounded-xl border border-violet-200 bg-white p-5">
         <h2 className="text-lg font-semibold text-violet-900">연락처</h2>
         <p className="mt-3 text-sm text-slate-600">Email</p>
-        <a className="text-base font-medium text-violet-700 underline" href="mailto:jindonghyeon.good@gmail.com">
-          jindonghyeon.good@gmail.com
+        <a className="text-base font-medium text-violet-700 underline" href="mailto:wlsehdgus23@gmail.com">
+          wlsehdgus23@gmail.com
+        </a>
+        <p className="mt-4 text-sm text-slate-600">Phone</p>
+        <a className="text-base font-medium text-violet-700 underline" href="tel:01032301521">
+          010-3230-1521
         </a>
       </section>
 

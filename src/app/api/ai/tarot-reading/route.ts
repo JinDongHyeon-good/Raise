@@ -9,7 +9,7 @@ export const maxDuration = 120;
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 6;
-const DAILY_LIMIT_PER_USER = 8;
+const TOTAL_LIMIT_PER_USER = 3;
 const DEFAULT_GEMINI_MODEL = "gemini-3.1-pro-preview";
 const GEMINI_HTTP_TIMEOUT_MS = 55000;
 const GEMINI_TOTAL_BUDGET_MS = 100000;
@@ -17,7 +17,6 @@ const MAX_OUTPUT_TOKENS = 8192;
 const MAX_READING_ATTEMPTS = 5;
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
-const dailyUsage = new Map<string, { count: number; dayKey: string }>();
 
 type TarotCardInput = {
   id: string;
@@ -87,21 +86,6 @@ function checkRateLimit(clientKey: string) {
   current.count += 1;
   requestBuckets.set(clientKey, current);
   return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - current.count };
-}
-
-function checkDailyLimit(userId: string) {
-  const dayKey = new Date().toISOString().slice(0, 10);
-  const current = dailyUsage.get(userId);
-  if (!current || current.dayKey !== dayKey) {
-    dailyUsage.set(userId, { count: 1, dayKey });
-    return { allowed: true, remaining: DAILY_LIMIT_PER_USER - 1 };
-  }
-  if (current.count >= DAILY_LIMIT_PER_USER) {
-    return { allowed: false, remaining: 0 };
-  }
-  current.count += 1;
-  dailyUsage.set(userId, current);
-  return { allowed: true, remaining: DAILY_LIMIT_PER_USER - current.count };
 }
 
 async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number) {
@@ -374,10 +358,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." }, { status: 429 });
     }
 
-    const daily = checkDailyLimit(user.id);
-    if (!daily.allowed) {
+    const { data: profileRow, error: profileError } = await supabase
+      .from("USER_MST")
+      .select("use_count")
+      .eq("auth_id", user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      return NextResponse.json({ error: "사용자 정보 조회에 실패했습니다." }, { status: 500 });
+    }
+
+    const currentUseCount = Number(profileRow?.use_count ?? 0);
+    if (currentUseCount >= TOTAL_LIMIT_PER_USER) {
       return NextResponse.json(
-        { error: "오늘 AI 타로 리딩 한도에 도달했습니다. 내일 다시 시도해 주세요.", code: "daily_limit" },
+        { error: "AI 타로 리딩은 가입 후 총 3회까지 이용할 수 있습니다.", code: "total_limit" },
         { status: 429 },
       );
     }
@@ -397,10 +391,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 502 });
     }
 
+    const nextUseCount = currentUseCount + 1;
+    const { error: updateError } = await supabase
+      .from("USER_MST")
+      .update({ use_count: nextUseCount })
+      .eq("auth_id", user.id);
+
+    if (updateError) {
+      return NextResponse.json({ error: "사용 횟수 저장에 실패했습니다." }, { status: 500 });
+    }
+
     return NextResponse.json({
       reading: result.reading,
       model: DEFAULT_GEMINI_MODEL,
-      remainingToday: daily.remaining,
+      remainingToday: Math.max(TOTAL_LIMIT_PER_USER - nextUseCount, 0),
     });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {

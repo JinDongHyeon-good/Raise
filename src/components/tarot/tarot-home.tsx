@@ -365,7 +365,7 @@ export default function TarotHome() {
 
       const { data, error } = await supabase
         .from("USER_MST")
-        .select("auth_id, nickname")
+        .select("auth_id, nickname, use_count")
         .eq("auth_id", user.id)
         .maybeSingle();
 
@@ -385,6 +385,8 @@ export default function TarotHome() {
         setIsNicknameModalOpen(true);
         return true;
       }
+
+      setRemainingToday(Math.max(3 - Number(data.use_count ?? 0), 0));
 
       setIsNicknameModalOpen(false);
       return false;
@@ -535,7 +537,7 @@ export default function TarotHome() {
 
       if (!updatedRow) {
         const { error: upErr } = await supabase.from("USER_MST").upsert(
-          { auth_id: user.id, nickname: trimmed },
+          { auth_id: user.id, nickname: trimmed, use_count: 0 },
           { onConflict: "auth_id" },
         );
         if (upErr) throw upErr;
@@ -876,7 +878,7 @@ export default function TarotHome() {
               {reading ? (
                 <div className="space-y-4">
                   {isLoggedIn && remainingToday !== null ? (
-                    <p className="text-xs text-slate-500">오늘 남은 리딩: {remainingToday}회</p>
+                    <p className="text-xs text-slate-500">남은 리딩: {remainingToday}회 (총 3회)</p>
                   ) : null}
                   <div className="space-y-2 rounded-xl border border-violet-200 bg-white/95 p-4 text-sm shadow-sm">
                     <div className="flex items-center justify-between gap-2">

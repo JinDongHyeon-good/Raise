@@ -42,7 +42,7 @@ export default function TermsPage() {
       <section className="mt-8 space-y-3 leading-7">
         <h2 className="text-xl font-semibold text-violet-900">5. 문의</h2>
         <p>
-          약관 관련 문의: <a href="mailto:jindonghyeon.good@gmail.com" className="text-violet-700 underline">jindonghyeon.good@gmail.com</a>
+          약관 관련 문의: <a href="mailto:wlsehdgus23@gmail.com" className="text-violet-700 underline">wlsehdgus23@gmail.com</a>
         </p>
       </section>
 
