@@ -1042,7 +1042,7 @@ export default function TarotHome() {
         </div>
       )}
 
-      <footer className="mt-8 border-t border-violet-200/80 bg-white/70">
+      <footer className="border-t border-violet-200/80 bg-white/70">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-6 text-xs text-slate-600 sm:px-6">
           <nav className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <Link href="/about" className="hover:text-violet-700 hover:underline">
