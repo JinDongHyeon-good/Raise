@@ -23,8 +23,6 @@ frontend:
         - node scripts/resolve-next-symlinks.js
         - node scripts/prepare-amplify-static.js
   artifacts:
-    baseDirectory: .
+    baseDirectory: .next
     files:
-      - ".next/**/*"
-      - "public/**/*"
-      - ".amplify-hosting/**/*"
+      - "**/*"
