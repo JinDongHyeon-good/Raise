@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import Link from "next/link";
 import { SERVICE_NAME, SERVICE_TAGLINE } from "@/lib/brand";
 import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
@@ -1038,6 +1039,37 @@ export default function TarotHome() {
           </div>
         </div>
       )}
+
+      <footer className="mt-8 border-t border-violet-200/80 bg-white/70">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-6 text-xs text-slate-600 sm:px-6">
+          <nav className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <Link href="/about" className="hover:text-violet-700 hover:underline">
+              서비스 소개
+            </Link>
+            <span className="text-slate-300" aria-hidden>
+              |
+            </span>
+            <Link href="/contact" className="hover:text-violet-700 hover:underline">
+              문의
+            </Link>
+            <span className="text-slate-300" aria-hidden>
+              |
+            </span>
+            <Link href="/privacy" className="hover:text-violet-700 hover:underline">
+              개인정보처리방침
+            </Link>
+            <span className="text-slate-300" aria-hidden>
+              |
+            </span>
+            <Link href="/terms" className="hover:text-violet-700 hover:underline">
+              이용약관
+            </Link>
+          </nav>
+          <p className="leading-relaxed text-slate-500">
+            {SERVICE_NAME}의 AI 타로 리딩은 오락·자기성찰을 위한 참고 콘텐츠이며, 의료·법률·투자 판단을 대체하지 않습니다.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
