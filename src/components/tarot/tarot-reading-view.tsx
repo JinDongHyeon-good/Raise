@@ -13,20 +13,20 @@ function ReadingTreeSection({
     <div className="relative flex gap-3">
       {!isLast ? (
         <span
-          className="absolute left-[10px] top-7 bottom-0 w-px bg-gradient-to-b from-violet-300 to-violet-100"
+          className="absolute left-[10px] top-7 bottom-0 w-px bg-gradient-to-b from-slate-300 to-slate-100"
           aria-hidden
         />
       ) : null}
 
       <div
-        className="relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-violet-200 bg-white text-[10px] font-bold text-violet-600 shadow-sm"
+        className="relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[10px] font-bold text-slate-600 shadow-sm"
         aria-hidden
       >
         {section.number}
       </div>
 
       <div className="min-w-0 flex-1 pb-5">
-        <h4 className="text-sm font-semibold tracking-tight text-violet-950">{section.title}</h4>
+        <h4 className="text-sm font-semibold tracking-tight text-slate-900">{section.title}</h4>
 
         {section.content ? (
           <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">{section.content}</p>
@@ -37,7 +37,7 @@ function ReadingTreeSection({
             {section.items.map((item, index) => (
               <li key={`${section.id}-item-${index}`} className="relative pl-4">
                 <span
-                  className="absolute left-0 top-[0.55rem] h-1.5 w-1.5 rounded-full bg-violet-400"
+                  className="absolute left-0 top-[0.55rem] h-1.5 w-1.5 rounded-full bg-slate-400"
                   aria-hidden
                 />
                 <span className="block text-sm leading-relaxed text-slate-600">{item}</span>
@@ -64,17 +64,17 @@ export function TarotReadingView({ text }: { text: string }) {
   return (
     <div className="space-y-5">
       {summary ? (
-        <div className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-purple-50 p-4 shadow-sm shadow-violet-200/40">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-600">한 줄 요약</p>
-          <p className="mt-2 text-pretty text-sm font-medium leading-relaxed text-violet-950 sm:text-base">
+        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/80 p-4 shadow-sm shadow-slate-200/40">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">한 줄 요약</p>
+          <p className="mt-2 text-pretty text-sm font-medium leading-relaxed text-slate-900 sm:text-base">
             {summary}
           </p>
         </div>
       ) : null}
 
       {sections.length > 0 ? (
-        <div className="rounded-xl border border-violet-100 bg-white/90 p-3 shadow-sm sm:p-4">
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-violet-500">상세 리딩</p>
+        <div className="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">상세 리딩</p>
           <div>
             {sections.map((section, index) => (
               <ReadingTreeSection

@@ -184,7 +184,7 @@ export function getHomeJsonLd(): JsonLdObject[] {
   ];
 }
 
-/** 크롤러·스크린리더용 (화면에는 sr-only로 숨김) */
+/** 서비스 소개·FAQ 페이지용 문구 */
 export const HOME_SEO_INTRO = {
   heading: "AI 타로 온라인 — 멜로타로",
   body: `${SERVICE_TAGLINE}. 78장 타로 카드와 AI 해석으로 연애 타로, 오늘의 운세, 직장·재물 운세까지 한곳에서 받아 보세요.`,

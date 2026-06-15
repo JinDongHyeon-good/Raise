@@ -53,11 +53,11 @@ body {
 
 .tarot-home-page {
   background:
-    radial-gradient(ellipse 110% 70% at 50% -12%, rgb(237 233 254 / 0.95), transparent 62%),
-    radial-gradient(ellipse 85% 55% at 100% 18%, rgb(221 214 254 / 0.65), transparent 58%),
-    radial-gradient(ellipse 75% 50% at 0% 78%, rgb(243 232 255 / 0.55), transparent 58%),
-    linear-gradient(180deg, #fdfcff 0%, #f8f5fc 48%, #f3edff 100%);
-  color: rgb(46 16 101);
+    radial-gradient(ellipse 90% 60% at 50% -8%, rgb(248 250 252 / 0.9), transparent 65%),
+    radial-gradient(ellipse 70% 45% at 100% 20%, rgb(237 233 254 / 0.35), transparent 60%),
+    radial-gradient(ellipse 65% 40% at 0% 80%, rgb(243 244 246 / 0.6), transparent 58%),
+    linear-gradient(180deg, #ffffff 0%, #fafafa 52%, #f8fafc 100%);
+  color: rgb(15 23 42);
 }
 
 .tarot-home-page .tarot-home-glow {
@@ -66,21 +66,18 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 70% 45% at 18% 8%, rgb(167 139 250 / 0.14), transparent 58%),
-    radial-gradient(ellipse 55% 40% at 88% 28%, rgb(192 132 252 / 0.1), transparent 55%),
-    radial-gradient(ellipse 50% 35% at 50% 100%, rgb(216 180 254 / 0.12), transparent 58%);
+    radial-gradient(ellipse 65% 40% at 20% 6%, rgb(167 139 250 / 0.05), transparent 58%),
+    radial-gradient(ellipse 50% 35% at 90% 25%, rgb(192 132 252 / 0.04), transparent 55%);
 }
 
 .tarot-login-modal-backdrop {
-  background: rgb(46 16 101 / 0.28);
+  background: rgb(15 23 42 / 0.25);
   backdrop-filter: blur(6px);
 }
 
 .tarot-login-modal {
-  background:
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgb(237 233 254 / 0.85), transparent 70%),
-    #ffffff;
-  border-color: rgb(221 214 254);
+  background: #ffffff;
+  border-color: rgb(226 232 240);
 }
 
 .tarot-step-track {
@@ -336,9 +333,9 @@ body {
   background: linear-gradient(
     105deg,
     transparent 30%,
-    rgb(167 139 250 / 0.12) 42%,
-    rgb(192 132 252 / 0.22) 50%,
-    rgb(167 139 250 / 0.12) 58%,
+    rgb(241 245 249 / 0.5) 42%,
+    rgb(226 232 240 / 0.65) 50%,
+    rgb(241 245 249 / 0.5) 58%,
     transparent 70%
   );
   background-size: 220% 100%;
@@ -360,8 +357,8 @@ body {
   height: 0.375rem;
   flex-shrink: 0;
   border-radius: 9999px;
-  background: rgb(139 92 246 / 0.85);
-  box-shadow: 0 0 0 0 rgb(139 92 246 / 0.35);
+  background: rgb(100 116 139 / 0.85);
+  box-shadow: 0 0 0 0 rgb(148 163 184 / 0.35);
   animation: tarot-draw-pulse 1.4s ease-in-out infinite;
 }
 
@@ -369,21 +366,21 @@ body {
   0%,
   100% {
     opacity: 0.45;
-    box-shadow: 0 0 0 0 rgb(139 92 246 / 0.3);
+    box-shadow: 0 0 0 0 rgb(148 163 184 / 0.3);
   }
 
   50% {
     opacity: 1;
-    box-shadow: 0 0 0 6px rgb(139 92 246 / 0);
+    box-shadow: 0 0 0 6px rgb(148 163 184 / 0);
   }
 }
 
 .tarot-skeleton-line {
   background: linear-gradient(
     90deg,
-    rgb(237 233 254 / 0.9) 0%,
-    rgb(221 214 254 / 0.95) 45%,
-    rgb(237 233 254 / 0.9) 90%
+    rgb(241 245 249 / 0.95) 0%,
+    rgb(226 232 240 / 0.95) 45%,
+    rgb(241 245 249 / 0.95) 90%
   );
   background-size: 200% 100%;
   animation: tarot-skeleton-shimmer 1.6s ease-in-out infinite;

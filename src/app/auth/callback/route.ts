@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
-import { resolveUniqueNicknameCandidate } from "@/lib/nickname-duplicate";
+import { ensureUserProfileOnAuth } from "@/lib/ensure-user-profile-server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 
 function getSafeNextPath(raw: string | null) {
@@ -72,27 +71,13 @@ export async function GET(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
     if (user?.id) {
-      const { data: existing, error: profileSelectError } = await supabase
-        .from("USER_MST")
-        .select("auth_id")
-        .eq("auth_id", user.id)
-        .maybeSingle();
-
-      if (profileSelectError) {
-        console.error("[auth/callback] USER_MST select", profileSelectError.message);
-      } else if (!existing?.auth_id) {
-        const baseNick = getDefaultNicknameFromUser(user);
-        const nickname = await resolveUniqueNicknameCandidate(supabase, baseNick, user.id);
-        const { error: insertError } = await supabase.from("USER_MST").insert({
-          auth_id: user.id,
-          nickname,
-          use_count: 0,
-        });
-        if (insertError) {
-          console.error("[auth/callback] USER_MST insert", insertError.message);
-        } else {
+      try {
+        const { isNewUser } = await ensureUserProfileOnAuth(supabase, user.id, user);
+        if (isNewUser) {
           redirectPath = withWelcomeQuery(nextPath);
         }
+      } catch (profileError) {
+        console.error("[auth/callback] ensure user profile", profileError);
       }
     }
 

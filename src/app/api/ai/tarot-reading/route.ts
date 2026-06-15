@@ -3,20 +3,40 @@ import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 import type { CardOrientation, TarotSpreadId, TarotSuit, TarotTopicId } from "@/lib/tarot-deck";
 import { TAROT_TOPIC_IDS, topicGuidance, topicLabel, suitLabel } from "@/lib/tarot-deck";
 import { assessTarotReading } from "@/lib/tarot-reading-format";
+import {
+  callGeminiGenerateContent,
+  isRetryableGeminiError,
+  parseRetryAfterSeconds,
+} from "@/lib/gemini-fetch";
+import {
+  SlidingRateLimiter,
+  acquireInFlightLock,
+  checkCooldown,
+  pruneStaleLocks,
+  releaseInFlightLock,
+} from "@/lib/sliding-rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 6;
+const USER_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+const USER_RATE_LIMIT_MAX = 4;
+const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const IP_RATE_LIMIT_MAX = 10;
+const USER_COOLDOWN_MS = 8 * 1000;
+const IN_FLIGHT_TTL_MS = 110 * 1000;
 const TOTAL_LIMIT_PER_USER = 3;
-const DEFAULT_GEMINI_MODEL = "gemini-3.1-pro-preview";
-const GEMINI_HTTP_TIMEOUT_MS = 55000;
-const GEMINI_TOTAL_BUDGET_MS = 100000;
-const MAX_OUTPUT_TOKENS = 8192;
-const MAX_READING_ATTEMPTS = 5;
 
-const requestBuckets = new Map<string, { count: number; windowStart: number }>();
+const DEFAULT_GEMINI_MODEL = process.env.GEMINI_TAROT_MODEL?.trim() || "gemini-3.1-pro-preview";
+const FALLBACK_GEMINI_MODEL = process.env.GEMINI_TAROT_FALLBACK_MODEL?.trim() || "gemini-2.0-flash";
+const GEMINI_HTTP_TIMEOUT_MS = 42_000;
+const GEMINI_TOTAL_BUDGET_MS = 70_000;
+const MAX_OUTPUT_TOKENS = 6144;
+const MAX_READING_ATTEMPTS = 3;
+const GEMINI_HTTP_RETRIES = 2;
+
+const userRateLimiter = new SlidingRateLimiter(USER_RATE_LIMIT_MAX, USER_RATE_LIMIT_WINDOW_MS);
+const ipRateLimiter = new SlidingRateLimiter(IP_RATE_LIMIT_MAX, IP_RATE_LIMIT_WINDOW_MS);
 
 type TarotCardInput = {
   id: string;
@@ -33,14 +53,6 @@ type TarotRequestBody = {
   spread: TarotSpreadId;
   question?: string;
   cards: TarotCardInput[];
-};
-
-type GeminiGenerateResponse = {
-  candidates?: Array<{
-    content?: { parts?: Array<{ text?: string }> };
-    finishReason?: string;
-  }>;
-  error?: { message?: string };
 };
 
 function sanitizeApiKey(raw?: string) {
@@ -70,32 +82,12 @@ function isAllowedOrigin(origin: string, host: string) {
   }
 }
 
-function checkRateLimit(clientKey: string) {
-  const now = Date.now();
-  const current = requestBuckets.get(clientKey);
-
-  if (!current || now - current.windowStart >= RATE_LIMIT_WINDOW_MS) {
-    requestBuckets.set(clientKey, { count: 1, windowStart: now });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
-  }
-
-  if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  current.count += 1;
-  requestBuckets.set(clientKey, current);
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - current.count };
-}
-
-async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timeout);
-  }
+function rateLimitHeaders(limit: number, remaining: number, resetAt: number) {
+  return {
+    "X-RateLimit-Limit": String(limit),
+    "X-RateLimit-Remaining": String(remaining),
+    "X-RateLimit-Reset": String(Math.ceil(resetAt / 1000)),
+  };
 }
 
 function validateBody(input: unknown): { ok: true; body: TarotRequestBody } | { ok: false; message: string } {
@@ -233,46 +225,28 @@ function buildPrompt(body: TarotRequestBody) {
   ].join("\n");
 }
 
-async function callGemini(apiKey: string, prompt: string, timeoutMs: number) {
-  const response = await fetchWithTimeout(
-    `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.6,
-          topP: 0.92,
-          maxOutputTokens: MAX_OUTPUT_TOKENS,
-        },
-      }),
-    },
-    timeoutMs,
-  );
-
-  const data = (await response.json()) as GeminiGenerateResponse;
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
-  const finishReason = data.candidates?.[0]?.finishReason;
-
-  return { response, data, text, finishReason };
+function pickModelForAttempt(attempt: number) {
+  return attempt >= 2 ? FALLBACK_GEMINI_MODEL : DEFAULT_GEMINI_MODEL;
 }
 
 async function generateFullReading(apiKey: string, body: TarotRequestBody) {
   const basePrompt = buildPrompt(body);
   let accumulated = "";
   const requestStartedAt = Date.now();
+  let lastError = "AI 리딩 요청에 실패했습니다.";
 
   for (let attempt = 1; attempt <= MAX_READING_ATTEMPTS; attempt += 1) {
     const elapsedMs = Date.now() - requestStartedAt;
-    if (elapsedMs > GEMINI_TOTAL_BUDGET_MS) break;
+    if (elapsedMs > GEMINI_TOTAL_BUDGET_MS) {
+      break;
+    }
 
     const remainingBudgetMs = GEMINI_TOTAL_BUDGET_MS - elapsedMs;
-    const perRequestTimeoutMs = Math.max(8000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remainingBudgetMs - 1500));
+    const perRequestTimeoutMs = Math.max(12_000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remainingBudgetMs - 2000));
 
     const assessmentBefore = accumulated ? assessTarotReading(accumulated) : null;
     if (assessmentBefore?.quality === "complete" || assessmentBefore?.quality === "usable") {
-      return { ok: true as const, reading: stripEndMarker(accumulated) };
+      return { ok: true as const, reading: stripEndMarker(accumulated), model: pickModelForAttempt(attempt) };
     }
 
     let attemptPrompt = basePrompt;
@@ -295,43 +269,109 @@ async function generateFullReading(apiKey: string, body: TarotRequestBody) {
             ].join("\n");
     }
 
-    const { response, data, text, finishReason } = await callGemini(apiKey, attemptPrompt, perRequestTimeoutMs);
+    const model = pickModelForAttempt(attempt);
 
-    if (!response.ok) {
-      const message = data.error?.message || "AI 리딩 요청에 실패했습니다.";
-      return { ok: false as const, error: message };
+    try {
+      const result = await callGeminiGenerateContent({
+        apiKey,
+        model,
+        prompt: attemptPrompt,
+        timeoutMs: perRequestTimeoutMs,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        maxHttpRetries: GEMINI_HTTP_RETRIES,
+      });
+
+      if (!result.ok) {
+        lastError = result.error;
+        const retryAfter = parseRetryAfterSeconds(result.error);
+        const quotaLike =
+          result.response.status === 429 ||
+          result.error.toLowerCase().includes("quota") ||
+          result.error.toLowerCase().includes("resource_exhausted");
+
+        if (quotaLike) {
+          return {
+            ok: false as const,
+            error: `AI 사용량이 일시적으로 많습니다. ${retryAfter ?? 10}초 후 다시 시도해 주세요.`,
+            code: "quota_exceeded" as const,
+            status: 429,
+            retryAfter: retryAfter ?? 10,
+          };
+        }
+
+        if (result.retryable && attempt < MAX_READING_ATTEMPTS) {
+          console.warn("[tarot-reading] retryable gemini error", { attempt, model, error: result.error });
+          continue;
+        }
+
+        return {
+          ok: false as const,
+          error: lastError,
+          code: "gemini_error" as const,
+          status: isRetryableGeminiError(result.response.status, result.error) ? 504 : 502,
+        };
+      }
+
+      if (!result.text) {
+        continue;
+      }
+
+      accumulated = mergeReadingChunks(accumulated, result.text);
+
+      const assessment = assessTarotReading(accumulated);
+      if (assessment.quality === "complete" || assessment.quality === "usable") {
+        return { ok: true as const, reading: stripEndMarker(accumulated), model };
+      }
+
+      console.warn("[tarot-reading] incomplete response", {
+        attempt,
+        model,
+        finishReason: result.finishReason,
+        length: accumulated.length,
+        missing: assessment.missingSectionNumbers,
+        present: assessment.presentSectionNumbers,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        lastError = "AI 응답 시간이 초과되었습니다.";
+        console.warn("[tarot-reading] gemini timeout", { attempt, model });
+        if (attempt < MAX_READING_ATTEMPTS) continue;
+        return { ok: false as const, error: lastError, code: "timeout" as const, status: 504 };
+      }
+      throw error;
     }
-
-    if (!text) {
-      continue;
-    }
-
-    accumulated = mergeReadingChunks(accumulated, text);
-
-    const assessment = assessTarotReading(accumulated);
-    if (assessment.quality === "complete" || assessment.quality === "usable") {
-      return { ok: true as const, reading: stripEndMarker(accumulated) };
-    }
-
-    console.warn("[tarot-reading] incomplete response", {
-      attempt,
-      finishReason,
-      length: accumulated.length,
-      missing: assessment.missingSectionNumbers,
-      present: assessment.presentSectionNumbers,
-    });
   }
 
   const finalAssessment = assessTarotReading(accumulated);
-  if (finalAssessment.quality !== "incomplete") {
-    return { ok: true as const, reading: stripEndMarker(accumulated) };
+  if (finalAssessment.quality !== "incomplete" && accumulated.trim()) {
+    return { ok: true as const, reading: stripEndMarker(accumulated), model: FALLBACK_GEMINI_MODEL };
   }
 
-  return { ok: false as const, error: "AI 리딩이 완성되지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  if (accumulated.trim()) {
+    return {
+      ok: true as const,
+      reading: stripEndMarker(accumulated),
+      model: FALLBACK_GEMINI_MODEL,
+      warning: "partial_response" as const,
+    };
+  }
+
+  return {
+    ok: false as const,
+    error: lastError || "AI 리딩이 완성되지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    code: "incomplete" as const,
+    status: 504,
+  };
 }
 
 export async function POST(request: NextRequest) {
+  let inFlightKey: string | null = null;
+
   try {
+    pruneStaleLocks();
+    userRateLimiter.prune();
+    ipRateLimiter.prune();
+
     if (process.env.AI_ANALYSIS_ENABLED?.toLowerCase() === "false") {
       return NextResponse.json({ error: "현재 AI 타로 기능이 비활성화되어 있습니다." }, { status: 503 });
     }
@@ -353,9 +393,47 @@ export async function POST(request: NextRequest) {
     }
 
     const clientIp = getClientIp(request);
-    const rateLimit = checkRateLimit(`${user.id}:${clientIp}`);
-    if (!rateLimit.allowed) {
-      return NextResponse.json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." }, { status: 429 });
+
+    const cooldown = checkCooldown(`cooldown:${user.id}`, USER_COOLDOWN_MS);
+    if (!cooldown.allowed) {
+      return NextResponse.json(
+        {
+          error: `요청이 너무 빠릅니다. ${Math.ceil(cooldown.retryAfterMs / 1000)}초 후 다시 시도해 주세요.`,
+          code: "cooldown",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(cooldown.retryAfterMs / 1000)) },
+        },
+      );
+    }
+
+    const ipRateLimit = ipRateLimiter.check(clientIp);
+    if (!ipRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", code: "ip_rate_limit" },
+        {
+          status: 429,
+          headers: {
+            ...rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt),
+            "Retry-After": String(Math.ceil((ipRateLimit.resetAt - Date.now()) / 1000)),
+          },
+        },
+      );
+    }
+
+    const userRateLimit = userRateLimiter.check(user.id);
+    if (!userRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "짧은 시간에 요청이 너무 많습니다. 몇 분 후 다시 시도해 주세요.", code: "user_rate_limit" },
+        {
+          status: 429,
+          headers: {
+            ...rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
+            "Retry-After": String(Math.ceil((userRateLimit.resetAt - Date.now()) / 1000)),
+          },
+        },
+      );
     }
 
     const { data: profileRow, error: profileError } = await supabase
@@ -386,9 +464,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
     }
 
+    inFlightKey = user.id;
+    if (!acquireInFlightLock(inFlightKey, IN_FLIGHT_TTL_MS)) {
+      return NextResponse.json(
+        { error: "이미 리딩이 진행 중입니다. 완료될 때까지 잠시만 기다려 주세요.", code: "in_flight" },
+        { status: 409 },
+      );
+    }
+
     const result = await generateFullReading(apiKey, parsed.body);
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: 502 });
+      const status = result.status ?? 502;
+      const headers: Record<string, string> = {
+        ...rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
+      };
+      if (result.code === "quota_exceeded" && result.retryAfter) {
+        headers["Retry-After"] = String(result.retryAfter);
+      }
+      return NextResponse.json(
+        { error: result.error, code: result.code },
+        { status, headers },
+      );
     }
 
     const nextUseCount = currentUseCount + 1;
@@ -401,16 +497,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "사용 횟수 저장에 실패했습니다." }, { status: 500 });
     }
 
-    return NextResponse.json({
-      reading: result.reading,
-      model: DEFAULT_GEMINI_MODEL,
-      remainingToday: Math.max(TOTAL_LIMIT_PER_USER - nextUseCount, 0),
-    });
+    return NextResponse.json(
+      {
+        reading: result.reading,
+        model: result.model,
+        warning: "warning" in result ? result.warning : undefined,
+        remainingToday: Math.max(TOTAL_LIMIT_PER_USER - nextUseCount, 0),
+      },
+      {
+        headers: rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
+      },
+    );
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      return NextResponse.json({ error: "AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요." }, { status: 504 });
+      return NextResponse.json(
+        { error: "AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.", code: "timeout" },
+        { status: 504 },
+      );
     }
     console.error("[tarot-reading] unexpected error", error);
     return NextResponse.json({ error: "AI 타로 리딩 중 오류가 발생했습니다." }, { status: 500 });
+  } finally {
+    if (inFlightKey) {
+      releaseInFlightLock(inFlightKey);
+    }
   }
 }

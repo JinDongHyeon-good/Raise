@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LogOut } from "lucide-react";
 import { BoardTab } from "@/components/board/board-tab";
+import { AuthPanel } from "@/components/auth/auth-panel";
 import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
+import { ensureUserProfileClient } from "@/lib/ensure-user-profile-client";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
-import { getPublicSiteOrigin } from "@/lib/site-origin";
 
 type MarketTab = "spot" | "linear";
 type FloorTab = "market" | "news" | "board";
@@ -331,8 +332,6 @@ export default function TradingFloorPage() {
   const [isFilterInfoOpen, setIsFilterInfoOpen] = useState(false);
   const [isFilterInfoHovered, setIsFilterInfoHovered] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -378,6 +377,12 @@ export default function TradingFloorPage() {
     }
 
     if (!data?.auth_id) {
+      try {
+        await ensureUserProfileClient(supabase, user.id, user);
+      } catch (profileError) {
+        console.error("[user-profile] create failed", profileError);
+        return;
+      }
       const defaultNickname = getDefaultNicknameFromUser({
         email: user.email,
         user_metadata: user.user_metadata ?? null,
@@ -997,7 +1002,6 @@ export default function TradingFloorPage() {
   };
 
   const handleOpenAnalysisModal = async (symbol: BybitSymbol) => {
-    setAuthError(null);
 
     if (isLoggedIn) {
       setIsAuthModalOpen(false);
@@ -1120,12 +1124,10 @@ export default function TradingFloorPage() {
     try {
       const user = await resolveSessionUser();
       if (!user) {
-        setAuthError(null);
         setIsAuthModalOpen(true);
         return;
       }
     } catch {
-      setAuthError(null);
       setIsAuthModalOpen(true);
       return;
     }
@@ -1216,29 +1218,21 @@ export default function TradingFloorPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setAuthError(null);
-    setIsAuthLoading(true);
+  const handleEmailAuthSuccess = async () => {
+    const user = await resolveSessionUser();
+    if (!user) return;
 
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const callbackUrl = new URL("/auth/callback", getPublicSiteOrigin());
-      callbackUrl.searchParams.set("next", "/");
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: callbackUrl.toString(),
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "Google 로그인 요청에 실패했습니다.");
-      setIsAuthLoading(false);
-    }
+    setUserAvatarUrl(
+      (user.user_metadata?.avatar_url as string | undefined) ??
+        (user.user_metadata?.picture as string | undefined) ??
+        null,
+    );
+    await ensureUserProfile({
+      id: user.id,
+      email: user.email,
+      user_metadata: user.user_metadata as Record<string, unknown>,
+    });
+    setIsAuthModalOpen(false);
   };
 
   const handleLogout = async () => {
@@ -1506,7 +1500,6 @@ export default function TradingFloorPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setAuthError(null);
                     setIsAuthModalOpen(true);
                   }}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-[11px] font-semibold text-slate-100 transition hover:border-sky-400 hover:text-white"
@@ -2668,8 +2661,6 @@ export default function TradingFloorPage() {
               aria-label="로그인 모달 닫기"
               onClick={() => {
                 setIsAuthModalOpen(false);
-                setAuthError(null);
-                setIsAuthLoading(false);
               }}
               className="absolute right-4 top-4 z-20 grid h-9 w-9 place-items-center rounded-full border border-slate-600/80 bg-slate-900/85 p-0 text-slate-300 leading-none transition hover:border-slate-400 hover:text-white"
             >
@@ -2684,44 +2675,12 @@ export default function TradingFloorPage() {
               </svg>
             </button>
 
-            <div className="relative z-10">
-              <h2 className="text-center text-2xl font-semibold tracking-tight text-white">Login</h2>
-              <p className="mt-2 text-center text-sm leading-6 text-slate-300">
-                지금 시작하고, AI 타로 리딩과 오늘의 카드 메시지를
-                <br />
-                무료로 가장 먼저 받아보세요.
-              </p>
-
-              {authError && (
-                <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{authError}</p>
-              )}
-
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isAuthLoading}
-                className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-black/20 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
-                  <path
-                    d="M21.35 12.2c0-.72-.06-1.25-.2-1.8H12v3.4h5.37c-.1.84-.66 2.1-1.9 2.95l-.02.11 2.76 2.13.19.02c1.73-1.6 2.95-3.95 2.95-6.81Z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M12 21.7c2.63 0 4.84-.87 6.45-2.37l-3.08-2.38c-.83.58-1.95.99-3.37.99-2.57 0-4.74-1.69-5.52-4.02l-.11.01-2.86 2.22-.04.1C5.08 19.44 8.29 21.7 12 21.7Z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M6.48 13.92A5.8 5.8 0 0 1 6.16 12c0-.67.11-1.32.3-1.92l-.01-.13-2.9-2.25-.09.04A9.72 9.72 0 0 0 2.3 12c0 1.55.37 3.02 1.15 4.26l3.03-2.34Z"
-                    fill="#FBBC05"
-                  />
-                  <path
-                    d="M12 6.06c1.8 0 3.01.78 3.7 1.44l2.7-2.63C16.83 3.4 14.63 2.3 12 2.3c-3.71 0-6.92 2.25-8.55 5.44l3 2.34C7.25 7.75 9.43 6.06 12 6.06Z"
-                    fill="#EA4335"
-                  />
-                </svg>
-                <span>{isAuthLoading ? "Google로 이동 중..." : "Google로 가입/로그인"}</span>
-              </button>
+            <div className="relative z-10 rounded-2xl bg-white p-4">
+              <AuthPanel
+                showHeader
+                nextPath="/trading-floor"
+                onAuthenticated={handleEmailAuthSuccess}
+              />
             </div>
           </div>
         </div>

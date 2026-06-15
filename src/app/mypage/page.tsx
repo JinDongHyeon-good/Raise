@@ -153,9 +153,9 @@ export default function MyPage() {
         toastOptions={{
           style: {
             background: "#ffffff",
-            color: "#4c1d95",
-            border: "1px solid #ddd6fe",
-            boxShadow: "0 4px 14px rgb(139 92 246 / 0.15)",
+            color: "#1e293b",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 4px 14px rgb(148 163 184 / 0.15)",
           },
         }}
       />
@@ -164,7 +164,7 @@ export default function MyPage() {
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
-            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-violet-950 sm:text-2xl md:text-3xl"
+            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl"
           >
             <span className="block truncate">{SERVICE_NAME}</span>
           </a>
@@ -175,12 +175,12 @@ export default function MyPage() {
                 type="button"
                 aria-label="사용자 메뉴"
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                className="h-10 w-10 overflow-hidden rounded-full border border-violet-200 bg-white shadow-sm transition hover:border-violet-400"
+                className="h-10 w-10 overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm transition hover:border-slate-400"
               >
                 {userAvatarUrl ? (
                   <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="inline-flex h-full w-full items-center justify-center bg-violet-100 text-xs font-semibold text-violet-700">
+                  <span className="inline-flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold text-slate-700">
                     ME
                   </span>
                 )}
@@ -188,14 +188,14 @@ export default function MyPage() {
             ) : (
               <a
                 href="/"
-                className="rounded-full border border-violet-300 bg-white/95 px-4 py-2 text-xs font-semibold text-violet-800 shadow-sm transition hover:border-violet-400 hover:bg-violet-100"
+                className="rounded-full border border-slate-300 bg-white/95 px-4 py-2 text-xs font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
               >
                 로그인
               </a>
             )}
 
             <div
-              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-violet-200 bg-white/95 shadow-lg shadow-violet-200/50 transition-all duration-300 ${
+              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-lg shadow-slate-200/50 transition-all duration-300 ${
                 isLoggedIn && isUserMenuOpen
                   ? "max-h-40 translate-y-0 p-1.5 opacity-100"
                   : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
@@ -203,7 +203,7 @@ export default function MyPage() {
             >
               <a
                 href="/mypage"
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-violet-100"
+                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
               >
                 마이페이지
               </a>
@@ -218,9 +218,9 @@ export default function MyPage() {
           </div>
         </header>
 
-        <section className="w-full min-w-0 rounded-2xl border border-violet-200 bg-white/85 p-4 shadow-lg shadow-violet-200/50 backdrop-blur-sm sm:p-5 md:p-6">
-          <div className="border-b border-violet-200 pb-4">
-            <h1 className="text-lg font-semibold text-violet-950">마이페이지</h1>
+        <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-lg shadow-slate-200/50 backdrop-blur-sm sm:p-5 md:p-6">
+          <div className="border-b border-slate-200 pb-4">
+            <h1 className="text-lg font-semibold text-slate-900">마이페이지</h1>
             <p className="mt-1 text-sm text-slate-400">회원 정보 및 닉네임을 관리합니다.</p>
           </div>
 
@@ -228,13 +228,13 @@ export default function MyPage() {
             <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{pageError}</p>
           ) : (
             <div className="mt-5 space-y-5">
-              <div className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
-                <p className="text-xs font-medium text-violet-600">가입일</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-medium text-slate-500">가입일</p>
                 <p className="mt-1 text-sm text-slate-800">{joinedAt}</p>
               </div>
 
               <div>
-                <label htmlFor="nickname-input" className="mb-1 block text-xs font-medium text-violet-600">
+                <label htmlFor="nickname-input" className="mb-1 block text-xs font-medium text-slate-500">
                   닉네임
                 </label>
                 <input
@@ -243,14 +243,14 @@ export default function MyPage() {
                   onChange={(event) => setNicknameDraft(event.target.value)}
                   maxLength={30}
                   placeholder="닉네임을 입력해 주세요"
-                  className="w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:border-violet-400 focus:ring-1 focus:ring-violet-300/30"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-500 focus:border-slate-400 focus:ring-1 focus:ring-slate-300/30"
                 />
                 <div className="mt-3 flex justify-stretch sm:justify-end">
                   <button
                     type="button"
                     onClick={handleSaveNickname}
                     disabled={isSaving || !hasNicknameChanged}
-                    className="w-full rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-300/45 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[88px]"
+                    className="w-full rounded-xl bg-slate-800 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-slate-300/30 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[88px]"
                   >
                     {isSaving ? "저장 중..." : "저장"}
                   </button>
@@ -260,10 +260,10 @@ export default function MyPage() {
           )}
 
           {!pageError && (
-            <div className="mt-6 border-t border-violet-200 pt-4">
+            <div className="mt-6 border-t border-slate-200 pt-4">
               <a
                 href="/"
-                className="inline-flex text-sm font-medium text-violet-600 transition hover:text-violet-800"
+                className="inline-flex text-sm font-medium text-slate-500 transition hover:text-slate-800"
               >
                 ← 타로 리딩으로 돌아가기
               </a>
