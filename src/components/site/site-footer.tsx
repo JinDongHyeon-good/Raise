@@ -18,11 +18,7 @@ const LEGAL_LINKS = [
 
 export function SiteFooter({ maxWidthClassName = "max-w-5xl" }: { maxWidthClassName?: string }) {
   return (
-    <footer className="relative border-t border-slate-200 bg-white">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300 to-transparent"
-      />
+    <footer className="border-t border-slate-200 bg-white">
       <div className={`mx-auto flex w-full flex-col gap-8 px-4 py-10 sm:px-6 sm:py-12 ${maxWidthClassName}`}>
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xs">
