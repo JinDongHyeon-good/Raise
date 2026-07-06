@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 import type { CardOrientation, TarotSpreadId, TarotSuit, TarotTopicId } from "@/lib/tarot-deck";
 import { TAROT_TOPIC_IDS, topicGuidance, topicLabel, suitLabel } from "@/lib/tarot-deck";
@@ -358,6 +359,36 @@ async function generateFullReading(apiKey: string, body: TarotRequestBody) {
   };
 }
 
+async function logTarotReadingRequest(
+  supabase: SupabaseClient,
+  params: {
+    authId: string;
+    clientIp: string;
+    body: TarotRequestBody;
+    outcome:
+      | { status: "success"; model: string }
+      | { status: "failed"; code?: string; message: string };
+  },
+) {
+  const { error } = await supabase.from("TAROT_READING_LOG").insert({
+    auth_id: params.authId,
+    topic: params.body.topic,
+    spread: params.body.spread,
+    question: params.body.question ?? null,
+    card_count: params.body.cards.length,
+    cards: params.body.cards,
+    status: params.outcome.status,
+    model: params.outcome.status === "success" ? params.outcome.model : null,
+    error_code: params.outcome.status === "failed" ? params.outcome.code ?? null : null,
+    error_message: params.outcome.status === "failed" ? params.outcome.message : null,
+    client_ip: params.clientIp,
+  });
+
+  if (error) {
+    console.error("[tarot-reading] failed to log request", error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   let inFlightKey: string | null = null;
 
@@ -420,6 +451,16 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await generateFullReading(apiKey, parsed.body);
+
+    await logTarotReadingRequest(supabase, {
+      authId: user.id,
+      clientIp,
+      body: parsed.body,
+      outcome: result.ok
+        ? { status: "success", model: result.model }
+        : { status: "failed", code: result.code, message: result.error },
+    });
+
     if (!result.ok) {
       const status = result.status ?? 502;
       const headers: Record<string, string> = {

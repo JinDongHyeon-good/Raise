@@ -1,67 +1,68 @@
 import Link from "next/link";
-import { SERVICE_NAME } from "@/lib/brand";
+import { SERVICE_NAME, SERVICE_TAGLINE } from "@/lib/brand";
 
-export function SiteFooter() {
+const PRIMARY_LINKS = [
+  { href: "/", label: "홈" },
+  { href: "/topics/today-fortune", label: "오늘의 운세" },
+  { href: "/topics/today-tarot", label: "오늘의 타로" },
+  { href: "/topics/love-tarot", label: "연애 타로" },
+  { href: "/about", label: "서비스 소개" },
+  { href: "/guides", label: "타로 가이드" },
+  { href: "/contact", label: "문의" },
+];
+
+const LEGAL_LINKS = [
+  { href: "/privacy", label: "개인정보처리방침" },
+  { href: "/terms", label: "이용약관" },
+];
+
+export function SiteFooter({ maxWidthClassName = "max-w-5xl" }: { maxWidthClassName?: string }) {
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-6 text-xs text-slate-600 sm:px-6">
-        <nav className="flex flex-wrap items-center gap-x-3 gap-y-2" aria-label="사이트 링크">
-          <Link href="/" className="hover:text-slate-900 hover:underline">
-            홈
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/topics/today-fortune" className="hover:text-slate-900 hover:underline">
-            오늘의 운세
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/topics/today-tarot" className="hover:text-slate-900 hover:underline">
-            오늘의 타로
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/topics/love-tarot" className="hover:text-slate-900 hover:underline">
-            연애 타로
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/about" className="hover:text-slate-900 hover:underline">
-            서비스 소개
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/guides" className="hover:text-slate-900 hover:underline">
-            타로 가이드
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/contact" className="hover:text-slate-900 hover:underline">
-            문의
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/privacy" className="hover:text-slate-900 hover:underline">
-            개인정보처리방침
-          </Link>
-          <span className="text-slate-300" aria-hidden>
-            |
-          </span>
-          <Link href="/terms" className="hover:text-slate-900 hover:underline">
-            이용약관
-          </Link>
-        </nav>
-        <p className="leading-relaxed text-slate-500">
-          © {new Date().getFullYear()} {SERVICE_NAME}. AI 타로 리딩은 오락·자기성찰을 위한 참고 콘텐츠이며, 의료·법률·투자
-          판단을 대체하지 않습니다.
-        </p>
+    <footer className="relative border-t border-slate-200 bg-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300 to-transparent"
+      />
+      <div className={`mx-auto flex w-full flex-col gap-8 px-4 py-10 sm:px-6 sm:py-12 ${maxWidthClassName}`}>
+        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xs">
+            <a href="/" className="font-brand-display inline-flex items-center gap-1.5 text-lg text-slate-900">
+              <span
+                aria-hidden
+                className="bg-gradient-to-br from-violet-500 to-fuchsia-500 bg-clip-text text-transparent"
+              >
+                ✦
+              </span>
+              {SERVICE_NAME}
+            </a>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">{SERVICE_TAGLINE}</p>
+          </div>
+
+          <nav
+            className="flex flex-wrap gap-x-5 gap-y-2.5 text-sm text-slate-600 sm:justify-end"
+            aria-label="사이트 링크"
+          >
+            {PRIMARY_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="transition hover:text-violet-600">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <p className="text-xs leading-relaxed text-slate-400">
+            © {new Date().getFullYear()} {SERVICE_NAME}. AI 타로 리딩은 오락·자기성찰을 위한 참고 콘텐츠이며,
+            의료·법률·투자 판단을 대체하지 않습니다.
+          </p>
+          <nav className="flex shrink-0 items-center gap-x-4 text-xs text-slate-400" aria-label="법적 고지">
+            {LEGAL_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="transition hover:text-slate-600 hover:underline">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
     </footer>
   );

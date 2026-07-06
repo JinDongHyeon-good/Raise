@@ -164,8 +164,14 @@ export default function MyPage() {
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
-            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl"
+            className="font-brand-display flex min-w-0 shrink items-center gap-1.5 text-xl leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl"
           >
+            <span
+              aria-hidden
+              className="bg-gradient-to-br from-violet-500 to-fuchsia-500 bg-clip-text text-transparent"
+            >
+              ✦
+            </span>
             <span className="block truncate">{SERVICE_NAME}</span>
           </a>
 

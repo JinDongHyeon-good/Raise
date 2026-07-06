@@ -13,7 +13,16 @@ export function SitePageShell({
     <div className="flex min-h-dvh flex-col bg-white text-slate-900">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Link href="/" className="font-brand-display text-xl tracking-tight text-slate-900 hover:text-slate-700">
+          <Link
+            href="/"
+            className="font-brand-display flex items-center gap-1.5 text-xl tracking-tight text-slate-900 hover:text-slate-700"
+          >
+            <span
+              aria-hidden
+              className="bg-gradient-to-br from-violet-500 to-fuchsia-500 bg-clip-text text-transparent"
+            >
+              ✦
+            </span>
             {SERVICE_NAME}
           </Link>
           <nav className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs text-slate-600 sm:text-sm">

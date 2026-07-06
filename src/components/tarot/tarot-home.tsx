@@ -173,7 +173,7 @@ const STEP_META: Array<{ title: string; description: string }> = [
     title: "리딩 영역 선택",
     description: "지금 가장 깊이 들여다보고 싶은 질문의 영역을 골라 주세요. 선택하신 테마에 맞춰 카드의 흐름을 읽습니다.",
   },
-  { title: "궁금한 점", description: "마음속 질문을 적어 주세요. (선택)" },
+  { title: "궁금한 점", description: "마음속 질문을 적어 주세요." },
   {
     title: "카드 뽑기",
     description: "카드를 뽑은 뒤 결과 보기를 누르면 AI 타로 리딩을 확인할 수 있습니다.",
@@ -194,24 +194,36 @@ function StepTopProgressBar({ current }: { current: number }) {
           return (
             <Fragment key={stepNumber}>
               {index > 0 ? (
-                <div
-                  className={`h-0.5 min-w-[1.25rem] flex-1 transition-colors duration-300 ${
-                    lineDone ? "bg-slate-300" : "bg-slate-200"
-                  }`}
-                  aria-hidden
-                />
+                <div className="relative h-1 min-w-[1.5rem] flex-1 overflow-hidden rounded-full bg-slate-100" aria-hidden>
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-all duration-500 ease-out"
+                    style={{ width: lineDone ? "100%" : "0%" }}
+                  />
+                </div>
               ) : null}
               <div
-                className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 sm:text-sm ${
+                className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 sm:h-8 sm:w-8 sm:text-sm ${
                   isActive
-                    ? "bg-slate-800 text-white shadow-md shadow-slate-200/40 ring-2 ring-slate-200 ring-offset-2 ring-offset-white"
+                    ? "scale-110 bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-400/40 ring-4 ring-violet-100"
                     : isDone
-                      ? "bg-slate-100 text-slate-700"
-                      : "border border-slate-200 bg-white text-slate-400"
+                      ? "bg-gradient-to-br from-violet-400 to-fuchsia-400 text-white shadow-sm shadow-violet-200/50"
+                      : "border border-slate-200 bg-white text-slate-300"
                 }`}
                 aria-current={isActive ? "step" : undefined}
               >
-                {stepNumber}
+                {isDone ? (
+                  <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+                    <path
+                      d="M5 13l4 4L19 7"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  stepNumber
+                )}
               </div>
             </Fragment>
           );
@@ -232,6 +244,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
   const [readingError, setReadingError] = useState<string | null>(null);
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const [readingCopied, setReadingCopied] = useState(false);
+  const [isReadingErrorModalOpen, setIsReadingErrorModalOpen] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
@@ -587,6 +600,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
     }
 
     setReadingError(null);
+    setIsReadingErrorModalOpen(false);
     setReadingCopied(false);
     setIsReadingLoading(true);
     setReading("");
@@ -687,6 +701,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
     } catch (error) {
       setReading("");
       setReadingError(error instanceof Error ? error.message : "AI 리딩 중 오류가 발생했습니다.");
+      setIsReadingErrorModalOpen(true);
     } finally {
       readingInFlightRef.current = false;
       setIsReadingLoading(false);
@@ -742,8 +757,14 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
         <header className="flex min-w-0 items-center justify-between gap-3">
           <a
             href="/"
-            className="font-brand-display min-w-0 shrink text-xl leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl"
+            className="font-brand-display flex min-w-0 shrink items-center gap-1.5 text-xl leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl"
           >
+            <span
+              aria-hidden
+              className="bg-gradient-to-br from-violet-500 to-fuchsia-500 bg-clip-text text-transparent"
+            >
+              ✦
+            </span>
             <span className="block truncate">{SERVICE_NAME}</span>
           </a>
 
@@ -956,7 +977,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 <div className="min-w-0 border-t border-slate-100 pt-5">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold text-slate-800">리딩 결과</p>
-                    <span className="shrink-0 text-xs text-slate-500">읽는 중...</span>
                   </div>
                   <TarotReadingSkeleton sectionCount={spreadConfig.count} />
                 </div>
@@ -1086,7 +1106,43 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
         </div>
       )}
 
-      <SiteFooter />
+      {isReadingErrorModalOpen && (
+        <div className="fixed inset-0 z-[320] flex items-end justify-center bg-slate-900/20 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="w-full max-w-sm rounded-t-3xl border border-slate-200 bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center shadow-2xl shadow-slate-100/40 sm:rounded-3xl">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+              <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-red-500" aria-hidden>
+                <path
+                  d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 0 0 3.4 20.5h17.2a1.5 1.5 0 0 0 1.29-2.46L13.71 3.86a1.5 1.5 0 0 0-2.42 0z"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <p className="mt-4 text-base font-bold text-slate-800">죄송합니다, 에러가 발생했습니다</p>
+            <p className="mt-1.5 text-sm text-slate-400">잠시 후 다시 시도해 주세요.</p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsReadingErrorModalOpen(false)}
+                className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                닫기
+              </button>
+              <button
+                type="button"
+                onClick={() => void runReading()}
+                className="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+              >
+                다시 시도
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <SiteFooter maxWidthClassName="max-w-3xl" />
     </main>
   );
 }
