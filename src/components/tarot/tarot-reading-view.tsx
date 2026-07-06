@@ -2,51 +2,48 @@
 
 import { parseTarotReading, type ReadingSection } from "@/lib/tarot-reading-format";
 
-function ReadingTreeSection({
+function ReadingSectionBlock({
   section,
-  isLast,
+  showDivider,
 }: {
   section: ReadingSection;
-  isLast: boolean;
+  showDivider: boolean;
 }) {
   return (
-    <div className="relative flex gap-3">
-      {!isLast ? (
+    <article className={showDivider ? "border-t border-slate-100 pt-4" : undefined}>
+      <div className="flex items-start gap-3">
         <span
-          className="absolute left-[10px] top-7 bottom-0 w-px bg-gradient-to-b from-slate-300 to-slate-100"
+          className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold tabular-nums text-slate-600"
           aria-hidden
-        />
-      ) : null}
+        >
+          {section.number}
+        </span>
 
-      <div
-        className="relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[10px] font-bold text-slate-600 shadow-sm"
-        aria-hidden
-      >
-        {section.number}
+        <div className="min-w-0 flex-1">
+          <h4 className="text-sm font-semibold leading-snug text-slate-900">{section.title}</h4>
+
+          {section.content ? (
+            <p className="mt-2 break-words whitespace-pre-wrap text-sm leading-7 text-slate-700">
+              {section.content}
+            </p>
+          ) : null}
+
+          {section.items.length > 0 ? (
+            <ul className="mt-3 space-y-2" role="list">
+              {section.items.map((item, index) => (
+                <li
+                  key={`${section.id}-item-${index}`}
+                  className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" aria-hidden />
+                  <span className="min-w-0 flex-1 break-words">{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       </div>
-
-      <div className="min-w-0 flex-1 pb-5">
-        <h4 className="text-sm font-semibold tracking-tight text-slate-900">{section.title}</h4>
-
-        {section.content ? (
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">{section.content}</p>
-        ) : null}
-
-        {section.items.length > 0 ? (
-          <ul className="mt-3 space-y-2" role="list">
-            {section.items.map((item, index) => (
-              <li key={`${section.id}-item-${index}`} className="relative pl-4">
-                <span
-                  className="absolute left-0 top-[0.55rem] h-1.5 w-1.5 rounded-full bg-slate-400"
-                  aria-hidden
-                />
-                <span className="block text-sm leading-relaxed text-slate-600">{item}</span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-    </div>
+    </article>
   );
 }
 
@@ -55,35 +52,34 @@ export function TarotReadingView({ text }: { text: string }) {
 
   if (!parsed) {
     return (
-      <div className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{text.trim()}</div>
+      <div className="min-w-0 break-words whitespace-pre-wrap text-sm leading-7 text-slate-700">
+        {text.trim()}
+      </div>
     );
   }
 
   const { summary, sections } = parsed;
 
   return (
-    <div className="space-y-5">
+    <div className="tarot-reading-result min-w-0 space-y-4">
       {summary ? (
-        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/80 p-4 shadow-sm shadow-slate-200/40">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">한 줄 요약</p>
-          <p className="mt-2 text-pretty text-sm font-medium leading-relaxed text-slate-900 sm:text-base">
+        <div className="border-l-2 border-slate-300 pl-3 sm:pl-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">한 줄 요약</p>
+          <p className="mt-1.5 break-words text-pretty text-sm font-medium leading-7 text-slate-900 sm:text-[15px]">
             {summary}
           </p>
         </div>
       ) : null}
 
       {sections.length > 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4">
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">상세 리딩</p>
-          <div>
-            {sections.map((section, index) => (
-              <ReadingTreeSection
-                key={section.id}
-                section={section}
-                isLast={index === sections.length - 1}
-              />
-            ))}
-          </div>
+        <div className="space-y-4">
+          {sections.map((section, index) => (
+            <ReadingSectionBlock
+              key={section.id}
+              section={section}
+              showDivider={index > 0 || Boolean(summary)}
+            />
+          ))}
         </div>
       ) : null}
     </div>

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import type { TarotGuide } from "@/data/tarot-guides";
+import type { TarotTopicPage } from "@/data/tarot-topic-pages";
 import {
+  NAVER_SITE_VERIFICATION,
   SERVICE_DESCRIPTION,
   SERVICE_KEYWORDS,
   SERVICE_NAME,
@@ -7,6 +10,43 @@ import {
   SERVICE_TAGLINE,
   getSiteUrl,
 } from "@/lib/brand";
+
+function getSiteVerification(): Metadata["verification"] {
+  const google = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+  const naver = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION?.trim() || NAVER_SITE_VERIFICATION;
+
+  if (!google && !naver) return undefined;
+
+  const verification: NonNullable<Metadata["verification"]> = {};
+  if (google) verification.google = google;
+  if (naver) {
+    verification.other = { "naver-site-verification": naver };
+  }
+  return verification;
+}
+
+function buildOpenGraph(
+  title: string,
+  description: string,
+  path: string,
+): NonNullable<Metadata["openGraph"]> {
+  return {
+    title,
+    description,
+    url: path,
+    siteName: SERVICE_NAME,
+    locale: "ko_KR",
+    type: "website",
+    images: [
+      {
+        url: OG_IMAGE_PATH,
+        width: 1200,
+        height: 630,
+        alt: `${SERVICE_NAME} — AI 타로 온라인 리딩`,
+      },
+    ],
+  };
+}
 
 /** 구글 검색 제목·스니펫용 (홈·기본) */
 export const SEO_HOME_TITLE = "AI 타로 | 멜로타로 — 무료 온라인 AI 타로 리딩";
@@ -46,22 +86,8 @@ export function buildRootMetadata(): Metadata {
         "max-snippet": -1,
       },
     },
-    openGraph: {
-      title: SEO_HOME_TITLE,
-      description: SEO_HOME_DESCRIPTION,
-      url: "/",
-      siteName: SERVICE_NAME,
-      locale: "ko_KR",
-      type: "website",
-      images: [
-        {
-          url: OG_IMAGE_PATH,
-          width: 1200,
-          height: 630,
-          alt: `${SERVICE_NAME} — AI 타로 온라인 리딩`,
-        },
-      ],
-    },
+    verification: getSiteVerification(),
+    openGraph: buildOpenGraph(SEO_HOME_TITLE, SEO_HOME_DESCRIPTION, "/"),
     twitter: {
       card: "summary_large_image",
       title: SEO_HOME_TITLE,
@@ -82,12 +108,141 @@ export function buildHomePageMetadata(): Metadata {
     title: SEO_HOME_TITLE,
     description: SEO_HOME_DESCRIPTION,
     alternates: { canonical: "/" },
-    openGraph: {
-      title: SEO_HOME_TITLE,
-      description: SEO_HOME_DESCRIPTION,
-      url: "/",
+    openGraph: buildOpenGraph(SEO_HOME_TITLE, SEO_HOME_DESCRIPTION, "/"),
+  };
+}
+
+export function buildTopicPageMetadata(page: TarotTopicPage): Metadata {
+  const path = `/topics/${page.slug}`;
+
+  return {
+    title: page.title,
+    description: page.description,
+    keywords: [...page.keywords, ...SERVICE_KEYWORDS],
+    alternates: { canonical: path },
+    robots: { index: true, follow: true },
+    openGraph: buildOpenGraph(page.title, page.description, path),
+    twitter: {
+      card: "summary_large_image",
+      title: page.title,
+      description: page.description,
+      images: [OG_IMAGE_PATH],
     },
   };
+}
+
+export function buildGuidePageMetadata(guide: TarotGuide): Metadata {
+  const path = `/guides/${guide.slug}`;
+
+  return {
+    title: guide.title,
+    description: guide.description,
+    alternates: { canonical: path },
+    robots: { index: true, follow: true },
+    openGraph: buildOpenGraph(guide.title, guide.description, path),
+    twitter: {
+      card: "summary_large_image",
+      title: guide.title,
+      description: guide.description,
+      images: [OG_IMAGE_PATH],
+    },
+  };
+}
+
+export function getTopicPageJsonLd(page: TarotTopicPage): JsonLdObject[] {
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/topics/${page.slug}`;
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: page.title,
+      description: page.description,
+      inLanguage: "ko-KR",
+      isPartOf: { "@id": `${siteUrl}/#website` },
+      about: {
+        "@type": "Thing",
+        name: page.heading,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: SERVICE_NAME,
+          item: siteUrl,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: page.heading,
+          item: pageUrl,
+        },
+      ],
+    },
+  ];
+}
+
+export function getGuidePageJsonLd(guide: TarotGuide): JsonLdObject[] {
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/guides/${guide.slug}`;
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": `${pageUrl}#article`,
+      headline: guide.title,
+      description: guide.description,
+      url: pageUrl,
+      inLanguage: "ko-KR",
+      author: {
+        "@type": "Organization",
+        name: SERVICE_NAME,
+        url: siteUrl,
+      },
+      publisher: {
+        "@type": "Organization",
+        name: SERVICE_NAME,
+        url: siteUrl,
+        logo: {
+          "@type": "ImageObject",
+          url: getOgImageUrl(),
+        },
+      },
+      isPartOf: { "@id": `${siteUrl}/#website` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: SERVICE_NAME,
+          item: siteUrl,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "타로 가이드",
+          item: `${siteUrl}/guides`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: guide.title,
+          item: pageUrl,
+        },
+      ],
+    },
+  ];
 }
 
 type JsonLdObject = Record<string, unknown>;

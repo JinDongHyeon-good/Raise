@@ -11,6 +11,8 @@ frontend:
         # 한 줄씩 안전하게 .env.production 파일 생성
         - echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env.production
         - echo "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://jjindong.com}" >> .env.production
+        - echo "NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION}" >> .env.production
+        - echo "NEXT_PUBLIC_NAVER_SITE_VERIFICATION=${NEXT_PUBLIC_NAVER_SITE_VERIFICATION}" >> .env.production
         - echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" >> .env.production
         - echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" >> .env.production
 

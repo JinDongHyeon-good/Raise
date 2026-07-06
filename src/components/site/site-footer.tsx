@@ -12,6 +12,24 @@ export function SiteFooter() {
           <span className="text-slate-300" aria-hidden>
             |
           </span>
+          <Link href="/topics/today-fortune" className="hover:text-slate-900 hover:underline">
+            오늘의 운세
+          </Link>
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
+          <Link href="/topics/today-tarot" className="hover:text-slate-900 hover:underline">
+            오늘의 타로
+          </Link>
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
+          <Link href="/topics/love-tarot" className="hover:text-slate-900 hover:underline">
+            연애 타로
+          </Link>
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
           <Link href="/about" className="hover:text-slate-900 hover:underline">
             서비스 소개
           </Link>

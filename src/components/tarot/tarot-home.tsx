@@ -221,9 +221,9 @@ function StepTopProgressBar({ current }: { current: number }) {
   );
 }
 
-export default function TarotHome() {
+export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicId }) {
   const [step, setStep] = useState(1);
-  const [topic, setTopic] = useState<TarotTopicId>("today");
+  const [topic, setTopic] = useState<TarotTopicId>(initialTopic ?? "today");
   const [spread, setSpread] = useState<TarotSpreadId>("single");
   const [question, setQuestion] = useState("");
   const [drawnCards, setDrawnCards] = useState<DrawnTarotCard[]>([]);
@@ -272,6 +272,7 @@ export default function TarotHome() {
   const cardsLayoutClass = isSingleSpread ? "tarot-cards-single" : "tarot-cards-multi";
   const selectedTopic = TAROT_TOPICS.find((item) => item.id === topic) ?? TAROT_TOPICS[0];
   const stepMeta = STEP_META[step - 1] ?? STEP_META[0];
+  const isResultActionBusy = isDrawing || isReadingLoading;
   const showStepPrev = step > 1 && !(step === TOTAL_STEPS && reading);
   const showStepPrimary = step !== TOTAL_STEPS || !reading;
   const showStepNav = showStepPrev || showStepPrimary;
@@ -313,6 +314,8 @@ export default function TarotHome() {
   };
 
   const restartTarot = () => {
+    if (isDrawing || isReadingLoading || readingInFlightRef.current) return;
+
     resetLaterStepInputs();
     setStep(1);
   };
@@ -462,6 +465,8 @@ export default function TarotHome() {
   }, []);
 
   const handleDrawCards = () => {
+    if (isDrawing || isReadingLoading || readingInFlightRef.current) return;
+
     setIsDrawing(true);
     setReading("");
     setReadingError(null);
@@ -472,6 +477,8 @@ export default function TarotHome() {
   };
 
   const handleSpreadChange = (next: TarotSpreadId) => {
+    if (isDrawing || isReadingLoading || readingInFlightRef.current) return;
+
     setSpread(next);
     setDrawnCards([]);
     setReading("");
@@ -695,6 +702,8 @@ export default function TarotHome() {
   };
 
   const handleStartReading = async () => {
+    if (isReadingLoading || readingInFlightRef.current) return;
+
     if (drawnCards.length !== spreadConfig.count) {
       setReadingError("카드를 먼저 뽑아 주세요.");
       return;
@@ -867,7 +876,7 @@ export default function TarotHome() {
                       type="button"
                       role="radio"
                       aria-checked={isSelected}
-                      disabled={isDrawing}
+                      disabled={isDrawing || isReadingLoading}
                       onClick={() => handleSpreadChange(item.id)}
                       className={`flex min-h-[5.5rem] flex-col rounded-xl border p-3.5 text-left transition disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-[6rem] sm:p-4 ${
                         isSelected
@@ -935,7 +944,7 @@ export default function TarotHome() {
                 <button
                   type="button"
                   onClick={handleDrawCards}
-                  disabled={isDrawing}
+                  disabled={isResultActionBusy}
                   className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-55"
                 >
                   {isDrawing ? "뽑는 중..." : "카드 뽑기"}
@@ -943,36 +952,37 @@ export default function TarotHome() {
               ) : null}
 
               {isReadingLoading ? (
-                <div className="space-y-2 rounded-xl border border-slate-200 bg-white/95 p-4 text-sm shadow-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-slate-600">리딩 결과</p>
+                <div className="min-w-0 border-t border-slate-100 pt-5">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-800">리딩 결과</p>
+                    <span className="shrink-0 text-xs text-slate-500">읽는 중...</span>
                   </div>
                   <TarotReadingSkeleton sectionCount={spreadConfig.count} />
                 </div>
               ) : null}
 
               {reading ? (
-                <div className="space-y-4">
+                <div className="min-w-0 space-y-4 border-t border-slate-100 pt-5">
                   {isLoggedIn && remainingToday !== null ? (
                     <p className="text-xs text-slate-500">남은 리딩: {remainingToday}회 (총 3회)</p>
                   ) : null}
-                  <div className="space-y-2 rounded-xl border border-slate-200 bg-white/95 p-4 text-sm shadow-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-slate-600">리딩 결과</p>
-                      <button
-                        type="button"
-                        onClick={() => void handleCopyReading()}
-                        className="shrink-0 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
-                      >
-                        {readingCopied ? "복사됨" : "결과 복사하기"}
-                      </button>
-                    </div>
-                    <TarotReadingView text={reading} />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-800">리딩 결과</p>
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyReading()}
+                      disabled={isResultActionBusy}
+                      className="shrink-0 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {readingCopied ? "복사됨" : "결과 복사하기"}
+                    </button>
                   </div>
+                  <TarotReadingView text={reading} />
                   <button
                     type="button"
                     onClick={restartTarot}
-                    className="w-full rounded-xl border border-dashed border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                    disabled={isResultActionBusy}
+                    className="w-full rounded-xl border border-dashed border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     타로 다시하기
                   </button>
@@ -1003,7 +1013,7 @@ export default function TarotHome() {
               <button
                 type="button"
                 onClick={() => void handleStartReading()}
-                disabled={isDrawing || isReadingLoading || drawnCards.length !== spreadConfig.count}
+                disabled={isResultActionBusy || drawnCards.length !== spreadConfig.count}
                 className="w-full min-w-0 rounded-xl border border-slate-300 bg-slate-800 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
                 {isReadingLoading ? "읽는 중..." : "결과 보기"}

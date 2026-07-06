@@ -1,37 +1,33 @@
 "use client";
 
 function SkeletonLine({ className = "" }: { className?: string }) {
-  return (
-    <div className={`tarot-skeleton-line h-3 rounded-md ${className}`} aria-hidden />
-  );
+  return <div className={`tarot-skeleton-line h-3 rounded-md ${className}`} aria-hidden />;
 }
 
-function SkeletonSection({ isLast }: { isLast: boolean }) {
+function SkeletonSection({ showDivider }: { showDivider: boolean }) {
   return (
-    <div className="relative flex gap-3" aria-hidden>
-      {!isLast ? (
-        <span className="absolute left-[10px] top-7 bottom-0 w-px bg-slate-100" />
-      ) : null}
+    <div className={showDivider ? "border-t border-slate-100 pt-4" : undefined} aria-hidden>
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-slate-100 tarot-skeleton-line" />
 
-      <div className="relative z-10 mt-0.5 h-6 w-6 shrink-0 rounded-full border border-slate-200 bg-slate-50 tarot-skeleton-line" />
-
-      <div className="min-w-0 flex-1 pb-5">
-        <SkeletonLine className="h-3.5 w-[42%] max-w-[9rem]" />
-        <div className="mt-3 space-y-2">
-          <SkeletonLine className="w-full" />
-          <SkeletonLine className="w-[94%]" />
-          <SkeletonLine className="w-[78%]" />
+        <div className="min-w-0 flex-1">
+          <SkeletonLine className="h-3.5 w-[46%] max-w-[10rem]" />
+          <div className="mt-3 space-y-2">
+            <SkeletonLine className="w-full" />
+            <SkeletonLine className="w-[92%]" />
+            <SkeletonLine className="w-[76%]" />
+          </div>
+          <div className="mt-3 space-y-2.5">
+            <div className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-200" />
+              <SkeletonLine className="h-2.5 flex-1" />
+            </div>
+            <div className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-200" />
+              <SkeletonLine className="h-2.5 w-[84%]" />
+            </div>
+          </div>
         </div>
-        <ul className="mt-3 space-y-2.5">
-          <li className="flex items-start gap-2">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-200" />
-            <SkeletonLine className="h-2.5 flex-1" />
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-200" />
-            <SkeletonLine className="h-2.5 w-[88%]" />
-          </li>
-        </ul>
       </div>
     </div>
   );
@@ -41,25 +37,21 @@ export function TarotReadingSkeleton({ sectionCount = 3 }: { sectionCount?: numb
   const detailSections = Math.max(sectionCount, 1);
 
   return (
-    <div className="tarot-reading-skeleton space-y-5" role="status" aria-live="polite" aria-busy="true">
+    <div className="tarot-reading-skeleton min-w-0 space-y-4" role="status" aria-live="polite" aria-busy="true">
       <span className="sr-only">AI가 카드를 읽는 중입니다</span>
 
-      <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50/80 via-white to-slate-50/60 p-4 shadow-sm shadow-slate-100/50">
+      <div className="border-l-2 border-slate-200 pl-3 sm:pl-4">
         <SkeletonLine className="h-2.5 w-16 opacity-70" />
-        <div className="mt-3 space-y-2.5">
+        <div className="mt-2.5 space-y-2">
           <SkeletonLine className="h-3.5 w-full" />
-          <SkeletonLine className="h-3.5 w-[92%]" />
-          <SkeletonLine className="h-3.5 w-[68%]" />
+          <SkeletonLine className="h-3.5 w-[90%]" />
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4">
-        <SkeletonLine className="mb-4 h-2.5 w-14 opacity-70" />
-        <div>
-          {Array.from({ length: detailSections }).map((_, index) => (
-            <SkeletonSection key={`skeleton-section-${index}`} isLast={index === detailSections - 1} />
-          ))}
-        </div>
+      <div className="space-y-4">
+        {Array.from({ length: detailSections }).map((_, index) => (
+          <SkeletonSection key={`skeleton-section-${index}`} showDivider={index > 0} />
+        ))}
       </div>
     </div>
   );

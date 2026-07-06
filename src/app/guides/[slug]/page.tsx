@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SitePageShell } from "@/components/site/site-page-shell";
 import { getTarotGuide, TAROT_GUIDES } from "@/data/tarot-guides";
+import { buildGuidePageMetadata, getGuidePageJsonLd } from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -17,11 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const guide = getTarotGuide(slug);
   if (!guide) return {};
 
-  return {
-    title: guide.title,
-    description: guide.description,
-    alternates: { canonical: `/guides/${guide.slug}` },
-  };
+  return buildGuidePageMetadata(guide);
 }
 
 export default async function GuideDetailPage({ params }: PageProps) {
@@ -31,6 +29,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
 
   return (
     <SitePageShell>
+      <JsonLd data={getGuidePageJsonLd(guide)} />
       <article className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
         <Link href="/guides" className="text-sm text-slate-600 hover:underline">
           ← 타로 가이드 목록

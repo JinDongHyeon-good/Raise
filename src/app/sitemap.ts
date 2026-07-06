@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/brand";
 import { TAROT_GUIDES } from "@/data/tarot-guides";
+import { TAROT_TOPIC_PAGES } from "@/data/tarot-topic-pages";
 
 const siteUrl = new URL(getSiteUrl());
 
-const STATIC_PATHS = ["/", "/about", "/contact", "/privacy", "/terms", "/guides"] as const;
+const STATIC_PATHS = ["/", "/about", "/contact", "/privacy", "/terms", "/guides", "/topics"] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -23,5 +24,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...guideEntries];
+  const topicEntries: MetadataRoute.Sitemap = TAROT_TOPIC_PAGES.map((page) => ({
+    url: new URL(`/topics/${page.slug}`, siteUrl).toString(),
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: page.slug === "today-fortune" || page.slug === "today-tarot" ? 0.9 : 0.8,
+  }));
+
+  return [...staticEntries, ...topicEntries, ...guideEntries];
 }

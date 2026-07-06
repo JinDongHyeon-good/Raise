@@ -3,6 +3,9 @@ export const SERVICE_NAME_EN = "Melotaro";
 
 export const GOOGLE_ADSENSE_CLIENT = "ca-pub-7677744293773918";
 
+/** 네이버 서치어드바이저 사이트 소유 확인 */
+export const NAVER_SITE_VERIFICATION = "b1209f6fe4de5f489ce57257ffc18b47212a85fc";
+
 export const MELOBALLOON_NAME = "멜로벌룬";
 export const MELOBALLOON_DISPLAY_NAME = "멜로벌룬🫧";
 
@@ -16,6 +19,8 @@ export const MELOBALLOON_KEYWORDS = [
   "행사",
   "헬륨풍선",
   "레터링풍선",
+  "젠더리빌",
+  "젠더리빌 풍선",
 ] as const;
 
 export const MELOBALLOON_STORE_URL =
@@ -43,6 +48,8 @@ export const SERVICE_KEYWORDS = [
   "멜로타로",
   "Melotaro",
   "AI 점술",
+  "젠더리빌",
+  "젠더리빌 풍선",
 ] as const;
 
 export function getSiteUrl() {

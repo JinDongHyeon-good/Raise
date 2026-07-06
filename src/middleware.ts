@@ -1,7 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+/** 세션 갱신이 필요한 경로만 미들웨어 처리 (공개 SEO 페이지는 캐시 허용) */
+const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume"] as const;
+
+function needsSessionRefresh(pathname: string) {
+  return SESSION_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export async function middleware(request: NextRequest) {
+  if (!needsSessionRefresh(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   // 로그아웃 라우트에서는 세션 갱신(getUser)을 돌리지 않음 — signOut 직전 쿠키가 덮어쓰이지 않도록
   if (request.nextUrl.pathname === "/auth/signout") {
     return NextResponse.next({
@@ -94,6 +107,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/mypage/:path*",
+    "/auth/:path*",
+    "/trading-floor/:path*",
+    "/resume",
   ],
 };
