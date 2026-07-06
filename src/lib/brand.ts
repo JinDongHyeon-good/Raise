@@ -6,6 +6,9 @@ export const GOOGLE_ADSENSE_CLIENT = "ca-pub-7677744293773918";
 /** 네이버 서치어드바이저 사이트 소유 확인 */
 export const NAVER_SITE_VERIFICATION = "b1209f6fe4de5f489ce57257ffc18b47212a85fc";
 
+/** Google Search Console 사이트 소유 확인 */
+export const GOOGLE_SITE_VERIFICATION = "MOTEsOBFqjbMfveUc0xSQI5UX2G9einmw_7ZEs0j544";
+
 export const MELOBALLOON_NAME = "멜로벌룬";
 export const MELOBALLOON_DISPLAY_NAME = "멜로벌룬🫧";
 

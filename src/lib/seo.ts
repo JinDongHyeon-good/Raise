@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { TarotGuide } from "@/data/tarot-guides";
 import type { TarotTopicPage } from "@/data/tarot-topic-pages";
 import {
+  GOOGLE_SITE_VERIFICATION,
   NAVER_SITE_VERIFICATION,
   SERVICE_DESCRIPTION,
   SERVICE_KEYWORDS,
@@ -12,8 +13,10 @@ import {
 } from "@/lib/brand";
 
 function getSiteVerification(): Metadata["verification"] {
-  const google = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
-  const naver = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION?.trim() || NAVER_SITE_VERIFICATION;
+  const google =
+    process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || GOOGLE_SITE_VERIFICATION;
+  const naver =
+    process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION?.trim() || NAVER_SITE_VERIFICATION;
 
   if (!google && !naver) return undefined;
 
