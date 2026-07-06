@@ -11,7 +11,6 @@ import {
 import {
   SlidingRateLimiter,
   acquireInFlightLock,
-  checkCooldown,
   pruneStaleLocks,
   releaseInFlightLock,
 } from "@/lib/sliding-rate-limit";
@@ -19,13 +18,9 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const USER_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const USER_RATE_LIMIT_MAX = 4;
 const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const IP_RATE_LIMIT_MAX = 10;
-const USER_COOLDOWN_MS = 8 * 1000;
+const IP_RATE_LIMIT_MAX = 30;
 const IN_FLIGHT_TTL_MS = 110 * 1000;
-const TOTAL_LIMIT_PER_USER = 3;
 
 const DEFAULT_GEMINI_MODEL = process.env.GEMINI_TAROT_MODEL?.trim() || "gemini-3.1-pro-preview";
 const FALLBACK_GEMINI_MODEL = process.env.GEMINI_TAROT_FALLBACK_MODEL?.trim() || "gemini-2.0-flash";
@@ -35,7 +30,6 @@ const MAX_OUTPUT_TOKENS = 6144;
 const MAX_READING_ATTEMPTS = 3;
 const GEMINI_HTTP_RETRIES = 2;
 
-const userRateLimiter = new SlidingRateLimiter(USER_RATE_LIMIT_MAX, USER_RATE_LIMIT_WINDOW_MS);
 const ipRateLimiter = new SlidingRateLimiter(IP_RATE_LIMIT_MAX, IP_RATE_LIMIT_WINDOW_MS);
 
 type TarotCardInput = {
@@ -369,7 +363,6 @@ export async function POST(request: NextRequest) {
 
   try {
     pruneStaleLocks();
-    userRateLimiter.prune();
     ipRateLimiter.prune();
 
     if (process.env.AI_ANALYSIS_ENABLED?.toLowerCase() === "false") {
@@ -394,20 +387,6 @@ export async function POST(request: NextRequest) {
 
     const clientIp = getClientIp(request);
 
-    const cooldown = checkCooldown(`cooldown:${user.id}`, USER_COOLDOWN_MS);
-    if (!cooldown.allowed) {
-      return NextResponse.json(
-        {
-          error: `요청이 너무 빠릅니다. ${Math.ceil(cooldown.retryAfterMs / 1000)}초 후 다시 시도해 주세요.`,
-          code: "cooldown",
-        },
-        {
-          status: 429,
-          headers: { "Retry-After": String(Math.ceil(cooldown.retryAfterMs / 1000)) },
-        },
-      );
-    }
-
     const ipRateLimit = ipRateLimiter.check(clientIp);
     if (!ipRateLimit.allowed) {
       return NextResponse.json(
@@ -419,38 +398,6 @@ export async function POST(request: NextRequest) {
             "Retry-After": String(Math.ceil((ipRateLimit.resetAt - Date.now()) / 1000)),
           },
         },
-      );
-    }
-
-    const userRateLimit = userRateLimiter.check(user.id);
-    if (!userRateLimit.allowed) {
-      return NextResponse.json(
-        { error: "짧은 시간에 요청이 너무 많습니다. 몇 분 후 다시 시도해 주세요.", code: "user_rate_limit" },
-        {
-          status: 429,
-          headers: {
-            ...rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
-            "Retry-After": String(Math.ceil((userRateLimit.resetAt - Date.now()) / 1000)),
-          },
-        },
-      );
-    }
-
-    const { data: profileRow, error: profileError } = await supabase
-      .from("USER_MST")
-      .select("use_count")
-      .eq("auth_id", user.id)
-      .maybeSingle();
-
-    if (profileError) {
-      return NextResponse.json({ error: "사용자 정보 조회에 실패했습니다." }, { status: 500 });
-    }
-
-    const currentUseCount = Number(profileRow?.use_count ?? 0);
-    if (currentUseCount >= TOTAL_LIMIT_PER_USER) {
-      return NextResponse.json(
-        { error: "AI 타로 리딩은 가입 후 총 3회까지 이용할 수 있습니다.", code: "total_limit" },
-        { status: 429 },
       );
     }
 
@@ -476,7 +423,7 @@ export async function POST(request: NextRequest) {
     if (!result.ok) {
       const status = result.status ?? 502;
       const headers: Record<string, string> = {
-        ...rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
+        ...rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt),
       };
       if (result.code === "quota_exceeded" && result.retryAfter) {
         headers["Retry-After"] = String(result.retryAfter);
@@ -487,25 +434,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const nextUseCount = currentUseCount + 1;
-    const { error: updateError } = await supabase
-      .from("USER_MST")
-      .update({ use_count: nextUseCount })
-      .eq("auth_id", user.id);
-
-    if (updateError) {
-      return NextResponse.json({ error: "사용 횟수 저장에 실패했습니다." }, { status: 500 });
-    }
-
     return NextResponse.json(
       {
         reading: result.reading,
         model: result.model,
         warning: "warning" in result ? result.warning : undefined,
-        remainingToday: Math.max(TOTAL_LIMIT_PER_USER - nextUseCount, 0),
       },
       {
-        headers: rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
+        headers: rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt),
       },
     );
   } catch (error) {

@@ -12,6 +12,39 @@ export function TarotServiceInfoContent() {
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">{HOME_SEO_INTRO.body}</p>
 
+        <div className="mt-6 flex flex-wrap gap-2 text-sm">
+          <Link
+            href="/topics/today-fortune"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:border-slate-300"
+          >
+            오늘의 운세
+          </Link>
+          <Link
+            href="/topics/today-tarot"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:border-slate-300"
+          >
+            오늘의 타로
+          </Link>
+          <Link
+            href="/topics/love-tarot"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:border-slate-300"
+          >
+            연애 타로
+          </Link>
+          <Link
+            href="/topics/free-ai-tarot"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:border-slate-300"
+          >
+            무료 AI 타로
+          </Link>
+          <Link
+            href="/guides"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:border-slate-300"
+          >
+            타로 가이드
+          </Link>
+        </div>
+
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-800">이용 방법</h2>

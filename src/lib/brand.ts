@@ -48,6 +48,7 @@ export const SERVICE_KEYWORDS = [
   "오늘의 타로",
   "연애 타로",
   "오늘의 운세",
+  "직장인운세",
   "멜로타로",
   "Melotaro",
   "AI 점술",

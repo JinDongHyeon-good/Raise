@@ -74,7 +74,7 @@ function TarotDrawSlot({
 function TarotCardBack({ label }: { label?: string }) {
   return (
     <div
-      className="relative mx-auto flex aspect-[2/3] w-full max-w-[200px] items-center justify-center border border-slate-200 bg-white shadow-sm shadow-slate-200/40"
+      className="relative mx-auto flex aspect-[2/3] w-full max-w-[200px] items-center justify-center border border-slate-200 bg-white shadow-sm shadow-slate-100/40"
       aria-hidden={!label}
     >
       <div className="flex flex-col items-center gap-1 p-3 text-center">
@@ -140,7 +140,7 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
 
 function DrawnCardPanel({ card, showMeta = true }: { card: DrawnTarotCard; showMeta?: boolean }) {
   return (
-    <article className="border border-slate-200 bg-white/95 p-3 text-center shadow-sm shadow-slate-200/40">
+    <article className="border border-slate-200 bg-white/90 p-3 text-center shadow-sm shadow-slate-100/40">
       {showMeta ? (
         <>
           <p className="text-[11px] font-semibold tracking-wide text-slate-600">{card.position}</p>
@@ -204,7 +204,7 @@ function StepTopProgressBar({ current }: { current: number }) {
               <div
                 className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 sm:text-sm ${
                   isActive
-                    ? "bg-slate-800 text-white shadow-md shadow-slate-300/40 ring-2 ring-slate-200 ring-offset-2 ring-offset-white"
+                    ? "bg-slate-800 text-white shadow-md shadow-slate-200/40 ring-2 ring-slate-200 ring-offset-2 ring-offset-white"
                     : isDone
                       ? "bg-slate-100 text-slate-700"
                       : "border border-slate-200 bg-white text-slate-400"
@@ -232,7 +232,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
   const [readingError, setReadingError] = useState<string | null>(null);
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const [readingCopied, setReadingCopied] = useState(false);
-  const [remainingToday, setRemainingToday] = useState<number | null>(null);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
@@ -369,7 +368,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
 
       const { data, error } = await supabase
         .from("USER_MST")
-        .select("auth_id, nickname, use_count")
+        .select("auth_id, nickname")
         .eq("auth_id", user.id)
         .maybeSingle();
 
@@ -390,14 +389,11 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
           console.error("[user-profile] create failed", profileError);
           return false;
         }
-        setRemainingToday(3);
         setNicknameDraft(defaultNickname);
         setNicknameError(null);
         setIsNicknameModalOpen(true);
         return true;
       }
-
-      setRemainingToday(Math.max(3 - Number(data.use_count ?? 0), 0));
 
       if (welcomeFromSignup) {
         setNicknameDraft(data.nickname?.trim() || defaultNickname);
@@ -636,7 +632,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
           error?: string;
           code?: string;
           warning?: string;
-          remainingToday?: number;
         } = {};
 
         try {
@@ -687,9 +682,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
         }
 
         setReading(nextReading);
-        if (typeof data.remainingToday === "number") {
-          setRemainingToday(data.remainingToday);
-        }
         return;
       }
     } catch (error) {
@@ -755,6 +747,14 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             <span className="block truncate">{SERVICE_NAME}</span>
           </a>
 
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link
+              href="/about"
+              className="hidden text-xs font-medium text-slate-500 hover:text-slate-800 hover:underline sm:inline"
+            >
+              서비스 소개
+            </Link>
+
           <div ref={userMenuRef} className="relative shrink-0">
             {isLoggedIn ? (
               <button
@@ -785,7 +785,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             )}
 
             <div
-              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-lg shadow-slate-200/40 transition-all duration-300 ${
+              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white/90 shadow-lg shadow-slate-100/40 transition-all duration-300 ${
                 isLoggedIn && isUserMenuOpen
                   ? "max-h-40 translate-y-0 p-1.5 opacity-100"
                   : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
@@ -805,6 +805,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 로그아웃
               </button>
             </div>
+          </div>
           </div>
         </header>
 
@@ -963,9 +964,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
 
               {reading ? (
                 <div className="min-w-0 space-y-4 border-t border-slate-100 pt-5">
-                  {isLoggedIn && remainingToday !== null ? (
-                    <p className="text-xs text-slate-500">남은 리딩: {remainingToday}회 (총 3회)</p>
-                  ) : null}
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold text-slate-800">리딩 결과</p>
                     <button
@@ -1036,7 +1034,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
 
       {isLoginModalOpen && (
         <div className="tarot-login-modal-backdrop fixed inset-0 z-[300] flex items-end justify-center p-0 sm:items-center sm:p-4">
-          <div className="tarot-login-modal relative max-h-[min(90dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-slate-200 bg-white pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-slate-200/40 sm:rounded-3xl">
+          <div className="tarot-login-modal relative max-h-[min(90dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-slate-200 bg-white pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-slate-100/40 sm:rounded-3xl">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-slate-50 to-transparent" />
             <div className="relative px-6 pb-6 pt-10">
               <AuthPanel
@@ -1056,7 +1054,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
 
       {isNicknameModalOpen && (
         <div className="fixed inset-0 z-[310] flex items-end justify-center bg-slate-900/20 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="max-h-[min(90dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-slate-200 bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-slate-200/40 sm:rounded-3xl">
+          <div className="max-h-[min(90dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-slate-200 bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl shadow-slate-100/40 sm:rounded-3xl">
             <p className="text-center text-lg font-bold text-slate-700">환영합니다</p>
             <p className="mt-2 text-center text-sm text-slate-400">닉네임을 설정하거나 건너뛸 수 있어요.</p>
             <input

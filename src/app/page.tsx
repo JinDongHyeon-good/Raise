@@ -1,5 +1,4 @@
 import { JsonLd } from "@/components/seo/json-ld";
-import { TarotHomeSeoContent } from "@/components/seo/tarot-home-seo-content";
 import TarotHomeEntry from "@/components/tarot/tarot-home-entry";
 import { buildHomePageMetadata, getHomeJsonLd } from "@/lib/seo";
 import type { TarotTopicId } from "@/lib/tarot-deck";
@@ -24,7 +23,6 @@ export default async function HomePage({ searchParams }: PageProps) {
     <>
       <JsonLd data={getHomeJsonLd()} />
       <TarotHomeEntry initialTopic={initialTopic} />
-      <TarotHomeSeoContent />
     </>
   );
 }
