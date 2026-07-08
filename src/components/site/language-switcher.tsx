@@ -57,7 +57,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
-        className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ${
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 ${
           open
             ? "border-violet-200 bg-violet-50 text-violet-600 shadow-sm ring-2 ring-violet-100"
             : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
