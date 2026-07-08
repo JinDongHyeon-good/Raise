@@ -80,21 +80,229 @@ body {
   border-color: rgb(226 232 240);
 }
 
-.tarot-step-track {
-  margin-inline: auto;
-  width: 100%;
-  max-width: 18rem;
+.tarot-step-progress {
+  position: relative;
+  margin-bottom: 0.25rem;
 }
 
-@media (min-width: 640px) {
-  .tarot-step-track {
-    max-width: 20rem;
+.tarot-step-progress__track {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.tarot-step-progress__line {
+  position: relative;
+  top: 1.375rem;
+  height: 3px;
+  min-width: 1.25rem;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(241 245 249);
+}
+
+.tarot-step-progress__line-fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a78bfa, #e879f9);
+  transition: width 0.55s cubic-bezier(0.34, 1.15, 0.64, 1);
+}
+
+.tarot-step-progress__line-fill.is-filled {
+  width: 100%;
+  animation: tarot-step-line-glow 2.2s ease-in-out infinite;
+}
+
+@keyframes tarot-step-line-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+    opacity: 0.92;
+  }
+
+  50% {
+    filter: brightness(1.08);
+    opacity: 1;
   }
 }
 
-@media (min-width: 768px) {
-  .tarot-step-track {
-    max-width: 22rem;
+.tarot-step-progress__node {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tarot-step-progress__circle-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tarot-step-progress__ring {
+  position: absolute;
+  inset: -0.35rem;
+  border-radius: 9999px;
+  border: 2px solid rgb(167 139 250 / 0.45);
+  animation: tarot-step-ring-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.tarot-step-progress__ring--delayed {
+  animation-delay: 0.65s;
+  border-color: rgb(232 121 249 / 0.35);
+}
+
+@keyframes tarot-step-ring-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.75;
+  }
+
+  70%,
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+.tarot-step-progress__circle {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition:
+    transform 0.45s cubic-bezier(0.34, 1.25, 0.64, 1),
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    color 0.35s ease;
+}
+
+.tarot-step-progress__node[data-state="pending"] .tarot-step-progress__circle {
+  border: 1.5px solid rgb(226 232 240);
+  background: rgb(255 255 255);
+  color: rgb(148 163 184);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+.tarot-step-progress__node[data-state="done"] .tarot-step-progress__circle {
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, #8b5cf6, #d946ef);
+  color: rgb(255 255 255);
+  box-shadow:
+    0 8px 18px -8px rgb(139 92 246 / 0.65),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.tarot-step-progress__node[data-state="active"] .tarot-step-progress__circle {
+  transform: scale(1.08);
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, #7c3aed, #c026d3);
+  color: rgb(255 255 255);
+  box-shadow:
+    0 10px 24px -10px rgb(124 58 237 / 0.75),
+    0 0 0 4px rgb(237 233 254),
+    inset 0 1px 0 rgb(255 255 255 / 0.28);
+  animation: tarot-step-active-float 2.4s ease-in-out infinite;
+}
+
+@keyframes tarot-step-active-float {
+  0%,
+  100% {
+    transform: scale(1.08) translateY(0);
+  }
+
+  50% {
+    transform: scale(1.08) translateY(-2px);
+  }
+}
+
+.tarot-step-progress__icon {
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+.tarot-step-progress__check {
+  height: 1.125rem;
+  width: 1.125rem;
+  animation: tarot-step-check-pop 0.5s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
+@keyframes tarot-step-check-pop {
+  0% {
+    transform: scale(0.35) rotate(-12deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.tarot-step-progress__label {
+  max-width: 4.5rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: rgb(148 163 184);
+  transition:
+    color 0.35s ease,
+    transform 0.35s ease;
+}
+
+.tarot-step-progress__node[data-state="done"] .tarot-step-progress__label {
+  color: rgb(109 40 217);
+}
+
+.tarot-step-progress__node[data-state="active"] .tarot-step-progress__label {
+  color: rgb(91 33 182);
+  transform: translateY(-1px);
+}
+
+@media (min-width: 640px) {
+  .tarot-step-progress__circle {
+    height: 3rem;
+    width: 3rem;
+  }
+
+  .tarot-step-progress__icon,
+  .tarot-step-progress__check {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  .tarot-step-progress__label {
+    font-size: 0.75rem;
+  }
+
+  .tarot-step-progress__line {
+    top: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarot-step-progress__line-fill.is-filled,
+  .tarot-step-progress__ring,
+  .tarot-step-progress__node[data-state="active"] .tarot-step-progress__circle,
+  .tarot-step-progress__check {
+    animation: none;
+  }
+
+  .tarot-step-progress__node[data-state="active"] .tarot-step-progress__circle {
+    transform: scale(1.04);
   }
 }
 
@@ -470,6 +678,267 @@ body {
   height: 100%;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.tarot-spread-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .tarot-spread-picker {
+    gap: 0.875rem;
+  }
+}
+
+.tarot-spread-picker > .tarot-spread-card {
+  height: 100%;
+}
+
+.tarot-spread-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgb(226 232 240);
+  background: linear-gradient(165deg, rgb(255 255 255) 0%, rgb(248 250 252) 100%);
+  padding: 0.75rem 0.625rem 0.625rem;
+  text-align: left;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    background 0.25s ease;
+}
+
+.tarot-spread-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (min-width: 640px) {
+  .tarot-spread-card {
+    padding: 0.875rem 0.875rem 0.75rem;
+  }
+}
+
+.tarot-spread-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 75% at 50% 0%, rgb(167 139 250 / 0.16), transparent 62%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.tarot-spread-card:not(:disabled):hover {
+  border-color: rgb(196 181 253);
+  box-shadow: 0 8px 22px rgb(139 92 246 / 0.12);
+  transform: translateY(-2px);
+}
+
+.tarot-spread-card:not(:disabled):hover::before {
+  opacity: 1;
+}
+
+.tarot-spread-card--selected {
+  border-color: rgb(167 139 250);
+  background: linear-gradient(
+    165deg,
+    rgb(245 243 255) 0%,
+    rgb(255 255 255) 45%,
+    rgb(253 244 255) 100%
+  );
+  box-shadow:
+    0 10px 28px rgb(139 92 246 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.92);
+  transform: translateY(-2px);
+}
+
+.tarot-spread-card--selected::before {
+  opacity: 1;
+  background: radial-gradient(ellipse 95% 85% at 50% 0%, rgb(192 132 252 / 0.24), transparent 65%);
+}
+
+.tarot-spread-card__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tarot-spread-card__preview {
+  display: flex;
+  width: 100%;
+  height: 2.75rem;
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.tarot-spread-card__preview--single,
+.tarot-spread-card__preview--triple {
+  padding-top: 0;
+}
+
+.tarot-spread-card__preview--triple {
+  gap: 0.25rem;
+}
+
+.tarot-spread-card__body {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+}
+
+.tarot-spread-card__card {
+  display: block;
+  width: 1.45rem;
+  flex-shrink: 0;
+  aspect-ratio: 2 / 3;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(226 232 240);
+  background: linear-gradient(165deg, rgb(255 255 255) 0%, rgb(241 245 249) 100%);
+  box-shadow:
+    0 3px 8px rgb(15 23 42 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.95);
+  transition:
+    transform 0.3s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.tarot-spread-card__card--solo,
+.tarot-spread-card__card--center {
+  width: 1.45rem;
+}
+
+@media (min-width: 640px) {
+  .tarot-spread-card__card--center {
+    transform: scale(1.06);
+    transform-origin: bottom center;
+  }
+
+  .tarot-spread-card:not(:disabled):hover .tarot-spread-card__card--center {
+    transform: scale(1.08);
+    transform-origin: bottom center;
+  }
+
+  .tarot-spread-card--selected .tarot-spread-card__card--center {
+    transform: scale(1.08);
+    transform-origin: bottom center;
+  }
+}
+
+.tarot-spread-card--selected .tarot-spread-card__card {
+  border-color: rgb(196 181 253);
+  background: linear-gradient(165deg, rgb(250 245 255) 0%, rgb(244 237 255) 100%);
+  box-shadow:
+    0 5px 14px rgb(139 92 246 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+.tarot-spread-card__card::after {
+  content: "✦";
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  color: rgb(167 139 250 / 0.55);
+}
+
+.tarot-spread-card--selected .tarot-spread-card__card::after {
+  color: rgb(139 92 246 / 0.75);
+}
+
+.tarot-spread-card__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: rgb(30 41 59);
+}
+
+@media (min-width: 640px) {
+  .tarot-spread-card__label {
+    font-size: 1rem;
+  }
+
+  .tarot-spread-card__preview {
+    height: 3rem;
+  }
+
+  .tarot-spread-card__card,
+  .tarot-spread-card__card--solo,
+  .tarot-spread-card__card--center {
+    width: 1.55rem;
+  }
+
+  .tarot-spread-card__desc {
+    font-size: 0.75rem;
+    min-height: 3.15rem;
+  }
+}
+
+.tarot-spread-card__desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  min-height: 2.9rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: rgb(100 116 139);
+}
+
+.tarot-spread-card--selected .tarot-spread-card__desc {
+  color: rgb(71 85 105);
+}
+
+.tarot-spread-card__check {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 2;
+  display: inline-flex;
+  height: 1.2rem;
+  width: 1.2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgb(124 58 237) 0%, rgb(192 38 211) 100%);
+  color: #fff;
+  box-shadow: 0 2px 10px rgb(139 92 246 / 0.38);
+  animation: tarot-step-check-pop 0.45s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarot-spread-card,
+  .tarot-spread-card__card,
+  .tarot-spread-card__check {
+    transition: none;
+    animation: none;
+  }
+
+  .tarot-spread-card:not(:disabled):hover,
+  .tarot-spread-card--selected {
+    transform: none;
+  }
 }
 
 .tarot-draw-stage .tarot-cards-single,

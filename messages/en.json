@@ -31,6 +31,11 @@
     "viewResult": "View result",
     "reading": "Reading...",
     "stepProgress": "Step {current} of {total}",
+    "stepLabels": {
+      "1": "Topic",
+      "2": "Question",
+      "3": "Cards"
+    },
     "upright": "Upright",
     "reversed": "Reversed",
     "errors": {

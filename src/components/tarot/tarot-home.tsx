@@ -20,7 +20,9 @@ import {
   GraduationCap,
   Heart,
   Home,
+  Layers,
   MapPin,
+  MessageSquare,
   RefreshCw,
   Sparkles,
   Sun,
@@ -118,6 +120,68 @@ function TarotTopicCard({
       </div>
       {selected ? (
         <span className="tarot-topic-card__check" aria-hidden>
+          <Check className="h-2.5 w-2.5" strokeWidth={3} />
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function TarotSpreadPreview({ count }: { count: number }) {
+  const slots = count === 1 ? [0] : [0, 1, 2];
+
+  return (
+    <div
+      className={`tarot-spread-card__preview ${
+        count === 1 ? "tarot-spread-card__preview--single" : "tarot-spread-card__preview--triple"
+      }`}
+      aria-hidden
+    >
+      {slots.map((slot) => (
+        <span
+          key={slot}
+          className={`tarot-spread-card__card${
+            count === 1 ? " tarot-spread-card__card--solo" : slot === 1 ? " tarot-spread-card__card--center" : ""
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TarotSpreadCard({
+  count,
+  label,
+  description,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  count: number;
+  label: string;
+  description: string;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      disabled={disabled}
+      onClick={onSelect}
+      className={`tarot-spread-card group h-full w-full ${selected ? "tarot-spread-card--selected" : ""}`}
+    >
+      <div className="tarot-spread-card__inner">
+        <TarotSpreadPreview count={count} />
+        <div className="tarot-spread-card__body">
+          <span className="tarot-spread-card__label">{label}</span>
+          <span className="tarot-spread-card__desc">{description}</span>
+        </div>
+      </div>
+      {selected ? (
+        <span className="tarot-spread-card__check" aria-hidden>
           <Check className="h-2.5 w-2.5" strokeWidth={3} />
         </span>
       ) : null}
@@ -258,53 +322,59 @@ function DrawnCardCaption({ card, locale }: { card: DrawnTarotCard; locale: AppL
 const TOTAL_STEPS = 3;
 const PENDING_AUTH_STORAGE_KEY = "melotaro-pending-auth";
 
+function scrollTarotPageToTop() {
+  if (typeof window === "undefined") return;
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
 type PendingAuthAction = "advance-step" | "start-reading";
+
+const STEP_ICONS = [Sparkles, MessageSquare, Layers] as const;
 
 function StepTopProgressBar({ current }: { current: number }) {
   const t = useTranslations("tarot");
   const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
 
   return (
-    <nav className="w-full" aria-label={t("stepProgress", { current, total: TOTAL_STEPS })}>
-      <div className="tarot-step-track flex items-center">
+    <nav
+      className="tarot-step-progress mx-auto mb-4 w-full max-w-md px-2 sm:mb-5 sm:max-w-lg"
+      aria-label={t("stepProgress", { current, total: TOTAL_STEPS })}
+    >
+      <div className="tarot-step-progress__track">
         {steps.map((stepNumber, index) => {
           const isActive = stepNumber === current;
           const isDone = stepNumber < current;
-          const lineDone = index > 0 && stepNumber <= current;
+          const state = isActive ? "active" : isDone ? "done" : "pending";
+          const StepIcon = STEP_ICONS[index];
+          const lineFilled = index > 0 && stepNumber <= current;
 
           return (
             <Fragment key={stepNumber}>
               {index > 0 ? (
-                <div className="relative h-1 min-w-[1.5rem] flex-1 overflow-hidden rounded-full bg-slate-100" aria-hidden>
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-all duration-500 ease-out"
-                    style={{ width: lineDone ? "100%" : "0%" }}
-                  />
+                <div className="tarot-step-progress__line" aria-hidden>
+                  <div className={`tarot-step-progress__line-fill${lineFilled ? " is-filled" : ""}`} />
                 </div>
               ) : null}
-              <div
-                className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 sm:h-8 sm:w-8 sm:text-sm ${
-                  isActive
-                    ? "scale-110 bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-400/40 ring-4 ring-violet-100"
-                    : isDone
-                      ? "bg-gradient-to-br from-violet-400 to-fuchsia-400 text-white shadow-sm shadow-violet-200/50"
-                      : "border border-slate-200 bg-white text-slate-300"
-                }`}
-                aria-current={isActive ? "step" : undefined}
-              >
-                {isDone ? (
-                  <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
-                    <path
-                      d="M5 13l4 4L19 7"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  stepNumber
-                )}
+
+              <div className="tarot-step-progress__node" data-state={state}>
+                <div className="tarot-step-progress__circle-wrap">
+                  {isActive ? (
+                    <>
+                      <span className="tarot-step-progress__ring" aria-hidden />
+                      <span className="tarot-step-progress__ring tarot-step-progress__ring--delayed" aria-hidden />
+                    </>
+                  ) : null}
+
+                  <div className="tarot-step-progress__circle" aria-current={isActive ? "step" : undefined}>
+                    {isDone ? (
+                      <Check className="tarot-step-progress__check" strokeWidth={2.75} aria-hidden />
+                    ) : (
+                      <StepIcon className="tarot-step-progress__icon" strokeWidth={2.25} aria-hidden />
+                    )}
+                  </div>
+                </div>
+
+                <span className="tarot-step-progress__label">{t(`stepLabels.${stepNumber}` as "stepLabels.1")}</span>
               </div>
             </Fragment>
           );
@@ -348,6 +418,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const pendingAuthActionRef = useRef<PendingAuthAction | null>(null);
   const readingInFlightRef = useRef(false);
+  const scrollToTopOnStepRef = useRef(false);
 
   const setPendingAuthAction = (action: PendingAuthAction | null) => {
     pendingAuthActionRef.current = action;
@@ -402,6 +473,12 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
     });
   }, [locale, spread]);
 
+  useLayoutEffect(() => {
+    if (!scrollToTopOnStepRef.current) return;
+    scrollToTopOnStepRef.current = false;
+    scrollTarotPageToTop();
+  }, [step]);
+
   const resetLaterStepInputs = () => {
     setQuestion("");
     setSpread("single");
@@ -433,6 +510,9 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
           setIsLoginModalOpen(true);
           return;
         }
+      }
+      if (step < TOTAL_STEPS) {
+        scrollToTopOnStepRef.current = true;
       }
       setStep((prev) => Math.min(TOTAL_STEPS, prev + 1));
     })();
@@ -863,6 +943,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
       setPendingAuthAction(null);
       setIsLoginModalOpen(false);
       if (action === "advance-step") {
+        scrollToTopOnStepRef.current = true;
         setStep((prev) => Math.min(TOTAL_STEPS, prev + 1));
       } else if (action === "start-reading") {
         void runReading();
@@ -991,37 +1072,19 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
           )}
 
           {step === 3 && (
-            <div className="mt-4 space-y-5">
-              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("spreadAria")}>
-                {localizedSpreads.map((item) => {
-                  const isSelected = spread === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      disabled={isDrawing || isReadingLoading}
-                      onClick={() => handleSpreadChange(item.id)}
-                      className={`flex min-h-[5.5rem] flex-col rounded-xl border p-3.5 text-left transition disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-[6rem] sm:p-4 ${
-                        isSelected
-                          ? "border-slate-400 bg-white ring-1 ring-slate-300"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
-                    >
-                      <span
-                        className={`text-base font-semibold sm:text-[1.05rem] ${
-                          isSelected ? "text-slate-900" : "text-slate-800"
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                      <span className="mt-1.5 text-pretty text-[11px] leading-relaxed text-slate-400 sm:text-xs">
-                        {item.description}
-                      </span>
-                    </button>
-                  );
-                })}
+            <div className="mt-4 space-y-4">
+              <div className="tarot-spread-picker" role="radiogroup" aria-label={t("spreadAria")}>
+                {localizedSpreads.map((item) => (
+                  <TarotSpreadCard
+                    key={item.id}
+                    count={item.count}
+                    label={item.label}
+                    description={item.description}
+                    selected={spread === item.id}
+                    disabled={isDrawing || isReadingLoading}
+                    onSelect={() => handleSpreadChange(item.id)}
+                  />
+                ))}
               </div>
 
               <div className="tarot-draw-stage">

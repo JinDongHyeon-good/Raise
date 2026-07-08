@@ -31,6 +31,11 @@
     "viewResult": "결과 보기",
     "reading": "읽는 중...",
     "stepProgress": "진행 {current}단계 / {total}단계",
+    "stepLabels": {
+      "1": "주제",
+      "2": "질문",
+      "3": "카드"
+    },
     "upright": "정방향",
     "reversed": "역방향",
     "errors": {

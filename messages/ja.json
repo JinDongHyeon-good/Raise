@@ -31,6 +31,11 @@
     "viewResult": "結果を見る",
     "reading": "読み取り中...",
     "stepProgress": "ステップ {current} / {total}",
+    "stepLabels": {
+      "1": "テーマ",
+      "2": "質問",
+      "3": "カード"
+    },
     "upright": "正位置",
     "reversed": "逆位置",
     "errors": {
