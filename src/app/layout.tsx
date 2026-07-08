@@ -1,8 +1,7 @@
 import type { Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { GOOGLE_ADSENSE_CLIENT, SERVICE_NAME, SERVICE_NAME_EN } from "@/lib/brand";
+import { GOOGLE_ADSENSE_CLIENT, SERVICE_NAME_EN } from "@/lib/brand";
 import { brandDisplayFont } from "@/lib/brand-font";
-import { buildRootMetadata } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,15 +21,6 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export const metadata = {
-  ...buildRootMetadata(),
-  other: {
-    "apple-mobile-web-app-title": SERVICE_NAME,
-    "application-name": SERVICE_NAME_EN,
-    "google-adsense-account": GOOGLE_ADSENSE_CLIENT,
-  },
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,8 +28,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} ${brandDisplayFont.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <script

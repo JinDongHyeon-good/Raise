@@ -2,7 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 import type { CardOrientation, TarotSpreadId, TarotSuit, TarotTopicId } from "@/lib/tarot-deck";
-import { TAROT_TOPIC_IDS, topicGuidance, topicLabel, suitLabel } from "@/lib/tarot-deck";
+import { TAROT_TOPIC_IDS } from "@/lib/tarot-deck";
+import { isAppLocale, type AppLocale } from "@/i18n/routing";
+import {
+  buildLocalizedMissingSectionsPrompt,
+  buildLocalizedPrompt,
+  buildLocalizedTruncatedRetryPrompt,
+  type TarotPromptBody,
+} from "@/lib/tarot-prompt-i18n";
+import { localizedSpreadPositions } from "@/lib/tarot-deck-i18n";
+import { localizedCardKeywords } from "@/lib/tarot-keywords-i18n";
 import { assessTarotReading } from "@/lib/tarot-reading-format";
 import {
   callGeminiGenerateContent,
@@ -43,12 +52,13 @@ type TarotCardInput = {
   keywords: string;
 };
 
-type TarotRequestBody = {
-  topic: TarotTopicId;
-  spread: TarotSpreadId;
-  question?: string;
-  cards: TarotCardInput[];
+type TarotRequestBody = TarotPromptBody & {
+  locale?: AppLocale;
 };
+
+function resolveLocale(value: unknown): AppLocale {
+  return isAppLocale(typeof value === "string" ? value : undefined) ? (value as AppLocale) : "ko";
+}
 
 function sanitizeApiKey(raw?: string) {
   if (!raw) return "";
@@ -119,46 +129,29 @@ function validateBody(input: unknown): { ok: true; body: TarotRequestBody } | { 
   }
 
   const question = typeof body.question === "string" ? body.question.trim().slice(0, 400) : "";
+  const locale = resolveLocale((input as { locale?: unknown }).locale);
+  const spreadId = body.spread as TarotSpreadId;
+  const positions = localizedSpreadPositions(spreadId, locale);
+  const cards = (body.cards as TarotCardInput[]).map((card, index) => ({
+    ...card,
+    position: positions[index] ?? card.position,
+    keywords: localizedCardKeywords(card.id, card.keywords, locale),
+  }));
+
   return {
     ok: true,
     body: {
       topic: body.topic,
-      spread: body.spread,
+      spread: spreadId,
       question: question || undefined,
-      cards: body.cards as TarotCardInput[],
+      cards,
+      locale,
     },
   };
 }
 
 function stripEndMarker(text: string) {
   return text.replace(/\n?\[END_READING\]\s*$/g, "").replace(/\[END_READING\]/g, "").trim();
-}
-
-const SECTION_CONTINUATION_GUIDE: Record<number, (body: TarotRequestBody) => string> = {
-  1: () => "1) 한 줄 요약 — 2~3문장",
-  2: (body) =>
-    body.cards.length === 1
-      ? "2) 카드 해석 — 뽑힌 카드 1장을 5문장 이상"
-      : "2) 카드별 해석 — 각 카드 4문장 이상, 과거/현재/미래 연결",
-  3: () => "3) 카드들이 만드는 전체 흐름 — 6문장 이상",
-  4: () => "4) 지금 실천하면 좋은 행동 — '- '로 시작하는 줄 3개",
-  5: () => "5) 마음가짐 한 문장 — 격려 마무리",
-};
-
-function buildMissingSectionsPrompt(body: TarotRequestBody, accumulated: string, missing: number[]) {
-  const guides = missing.map((n) => SECTION_CONTINUATION_GUIDE[n]?.(body)).filter(Boolean);
-
-  return [
-    "너는 전문 타로 리더다. 반드시 한국어로 작성한다.",
-    "아래 [기존 응답]은 수정·요약·반복하지 말고, [누락 섹션]만 새로 이어서 작성한다.",
-    "누락 섹션 작성이 끝나면 마지막 줄에만 [END_READING]을 출력한다.",
-    "",
-    `[누락 섹션 번호: ${missing.join(", ")}]`,
-    ...guides,
-    "",
-    "[기존 응답]",
-    accumulated,
-  ].join("\n");
 }
 
 function mergeReadingChunks(previous: string, chunk: string) {
@@ -169,63 +162,13 @@ function mergeReadingChunks(previous: string, chunk: string) {
   return `${previous}\n\n${normalized}`.trim();
 }
 
-function buildPrompt(body: TarotRequestBody) {
-  const cardsText = body.cards
-    .map((card) => {
-      const suitPart = card.suit ? `[${suitLabel(card.suit)}] ` : "";
-      return `- ${card.position}: ${suitPart}${card.nameKo} (${card.nameEn}) / ${
-        card.orientation === "reversed" ? "역방향" : "정방향"
-      } / 키워드: ${card.keywords}`;
-    })
-    .join("\n");
-
-  const questionLine = body.question ? `질문: ${body.question}` : "질문: (구체적 질문 없음 — 카드 흐름 중심으로 읽기)";
-  const cardSectionRule =
-    body.cards.length === 1
-      ? "2) 카드 해석: 뽑힌 카드 1장을 최소 5문장으로 깊게 풀어 쓴다."
-      : "2) 카드별 해석: 뽑힌 카드 각각을 최소 4문장씩, 위치(과거/현재/미래)와 연결해 풀어 쓴다.";
-
-  return [
-    "너는 15년 경력의 전문 타로 리더다. 반드시 한국어로, 따뜻하고 명확한 톤으로 작성한다.",
-    "미신을 조장하거나 절대적 예언(100% 확정)을 하지 말고, 관찰과 가능성 중심으로 쓴다.",
-    "투자·의료·법률 등 전문 조언은 금지한다.",
-    "",
-    "[작성 규칙 — 반드시 준수]",
-    "- 긴 인사말·자기소개·서비스 홍보 문구로 시작하지 말 것. (예: '안녕하세요, 멜로타로...' 같은 서두 금지)",
-    "- 요약만 하고 끝내지 말 것. 각 섹션을 충분히 풀어서 서술한다.",
-    "- 문장을 중간에 끊지 말고, 모든 섹션을 끝까지 완성한다.",
-    "- 5개 섹션을 빠짐없이 완성할 것. 각 섹션은 읽기 좋은 분량으로 균형 있게 작성한다.",
-    "- 마지막 줄은 반드시 단독으로 [END_READING] 을 출력한다.",
-    "",
-    `서비스: 멜로타로 AI 타로`,
-    `주제: ${topicLabel(body.topic)}`,
-    `주제 해석 가이드: ${topicGuidance(body.topic)}`,
-    `스프레드: ${body.spread === "three" ? "3장 (과거-현재-미래)" : "1장 (핵심 메시지)"}`,
-    "덱: 78장 풀 덱(메이저+마이너)에서 뽑힌 카드이다.",
-    questionLine,
-    "",
-    "뽑힌 카드:",
-    cardsText,
-    "",
-    "[출력 형식 — 아래 5개 섹션을 모두 작성. 각 섹션은 반드시 '1)', '2)' … 번호로 시작]",
-    "1) 한 줄 요약",
-    "(이 줄 다음 줄부터 2~3문장으로 핵심만 요약)",
-    cardSectionRule,
-    "3) 카드들이 만드는 전체 흐름 (6문장 이상, 인과와 감정 흐름 포함)",
-    "4) 지금 실천하면 좋은 행동",
-    "(- 로 시작하는 줄 3개, 각 1~2문장)",
-    "5) 마음가짐 한 문장 (격려가 담긴 마무리)",
-    "",
-    "위 5개 섹션을 모두 쓴 뒤, 마지막 줄에만 [END_READING]을 출력한다.",
-  ].join("\n");
-}
-
 function pickModelForAttempt(attempt: number) {
   return attempt >= 2 ? FALLBACK_GEMINI_MODEL : DEFAULT_GEMINI_MODEL;
 }
 
 async function generateFullReading(apiKey: string, body: TarotRequestBody) {
-  const basePrompt = buildPrompt(body);
+  const locale = body.locale ?? "ko";
+  const basePrompt = buildLocalizedPrompt(body, locale);
   let accumulated = "";
   const requestStartedAt = Date.now();
   let lastError = "AI 리딩 요청에 실패했습니다.";
@@ -252,16 +195,8 @@ async function generateFullReading(apiKey: string, body: TarotRequestBody) {
 
       attemptPrompt =
         missing.length > 0
-          ? buildMissingSectionsPrompt(body, accumulated, missing)
-          : [
-              basePrompt,
-              "",
-              "[재요청]",
-              "응답이 중간에 잘렸다. 기존 응답에 이어 누락된 섹션만 작성하고 마지막에 [END_READING]을 출력한다.",
-              "",
-              "[기존 응답]",
-              accumulated,
-            ].join("\n");
+          ? buildLocalizedMissingSectionsPrompt(body, accumulated, missing, locale)
+          : buildLocalizedTruncatedRetryPrompt(basePrompt, accumulated, locale);
     }
 
     const model = pickModelForAttempt(attempt);

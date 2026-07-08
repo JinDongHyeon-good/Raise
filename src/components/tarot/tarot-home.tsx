@@ -9,8 +9,39 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Link from "next/link";
-import { SERVICE_NAME, SERVICE_TAGLINE } from "@/lib/brand";
+import { Link } from "@/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  Briefcase,
+  Building2,
+  CalendarRange,
+  Check,
+  Compass,
+  GraduationCap,
+  Heart,
+  Home,
+  MapPin,
+  RefreshCw,
+  Sparkles,
+  Sun,
+  TrendingUp,
+  UserRound,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import { getLocalizedBrandName, getLocalizedTagline } from "@/lib/brand";
+import { LanguageSwitcher } from "@/components/site/language-switcher";
+import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
+import type { AppLocale } from "@/i18n/routing";
+import {
+  getLocalizedSpreads,
+  getLocalizedTopics,
+  localizedOrientationLabel,
+  localizedSpreadPositions,
+  localizedTopicPlaceholder,
+} from "@/lib/tarot-deck-i18n";
+import { localizedCardKeywords } from "@/lib/tarot-keywords-i18n";
 import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
 import { ensureUserProfileClient } from "@/lib/ensure-user-profile-client";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
@@ -21,17 +52,78 @@ import { AuthPanel } from "@/components/auth/auth-panel";
 import { TarotReadingSkeleton } from "@/components/tarot/tarot-reading-skeleton";
 import { TarotReadingView } from "@/components/tarot/tarot-reading-view";
 import {
-  TAROT_SPREADS,
-  TAROT_TOPICS,
   drawTarotHand,
   getTarotCardApiUrl,
   getTarotImageUrl,
-  suitLabel,
-  topicPlaceholder,
   type DrawnTarotCard,
   type TarotSpreadId,
   type TarotTopicId,
 } from "@/lib/tarot-deck";
+
+function localizedCardDisplayName(card: DrawnTarotCard, locale: AppLocale) {
+  if (locale === "en") return { primary: card.nameEn, secondary: null as string | null };
+  if (locale === "ja") return { primary: card.nameKo, secondary: card.nameEn };
+  return { primary: card.nameKo, secondary: card.nameEn };
+}
+
+const TOPIC_ICONS: Record<TarotTopicId, LucideIcon> = {
+  today: Sun,
+  weekly: CalendarRange,
+  love: Heart,
+  couple: Users,
+  reunite: RefreshCw,
+  family: Home,
+  social: UserRound,
+  career: Briefcase,
+  business: Building2,
+  money: Wallet,
+  study: GraduationCap,
+  wellbeing: Sparkles,
+  choice: Compass,
+  move: MapPin,
+  growth: TrendingUp,
+  general: Sparkles,
+};
+
+function TarotTopicCard({
+  topicId,
+  label,
+  hint,
+  selected,
+  onSelect,
+}: {
+  topicId: TarotTopicId;
+  label: string;
+  hint: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const Icon = TOPIC_ICONS[topicId] ?? Sparkles;
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={`tarot-topic-card group h-full w-full ${selected ? "tarot-topic-card--selected" : ""}`}
+    >
+      <div className="tarot-topic-card__inner">
+        <span className="tarot-topic-card__icon" aria-hidden>
+          <Icon className="h-4 w-4" strokeWidth={1.75} />
+        </span>
+        <div className="tarot-topic-card__body">
+          <span className="tarot-topic-card__label">{label}</span>
+          <span className="tarot-topic-card__hint">{hint}</span>
+        </div>
+      </div>
+      {selected ? (
+        <span className="tarot-topic-card__check" aria-hidden>
+          <Check className="h-2.5 w-2.5" strokeWidth={3} />
+        </span>
+      ) : null}
+    </button>
+  );
+}
 
 function CardLoadingSpinner() {
   return (
@@ -46,7 +138,7 @@ function CardLoadingSpinner() {
 
 function TarotCardShimmerBack() {
   return (
-    <div className="relative mx-auto aspect-[2/3] w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="relative mx-auto aspect-[2/3] w-full overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm shadow-slate-100/30">
       <div className="tarot-card-shimmer absolute inset-0" aria-hidden />
       <div className="relative flex h-full flex-col items-center justify-center gap-1.5 p-3">
         <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-slate-400">Melotaro</span>
@@ -65,8 +157,10 @@ function TarotDrawSlot({
 }) {
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
-      <p className="mb-2.5 text-center text-[11px] font-medium tracking-wide text-slate-600/90">{positionLabel}</p>
-      <div className="w-full max-w-[200px]">{children}</div>
+      <p className="mb-1.5 line-clamp-2 text-center text-[10px] font-medium leading-tight tracking-wide text-slate-600/90 sm:mb-2.5 sm:text-[11px]">
+        {positionLabel}
+      </p>
+      <div className="w-full min-w-0">{children}</div>
     </div>
   );
 }
@@ -74,7 +168,7 @@ function TarotDrawSlot({
 function TarotCardBack({ label }: { label?: string }) {
   return (
     <div
-      className="relative mx-auto flex aspect-[2/3] w-full max-w-[200px] items-center justify-center border border-slate-200 bg-white shadow-sm shadow-slate-100/40"
+      className="relative mx-auto flex aspect-[2/3] w-full items-center justify-center rounded-lg border border-slate-200/80 bg-white shadow-sm shadow-slate-100/30"
       aria-hidden={!label}
     >
       <div className="flex flex-col items-center gap-1 p-3 text-center">
@@ -86,14 +180,16 @@ function TarotCardBack({ label }: { label?: string }) {
   );
 }
 
-function TarotCardFace({ card }: { card: DrawnTarotCard }) {
+function TarotCardFace({ card, locale }: { card: DrawnTarotCard; locale: AppLocale }) {
+  const t = useTranslations("tarot");
+  const { primary } = localizedCardDisplayName(card, locale);
   const [loaded, setLoaded] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [error, setError] = useState(false);
   const [src, setSrc] = useState(() => getTarotImageUrl(card));
 
   return (
-    <div className="relative mx-auto w-full max-w-[200px]">
+    <div className="relative mx-auto w-full min-w-0">
       <div
         className={`relative flex aspect-[2/3] w-full items-center justify-center bg-white/90 ${
           card.orientation === "reversed" ? "rotate-180" : ""
@@ -106,13 +202,13 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
         ) : null}
         {error ? (
           <div className="flex h-full w-full items-center justify-center border border-dashed border-slate-200 px-2 text-center text-xs text-slate-600">
-            카드 이미지를 불러오지 못했습니다
+            {t("cardImageError")}
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
-            alt={`${card.nameKo} 타로 카드`}
+            alt={primary}
             width={320}
             height={480}
             decoding="async"
@@ -128,7 +224,7 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
               setError(true);
               setLoaded(true);
             }}
-            className={`max-h-full max-w-full object-contain object-center transition-opacity duration-300 ${
+            className={`h-full w-full object-contain object-center transition-opacity duration-300 ${
               loaded ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -138,28 +234,24 @@ function TarotCardFace({ card }: { card: DrawnTarotCard }) {
   );
 }
 
-function DrawnCardPanel({ card, showMeta = true }: { card: DrawnTarotCard; showMeta?: boolean }) {
+function DrawnCardCaption({ card, locale }: { card: DrawnTarotCard; locale: AppLocale }) {
+  const { primary, secondary } = localizedCardDisplayName(card, locale);
+  const orientationLabel = localizedOrientationLabel(card.orientation, locale);
+
   return (
-    <article className="border border-slate-200 bg-white/90 p-3 text-center shadow-sm shadow-slate-100/40">
-      {showMeta ? (
-        <>
-          <p className="text-[11px] font-semibold tracking-wide text-slate-600">{card.position}</p>
-          <p className="mt-0.5 text-[10px] text-slate-400">{suitLabel(card.suit)}</p>
-        </>
+    <div className="mt-2 w-full min-w-0 px-0.5 text-center">
+      <p className="line-clamp-2 text-[11px] font-bold leading-snug text-slate-900 sm:text-xs">{primary}</p>
+      {secondary ? (
+        <p className="mt-0.5 line-clamp-1 text-[10px] leading-tight text-slate-400">{secondary}</p>
       ) : null}
-      <div className={showMeta ? "mt-2" : ""}>
-        <TarotCardFace card={card} />
-      </div>
-      <p className="mt-2 text-base font-bold text-slate-900">{card.nameKo}</p>
-      <p className="mt-0.5 text-xs text-slate-400">{card.nameEn}</p>
       <p
-        className={`mt-2 text-[11px] font-medium ${
+        className={`mt-1 text-[10px] font-medium ${
           card.orientation === "reversed" ? "text-amber-700" : "text-emerald-700"
         }`}
       >
-        {card.orientation === "reversed" ? "역방향" : "정방향"}
+        {orientationLabel}
       </p>
-    </article>
+    </div>
   );
 }
 
@@ -168,23 +260,12 @@ const PENDING_AUTH_STORAGE_KEY = "melotaro-pending-auth";
 
 type PendingAuthAction = "advance-step" | "start-reading";
 
-const STEP_META: Array<{ title: string; description: string }> = [
-  {
-    title: "리딩 영역 선택",
-    description: "지금 가장 깊이 들여다보고 싶은 질문의 영역을 골라 주세요. 선택하신 테마에 맞춰 카드의 흐름을 읽습니다.",
-  },
-  { title: "궁금한 점", description: "마음속 질문을 적어 주세요." },
-  {
-    title: "카드 뽑기",
-    description: "카드를 뽑은 뒤 결과 보기를 누르면 AI 타로 리딩을 확인할 수 있습니다.",
-  },
-];
-
 function StepTopProgressBar({ current }: { current: number }) {
+  const t = useTranslations("tarot");
   const steps = Array.from({ length: TOTAL_STEPS }, (_, index) => index + 1);
 
   return (
-    <nav className="w-full" aria-label={`진행 ${current}단계 / ${TOTAL_STEPS}단계`}>
+    <nav className="w-full" aria-label={t("stepProgress", { current, total: TOTAL_STEPS })}>
       <div className="tarot-step-track flex items-center">
         {steps.map((stepNumber, index) => {
           const isActive = stepNumber === current;
@@ -234,6 +315,14 @@ function StepTopProgressBar({ current }: { current: number }) {
 }
 
 export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicId }) {
+  const locale = useLocale() as AppLocale;
+  const t = useTranslations("tarot");
+  const tCommon = useTranslations("common");
+  const localizedTopics = getLocalizedTopics(locale);
+  const localizedSpreads = getLocalizedSpreads(locale);
+  const brandName = getLocalizedBrandName(locale);
+  const tagline = getLocalizedTagline(locale);
+
   const [step, setStep] = useState(1);
   const [topic, setTopic] = useState<TarotTopicId>(initialTopic ?? "today");
   const [spread, setSpread] = useState<TarotSpreadId>("single");
@@ -279,15 +368,39 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
   };
   const flushPendingAuthActionRef = useRef<(() => void) | null>(null);
 
-  const spreadConfig = TAROT_SPREADS.find((item) => item.id === spread) ?? TAROT_SPREADS[0];
+  const spreadConfig = localizedSpreads.find((item) => item.id === spread) ?? localizedSpreads[0];
+  const spreadPositions = localizedSpreadPositions(spread, locale);
   const isSingleSpread = spreadConfig.count === 1;
   const cardsLayoutClass = isSingleSpread ? "tarot-cards-single" : "tarot-cards-multi";
-  const selectedTopic = TAROT_TOPICS.find((item) => item.id === topic) ?? TAROT_TOPICS[0];
-  const stepMeta = STEP_META[step - 1] ?? STEP_META[0];
+  const selectedTopic = localizedTopics.find((item) => item.id === topic) ?? localizedTopics[0];
+  const stepMeta = {
+    title: t(`steps.${step}.title` as "steps.1.title" | "steps.2.title" | "steps.3.title"),
+    description: t(`steps.${step}.description` as "steps.1.description" | "steps.2.description" | "steps.3.description"),
+  };
   const isResultActionBusy = isDrawing || isReadingLoading;
   const showStepPrev = step > 1 && !(step === TOTAL_STEPS && reading);
   const showStepPrimary = step !== TOTAL_STEPS || !reading;
   const showStepNav = showStepPrev || showStepPrimary;
+
+  const prevLocaleRef = useRef(locale);
+
+  useEffect(() => {
+    if (prevLocaleRef.current === locale) return;
+    prevLocaleRef.current = locale;
+
+    setReading("");
+    setReadingCopied(false);
+    setReadingError(null);
+
+    setDrawnCards((prev) => {
+      if (prev.length === 0) return prev;
+      const positions = localizedSpreadPositions(spread, locale);
+      return prev.map((card, index) => ({
+        ...card,
+        position: positions[index] ?? card.position,
+      }));
+    });
+  }, [locale, spread]);
 
   const resetLaterStepInputs = () => {
     setQuestion("");
@@ -480,7 +593,12 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
     setReading("");
     setReadingError(null);
     window.setTimeout(() => {
-      setDrawnCards(drawTarotHand(spread));
+      const positions = localizedSpreadPositions(spread, locale);
+      const drawn = drawTarotHand(spread).map((card, index) => ({
+        ...card,
+        position: positions[index] ?? card.position,
+      }));
+      setDrawnCards(drawn);
       setIsDrawing(false);
     }, 700);
   };
@@ -592,7 +710,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
 
   const runReading = async () => {
     if (drawnCards.length !== spreadConfig.count) {
-      setReadingError("먼저 카드를 뽑아 주세요.");
+      setReadingError(t("drawCardsFirst"));
       return;
     }
     if (readingInFlightRef.current) {
@@ -606,18 +724,21 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
     setReading("");
     readingInFlightRef.current = true;
 
+    const positions = localizedSpreadPositions(spread, locale);
+
     const payload = {
       topic,
       spread,
+      locale,
       question: question.trim() || undefined,
-      cards: drawnCards.map((card) => ({
+      cards: drawnCards.map((card, index) => ({
         id: card.id,
         suit: card.suit,
         nameKo: card.nameKo,
         nameEn: card.nameEn,
-        position: card.position,
+        position: positions[index] ?? card.position,
         orientation: card.orientation,
-        keywords: card.keywords,
+        keywords: localizedCardKeywords(card.id, card.keywords, locale),
       })),
     };
 
@@ -638,7 +759,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             await sleep(2000 * attempt);
             continue;
           }
-          throw new Error("네트워크 오류로 AI 리딩에 실패했습니다. 연결을 확인한 뒤 다시 시도해 주세요.");
+          throw new Error(t("errors.network"));
         }
 
         let data: {
@@ -655,7 +776,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             await sleep(2000 * attempt);
             continue;
           }
-          throw new Error("AI 서버 응답을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+          throw new Error(t("errors.parse"));
         }
 
         if (response.status === 401 || data.code === "auth_required") {
@@ -665,7 +786,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
         }
 
         if (response.status === 409 || data.code === "in_flight") {
-          setReadingError("이미 리딩이 진행 중입니다. 잠시만 기다려 주세요.");
+          setReadingError(t("readingInFlight"));
           return;
         }
 
@@ -683,7 +804,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             await sleep(2000 * attempt);
             continue;
           }
-          throw new Error(data.error || "AI 리딩에 실패했습니다.");
+          throw new Error(data.error || t("readingFailed"));
         }
 
         const nextReading = data.reading?.trim() ?? "";
@@ -692,7 +813,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             await sleep(2000 * attempt);
             continue;
           }
-          throw new Error("AI 리딩 내용이 비어 있습니다. 다시 시도해 주세요.");
+          throw new Error(t("readingEmpty"));
         }
 
         setReading(nextReading);
@@ -700,7 +821,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
       }
     } catch (error) {
       setReading("");
-      setReadingError(error instanceof Error ? error.message : "AI 리딩 중 오류가 발생했습니다.");
+      setReadingError(error instanceof Error ? error.message : t("readingGenericError"));
       setIsReadingErrorModalOpen(true);
     } finally {
       readingInFlightRef.current = false;
@@ -712,7 +833,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
     if (isReadingLoading || readingInFlightRef.current) return;
 
     if (drawnCards.length !== spreadConfig.count) {
-      setReadingError("카드를 먼저 뽑아 주세요.");
+      setReadingError(t("drawCardsFirst"));
       return;
     }
 
@@ -732,7 +853,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
       setReadingCopied(true);
       window.setTimeout(() => setReadingCopied(false), 2000);
     } catch {
-      setReadingError("결과를 복사하지 못했습니다. 브라우저 권한을 확인해 주세요.");
+      setReadingError(t("copyFailed"));
     }
   };
 
@@ -755,7 +876,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
 
       <div className="tarot-page-inner flex-1">
         <header className="flex min-w-0 items-center justify-between gap-3">
-          <a
+          <Link
             href="/"
             className="font-brand-display flex min-w-0 shrink items-center gap-1.5 text-xl leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl"
           >
@@ -765,24 +886,25 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             >
               ✦
             </span>
-            <span className="block truncate">{SERVICE_NAME}</span>
-          </a>
+            <span className="block truncate">{brandName}</span>
+          </Link>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <Link
-              href="/about"
-              className="hidden text-xs font-medium text-slate-500 hover:text-slate-800 hover:underline sm:inline"
-            >
-              서비스 소개
-            </Link>
+            <LanguageSwitcher />
 
-          <div ref={userMenuRef} className="relative shrink-0">
+            <div ref={userMenuRef} className="relative shrink-0">
             {isLoggedIn ? (
               <button
                 type="button"
-                aria-label="사용자 메뉴"
+                aria-label={tCommon("userMenu")}
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="menu"
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                className="h-10 w-10 overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm transition hover:border-slate-300"
+                className={`h-10 w-10 overflow-hidden rounded-full border bg-white shadow-sm transition ${
+                  isUserMenuOpen
+                    ? "border-violet-200 ring-2 ring-violet-100"
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
               >
                 {userAvatarUrl ? (
                   <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
@@ -801,31 +923,15 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 }}
                 className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
-                로그인
+                {tCommon("login")}
               </button>
             )}
 
-            <div
-              className={`absolute right-0 top-12 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white/90 shadow-lg shadow-slate-100/40 transition-all duration-300 ${
-                isLoggedIn && isUserMenuOpen
-                  ? "max-h-40 translate-y-0 p-1.5 opacity-100"
-                  : "pointer-events-none max-h-0 -translate-y-1 p-0 opacity-0"
-              }`}
-            >
-              <a
-                href="/mypage"
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
-              >
-                마이페이지
-              </a>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
-              >
-                로그아웃
-              </button>
-            </div>
+            <UserMenuDropdown
+              open={isLoggedIn && isUserMenuOpen}
+              onLogout={handleLogout}
+              onNavigate={() => setIsUserMenuOpen(false)}
+            />
           </div>
           </div>
         </header>
@@ -835,39 +941,36 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
         <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 md:p-6">
           <div className="border-b border-slate-200 pb-4 text-center">
             {step === 1 ? (
-              <h1 className="font-brand-display text-balance text-2xl tracking-tight text-slate-900 sm:text-3xl md:text-[2rem]">
-                {SERVICE_TAGLINE}
+              <h1 className="font-brand-display mx-auto flex min-h-[3rem] max-w-2xl items-center justify-center text-balance text-2xl tracking-tight text-slate-900 sm:min-h-[3.25rem] sm:text-3xl md:text-[2rem]">
+                {tagline}
               </h1>
             ) : null}
             <h2
-              className={`text-balance text-base font-semibold text-slate-900 sm:text-lg ${step === 1 ? "mt-5 sm:mt-6" : ""}`}
+              className={`mx-auto flex max-w-2xl items-center justify-center text-balance text-base font-semibold leading-snug text-slate-900 sm:min-h-[1.75rem] sm:text-lg ${step === 1 ? "mt-5 sm:mt-6" : ""}`}
             >
               {stepMeta.title}
             </h2>
-            <p className="mt-1 text-pretty text-xs leading-5 text-slate-400 sm:text-sm">{stepMeta.description}</p>
+            <p className="mx-auto mt-1 max-w-2xl min-h-[2.5rem] text-pretty text-xs leading-5 text-slate-400 sm:min-h-[2.75rem] sm:text-sm">
+              {stepMeta.description}
+            </p>
           </div>
 
           {step === 1 && (
             <div className="mt-4">
               <div className="tarot-topic-grid">
-                {TAROT_TOPICS.map((item) => (
-                  <button
+                {localizedTopics.map((item) => (
+                  <TarotTopicCard
                     key={item.id}
-                    type="button"
-                    onClick={() => {
+                    topicId={item.id}
+                    label={item.label}
+                    hint={item.hint}
+                    selected={topic === item.id}
+                    onSelect={() => {
                       setTopic(item.id);
                       setReading("");
                       setReadingError(null);
                     }}
-                    className={`flex min-h-[4.25rem] flex-col justify-center rounded-xl border px-2.5 py-2.5 text-left transition sm:min-h-[4.5rem] sm:px-3 sm:py-3 ${
-                      topic === item.id
-                        ? "border-slate-400 bg-white text-slate-900 ring-1 ring-slate-300 shadow-sm"
-                        : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                    }`}
-                  >
-                    <span className="block text-[13px] font-semibold leading-snug sm:text-sm">{item.label}</span>
-                    <span className="mt-1 block text-[10px] leading-snug text-slate-400 sm:text-[11px]">{item.hint}</span>
-                  </button>
+                  />
                 ))}
               </div>
             </div>
@@ -880,17 +983,17 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 onChange={(event) => setQuestion(event.target.value)}
                 maxLength={400}
                 rows={4}
-                placeholder={topicPlaceholder(topic)}
+                placeholder={localizedTopicPlaceholder(topic, locale)}
                 className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
               />
-              <p className="mt-2 text-[11px] text-slate-500">입력하지 않아도 다음 단계로 진행할 수 있어요.</p>
+              <p className="mt-2 text-[11px] text-slate-500">{t("questionOptional")}</p>
             </div>
           )}
 
           {step === 3 && (
             <div className="mt-4 space-y-5">
-              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="뽑을 카드 수">
-                {TAROT_SPREADS.map((item) => {
+              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("spreadAria")}>
+                {localizedSpreads.map((item) => {
                   const isSelected = spread === item.id;
                   return (
                     <button
@@ -921,11 +1024,11 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 })}
               </div>
 
-              <div className="tarot-draw-stage rounded-2xl border border-slate-200 bg-slate-50 px-3 py-5 sm:px-5 sm:py-6">
+              <div className="tarot-draw-stage">
                 {isDrawing ? (
-                  <p className="mb-4 flex items-center justify-center gap-2 text-center text-xs text-slate-600/90" role="status" aria-live="polite">
+                  <p className="mb-3 flex items-center justify-center gap-2 text-center text-xs text-slate-600/90" role="status" aria-live="polite">
                     <span className="tarot-draw-pulse" aria-hidden />
-                    카드를 섞고 있어요
+                    {t("shuffling")}
                   </p>
                 ) : null}
 
@@ -934,7 +1037,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                     ? Array.from({ length: spreadConfig.count }).map((_, index) => (
                         <TarotDrawSlot
                           key={`drawing-${index}`}
-                          positionLabel={spreadConfig.positions[index] ?? `카드 ${index + 1}`}
+                          positionLabel={spreadPositions[index] ?? t("cardLabel", { n: index + 1 })}
                         >
                           <TarotCardShimmerBack />
                         </TarotDrawSlot>
@@ -942,9 +1045,13 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                     : null}
 
                   {!isDrawing && drawnCards.length > 0
-                    ? drawnCards.map((card) => (
-                        <TarotDrawSlot key={`${card.id}-${card.position}`} positionLabel={card.position}>
-                          <DrawnCardPanel card={card} showMeta={false} />
+                    ? drawnCards.map((card, index) => (
+                        <TarotDrawSlot
+                          key={`${card.id}-${card.position}`}
+                          positionLabel={spreadPositions[index] ?? card.position}
+                        >
+                          <TarotCardFace card={card} locale={locale} />
+                          <DrawnCardCaption card={card} locale={locale} />
                         </TarotDrawSlot>
                       ))
                     : null}
@@ -953,7 +1060,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                     ? Array.from({ length: spreadConfig.count }).map((_, index) => (
                         <TarotDrawSlot
                           key={`placeholder-${index}`}
-                          positionLabel={spreadConfig.positions[index] ?? `카드 ${index + 1}`}
+                          positionLabel={spreadPositions[index] ?? t("cardLabel", { n: index + 1 })}
                         >
                           <TarotCardBack />
                         </TarotDrawSlot>
@@ -969,14 +1076,14 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                   disabled={isResultActionBusy}
                   className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-55"
                 >
-                  {isDrawing ? "뽑는 중..." : "카드 뽑기"}
+                  {isDrawing ? tCommon("loading") : t("drawCards")}
                 </button>
               ) : null}
 
               {isReadingLoading ? (
                 <div className="min-w-0 border-t border-slate-100 pt-5">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-800">리딩 결과</p>
+                    <p className="text-sm font-semibold text-slate-800">{t("readingResult")}</p>
                   </div>
                   <TarotReadingSkeleton sectionCount={spreadConfig.count} />
                 </div>
@@ -985,14 +1092,14 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
               {reading ? (
                 <div className="min-w-0 space-y-4 border-t border-slate-100 pt-5">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-800">리딩 결과</p>
+                    <p className="text-sm font-semibold text-slate-800">{t("readingResult")}</p>
                     <button
                       type="button"
                       onClick={() => void handleCopyReading()}
                       disabled={isResultActionBusy}
                       className="shrink-0 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {readingCopied ? "복사됨" : "결과 복사하기"}
+                      {readingCopied ? t("copied") : t("copyResult")}
                     </button>
                   </div>
                   <TarotReadingView text={reading} />
@@ -1002,7 +1109,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                     disabled={isResultActionBusy}
                     className="w-full rounded-xl border border-dashed border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    타로 다시하기
+                    {t("restartTarot")}
                   </button>
                 </div>
               ) : null}
@@ -1023,7 +1130,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 onClick={goToPrevStep}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 min-[480px]:w-auto min-[480px]:min-w-[88px]"
               >
-                이전
+                {tCommon("prev")}
               </button>
             ) : null}
 
@@ -1034,7 +1141,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 disabled={isResultActionBusy || drawnCards.length !== spreadConfig.count}
                 className="w-full min-w-0 rounded-xl border border-slate-300 bg-slate-800 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
-                {isReadingLoading ? "읽는 중..." : "결과 보기"}
+                {isReadingLoading ? t("reading") : t("viewResult")}
               </button>
             ) : step !== TOTAL_STEPS ? (
               <button
@@ -1042,7 +1149,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
                 onClick={goToNextStep}
                 className="w-full min-w-0 rounded-xl bg-slate-800 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 min-[480px]:w-auto min-[480px]:min-w-[108px]"
               >
-                다음
+                {tCommon("next")}
               </button>
             ) : null}
           </div>
@@ -1060,6 +1167,7 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
               <AuthPanel
                 showCloseButton
                 showHeader
+                hideGoogleOnMobile
                 nextPath="/"
                 onClose={() => {
                   setIsLoginModalOpen(false);

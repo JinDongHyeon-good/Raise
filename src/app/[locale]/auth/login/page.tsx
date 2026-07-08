@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/navigation";
 import { AuthPageLinks, AuthPanel, AuthPanelCard } from "@/components/auth/auth-panel";
 import { ensureUserProfileClient } from "@/lib/ensure-user-profile-client";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 
-export default function SignupPage() {
+export default function LoginPage() {
   const router = useRouter();
 
   const handleAuthenticated = async () => {
@@ -17,15 +17,15 @@ export default function SignupPage() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { isNewUser } = await ensureUserProfileClient(supabase, user.id, user);
-    router.replace(isNewUser ? "/?welcome=1" : "/");
+    await ensureUserProfileClient(supabase, user.id, user);
+    router.replace("/");
     router.refresh();
   };
 
   return (
     <div className="w-full max-w-sm">
       <AuthPanelCard>
-        <AuthPanel initialMode="signup" onAuthenticated={handleAuthenticated} />
+        <AuthPanel initialMode="login" onAuthenticated={handleAuthenticated} />
       </AuthPanelCard>
       <AuthPageLinks />
     </div>

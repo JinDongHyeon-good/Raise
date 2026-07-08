@@ -23,7 +23,7 @@ export type TarotReadingAssessment = {
 
 const END_MARKER = /\[END_READING\]/g;
 
-const SECTION_HEADER = /^\s*(\d+)[.)]\s*(.+?)\s*$/;
+const SECTION_HEADER = /^\s*(\d+)[.)）]\s*(.+?)\s*$/;
 
 const BULLET_LINE =
   /^(?:[-•·*–—]\s+|\d+[.)]\s+|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫]\s*)(.+)$/;
@@ -33,7 +33,7 @@ function stripEndMarker(text: string) {
 }
 
 function isSummarySection(number: string, title: string) {
-  return number === "1" || /요약/.test(title);
+  return number === "1" || /요약|summary|要約/i.test(title);
 }
 
 function splitSectionContent(content: string): { body: string; items: string[] } {
@@ -97,7 +97,7 @@ export function parseTarotReading(text: string): ParsedTarotReading | null {
   const cleaned = stripEndMarker(text);
   if (!cleaned) return null;
 
-  const chunks = cleaned.split(/\n(?=\d+[.)]\s)/).map((part) => part.trim()).filter(Boolean);
+  const chunks = cleaned.split(/\n(?=\d+[.)）]\s)/).map((part) => part.trim()).filter(Boolean);
   if (chunks.length === 0) return null;
 
   let summary = "";
@@ -122,7 +122,7 @@ export function parseTarotReading(text: string): ParsedTarotReading | null {
 }
 
 function hasSectionMarker(text: string, sectionNumber: number) {
-  return new RegExp(`(?:^|\\n)${sectionNumber}[.)]\\s`, "m").test(text);
+  return new RegExp(`(?:^|\\n)${sectionNumber}[.)）]\\s`, "m").test(text);
 }
 
 function collectPresentSections(text: string, parsed: ParsedTarotReading | null) {
@@ -154,7 +154,7 @@ export function assessTarotReading(text: string): TarotReadingAssessment {
   const hasSummary = Boolean(parsed?.summary.trim()) || presentSectionNumbers.includes(1);
   const hasClosing =
     presentSectionNumbers.includes(5) ||
-    /마음가짐/.test(trimmed.slice(Math.max(0, trimmed.length - 400)));
+    /마음가짐|mindset|心構え/i.test(trimmed.slice(Math.max(0, trimmed.length - 400)));
 
   if (
     missingSectionNumbers.length === 0 &&

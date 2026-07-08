@@ -1,5 +1,14 @@
+import type { AppLocale } from "@/i18n/routing";
+
 export const SERVICE_NAME = "멜로타로";
 export const SERVICE_NAME_EN = "Melotaro";
+export const SERVICE_NAME_JA = "メロタロ";
+
+export function getLocalizedBrandName(locale: AppLocale): string {
+  if (locale === "en") return SERVICE_NAME_EN;
+  if (locale === "ja") return SERVICE_NAME_JA;
+  return SERVICE_NAME;
+}
 
 export const GOOGLE_ADSENSE_CLIENT = "ca-pub-7677744293773918";
 
@@ -30,6 +39,16 @@ export const MELOBALLOON_STORE_URL =
   "https://smartstore.naver.com/meloballoon?NaPm=ct%3Dmpi88l8w%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3D7233c1e0208dc28c1f927112a949d95e743e4a6c";
 
 export const SERVICE_TAGLINE = "AI 타로 · 멜로타로";
+
+const SERVICE_TAGLINES: Record<AppLocale, string> = {
+  ko: SERVICE_TAGLINE,
+  en: "AI Tarot · Melotaro",
+  ja: "AIタロット · メロタロ",
+};
+
+export function getLocalizedTagline(locale: AppLocale): string {
+  return SERVICE_TAGLINES[locale] ?? SERVICE_TAGLINES.ko;
+}
 
 export const SERVICE_DESCRIPTION =
   "멜로타로는 AI 타로 서비스입니다. 카드와 질문을 바탕으로 연애, 직장, 재물, 오늘의 운세 등 지금 궁금한 흐름을 AI가 타로 리딩으로 읽어드립니다.";

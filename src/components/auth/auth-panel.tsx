@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { SERVICE_NAME } from "@/lib/brand";
+import { Link } from "@/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import type { AppLocale } from "@/i18n/routing";
+import { getLocalizedBrandName } from "@/lib/brand";
 import { mapAuthErrorMessage } from "@/lib/auth-errors";
 import { getAuthCallbackUrl, getPasswordResetUrl } from "@/lib/auth-urls";
 import { getPublicSiteOrigin } from "@/lib/site-origin";
@@ -17,6 +19,8 @@ type AuthPanelProps = {
   onClose?: () => void;
   showCloseButton?: boolean;
   showHeader?: boolean;
+  /** 모바일(sm 미만)에서 Google 로그인 숨김 — 로그인 모달용 */
+  hideGoogleOnMobile?: boolean;
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,8 +55,14 @@ export function AuthPanel({
   onClose,
   showCloseButton = false,
   showHeader = true,
+  hideGoogleOnMobile = false,
 }: AuthPanelProps) {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
+  const locale = useLocale() as AppLocale;
+  const brandName = getLocalizedBrandName(locale);
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -67,6 +77,7 @@ export function AuthPanel({
 
   const switchMode = (next: AuthMode) => {
     setMode(next);
+    setShowEmailForm(false);
     resetMessages();
     setPassword("");
     setPasswordConfirm("");
@@ -79,7 +90,7 @@ export function AuthPanel({
     try {
       const supabase = getSupabaseBrowserClientSafe();
       if (!supabase) {
-        throw new Error("로그인 설정을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.");
+        throw new Error(t("errors.configLoadFailed"));
       }
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -88,7 +99,7 @@ export function AuthPanel({
       });
       if (oauthError) throw oauthError;
     } catch (err) {
-      setError(mapAuthErrorMessage(err instanceof Error ? err : null, "Google 로그인 요청에 실패했습니다."));
+      setError(mapAuthErrorMessage(err instanceof Error ? err : null, t, "errors.googleFailed"));
       setIsLoading(false);
     }
   };
@@ -99,11 +110,11 @@ export function AuthPanel({
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(trimmedEmail)) {
-      setError("올바른 이메일 주소를 입력해 주세요.");
+      setError(t("errors.invalidEmail"));
       return;
     }
     if (password.length < 8) {
-      setError("비밀번호는 8자 이상이어야 합니다.");
+      setError(t("errors.passwordTooShort"));
       return;
     }
 
@@ -111,7 +122,7 @@ export function AuthPanel({
     try {
       const supabase = getSupabaseBrowserClientSafe();
       if (!supabase) {
-        throw new Error("로그인 설정을 불러올 수 없습니다.");
+        throw new Error(t("errors.configLoadFailed"));
       }
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -120,12 +131,12 @@ export function AuthPanel({
       });
       if (signInError) throw signInError;
       if (!data.session) {
-        throw new Error("로그인 세션을 만들지 못했습니다.");
+        throw new Error(t("errors.sessionCreateFailed"));
       }
 
       await onAuthenticated?.();
     } catch (err) {
-      setError(mapAuthErrorMessage(err instanceof Error ? err : null, "로그인에 실패했습니다."));
+      setError(mapAuthErrorMessage(err instanceof Error ? err : null, t, "errors.loginFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -137,15 +148,15 @@ export function AuthPanel({
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(trimmedEmail)) {
-      setError("올바른 이메일 주소를 입력해 주세요.");
+      setError(t("errors.invalidEmail"));
       return;
     }
     if (password.length < 8) {
-      setError("비밀번호는 8자 이상이어야 합니다.");
+      setError(t("errors.passwordTooShort"));
       return;
     }
     if (password !== passwordConfirm) {
-      setError("비밀번호 확인이 일치하지 않습니다.");
+      setError(t("errors.passwordMismatch"));
       return;
     }
 
@@ -153,7 +164,7 @@ export function AuthPanel({
     try {
       const supabase = getSupabaseBrowserClientSafe();
       if (!supabase) {
-        throw new Error("회원가입 설정을 불러올 수 없습니다.");
+        throw new Error(t("errors.signupConfigFailed"));
       }
 
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -166,16 +177,16 @@ export function AuthPanel({
       if (signUpError) throw signUpError;
 
       if (data.session) {
-        setInfo("가입이 완료되었습니다.");
+        setInfo(t("info.signupComplete"));
         await onAuthenticated?.();
         return;
       }
 
-      setInfo("인증 메일을 보냈습니다. 메일함에서 링크를 눌러 가입을 완료해 주세요.");
+      setInfo(t("info.verificationSent"));
       setPassword("");
       setPasswordConfirm("");
     } catch (err) {
-      setError(mapAuthErrorMessage(err instanceof Error ? err : null, "회원가입에 실패했습니다."));
+      setError(mapAuthErrorMessage(err instanceof Error ? err : null, t, "errors.signupFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -187,7 +198,7 @@ export function AuthPanel({
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(trimmedEmail)) {
-      setError("올바른 이메일 주소를 입력해 주세요.");
+      setError(t("errors.invalidEmail"));
       return;
     }
 
@@ -195,7 +206,7 @@ export function AuthPanel({
     try {
       const supabase = getSupabaseBrowserClientSafe();
       if (!supabase) {
-        throw new Error("비밀번호 찾기 설정을 불러올 수 없습니다.");
+        throw new Error(t("errors.forgotConfigFailed"));
       }
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
@@ -203,9 +214,9 @@ export function AuthPanel({
       });
       if (resetError) throw resetError;
 
-      setInfo("비밀번호 재설정 메일을 보냈습니다. 메일함을 확인해 주세요.");
+      setInfo(t("info.resetSent"));
     } catch (err) {
-      setError(mapAuthErrorMessage(err instanceof Error ? err : null, "비밀번호 찾기에 실패했습니다."));
+      setError(mapAuthErrorMessage(err instanceof Error ? err : null, t, "errors.forgotFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -215,7 +226,7 @@ export function AuthPanel({
     resetMessages();
     const trimmedEmail = email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(trimmedEmail)) {
-      setError("인증 메일을 다시 받으려면 이메일을 입력해 주세요.");
+      setError(t("errors.resendNeedsEmail"));
       return;
     }
 
@@ -223,7 +234,7 @@ export function AuthPanel({
     try {
       const supabase = getSupabaseBrowserClientSafe();
       if (!supabase) {
-        throw new Error("인증 메일 설정을 불러올 수 없습니다.");
+        throw new Error(t("errors.resendConfigFailed"));
       }
 
       const { error: resendError } = await supabase.auth.resend({
@@ -233,23 +244,27 @@ export function AuthPanel({
       });
       if (resendError) throw resendError;
 
-      setInfo("인증 메일을 다시 보냈습니다.");
+      setInfo(t("info.verificationResent"));
     } catch (err) {
-      setError(mapAuthErrorMessage(err instanceof Error ? err : null, "인증 메일 재전송에 실패했습니다."));
+      setError(mapAuthErrorMessage(err instanceof Error ? err : null, t, "errors.resendFailed"));
     } finally {
       setIsLoading(false);
     }
   };
 
   const modeTitle =
-    mode === "login" ? "로그인" : mode === "signup" ? "이메일 가입" : "비밀번호 찾기";
+    mode === "login" ? t("login") : mode === "signup" ? t("emailSignup") : t("forgotPassword");
+
+  const showGoogleOption = mode !== "forgot";
+  const googleOptionClassName =
+    mode === "signup" || (hideGoogleOnMobile && mode === "login") ? "max-sm:hidden" : "";
 
   return (
     <div className="relative w-full max-w-sm">
       {showCloseButton && onClose ? (
         <button
           type="button"
-          aria-label="닫기"
+          aria-label={tc("close")}
           onClick={onClose}
           className="absolute right-0 top-0 z-10 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
         >
@@ -260,7 +275,7 @@ export function AuthPanel({
       {showHeader ? (
         <div className="pb-4 text-center">
           <p className="font-brand-display text-[2rem] leading-none tracking-tight text-slate-900 sm:text-[2.25rem]">
-            {SERVICE_NAME}
+            {brandName}
           </p>
           <p className="mt-2 text-sm text-slate-500">{modeTitle}</p>
         </div>
@@ -274,29 +289,51 @@ export function AuthPanel({
           <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">{info}</p>
         ) : null}
 
-        {mode === "login" ? (
+        {mode === "login" && !showEmailForm ? (
+          <button
+            type="button"
+            onClick={() => setShowEmailForm(true)}
+            disabled={isLoading}
+            className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+          >
+            {t("emailLogin")}
+          </button>
+        ) : null}
+
+        {mode === "login" && showEmailForm ? (
           <form className="space-y-3" onSubmit={(event) => void handleEmailLogin(event)}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowEmailForm(false);
+                resetMessages();
+                setPassword("");
+              }}
+              className="text-xs font-medium text-slate-500 hover:text-slate-800"
+            >
+              {t("otherLogin")}
+            </button>
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-slate-600">이메일</span>
+              <span className="text-xs font-medium text-slate-600">{t("email")}</span>
               <input
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-slate-600">비밀번호</span>
+              <span className="text-xs font-medium text-slate-600">{t("password")}</span>
               <input
                 type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                placeholder="8자 이상"
+                placeholder={t("passwordPlaceholder")}
                 minLength={8}
                 required
               />
@@ -307,7 +344,7 @@ export function AuthPanel({
                 onClick={() => switchMode("forgot")}
                 className="text-xs font-medium text-slate-600 hover:text-slate-900 hover:underline"
               >
-                비밀번호 찾기
+                {t("forgotPassword")}
               </button>
             </div>
             <button
@@ -315,47 +352,70 @@ export function AuthPanel({
               disabled={isLoading}
               className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
             >
-              {isLoading ? "처리 중..." : "이메일로 로그인"}
+              {isLoading ? tc("processing") : t("emailLogin")}
             </button>
           </form>
         ) : null}
 
-        {mode === "signup" ? (
+        {mode === "signup" && !showEmailForm ? (
+          <button
+            type="button"
+            onClick={() => setShowEmailForm(true)}
+            disabled={isLoading}
+            className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+          >
+            {t("signupAction")}
+          </button>
+        ) : null}
+
+        {mode === "signup" && showEmailForm ? (
           <form className="space-y-3" onSubmit={(event) => void handleEmailSignup(event)}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowEmailForm(false);
+                resetMessages();
+                setPassword("");
+                setPasswordConfirm("");
+              }}
+              className="hidden text-xs font-medium text-slate-500 hover:text-slate-800 sm:inline"
+            >
+              {t("otherSignup")}
+            </button>
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-slate-600">이메일</span>
+              <span className="text-xs font-medium text-slate-600">{t("email")}</span>
               <input
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-slate-600">비밀번호</span>
+              <span className="text-xs font-medium text-slate-600">{t("password")}</span>
               <input
                 type="password"
                 autoComplete="new-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                placeholder="8자 이상"
+                placeholder={t("passwordPlaceholder")}
                 minLength={8}
                 required
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-slate-600">비밀번호 확인</span>
+              <span className="text-xs font-medium text-slate-600">{t("passwordConfirm")}</span>
               <input
                 type="password"
                 autoComplete="new-password"
                 value={passwordConfirm}
                 onChange={(event) => setPasswordConfirm(event.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                placeholder="비밀번호 다시 입력"
+                placeholder={t("passwordConfirmPlaceholder")}
                 minLength={8}
                 required
               />
@@ -365,7 +425,7 @@ export function AuthPanel({
               disabled={isLoading}
               className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
             >
-              {isLoading ? "처리 중..." : "이메일로 가입하기"}
+              {isLoading ? tc("processing") : t("signupAction")}
             </button>
             {info ? (
               <button
@@ -374,7 +434,7 @@ export function AuthPanel({
                 disabled={isLoading}
                 className="w-full text-xs font-medium text-slate-600 hover:underline disabled:opacity-60"
               >
-                인증 메일 다시 받기
+                {t("resendVerification")}
               </button>
             ) : null}
           </form>
@@ -382,18 +442,16 @@ export function AuthPanel({
 
         {mode === "forgot" ? (
           <form className="space-y-3" onSubmit={(event) => void handleForgotPassword(event)}>
-            <p className="text-xs leading-5 text-slate-500">
-              가입한 이메일로 비밀번호 재설정 링크를 보내드립니다.
-            </p>
+            <p className="text-xs leading-5 text-slate-500">{t("forgotHint")}</p>
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-slate-600">이메일</span>
+              <span className="text-xs font-medium text-slate-600">{t("email")}</span>
               <input
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
               />
             </label>
@@ -402,65 +460,65 @@ export function AuthPanel({
               disabled={isLoading}
               className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
             >
-              {isLoading ? "처리 중..." : "재설정 메일 보내기"}
+              {isLoading ? tc("processing") : t("resetEmail")}
             </button>
             <button
               type="button"
               onClick={() => switchMode("login")}
               className="w-full text-xs font-medium text-slate-500 hover:text-slate-800"
             >
-              로그인으로 돌아가기
+              {t("backToLogin")}
             </button>
           </form>
         ) : null}
 
-        {mode !== "forgot" ? (
-          <>
+        {showGoogleOption ? (
+          <div className={googleOptionClassName}>
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-slate-200" />
-              <span className="text-xs text-slate-400">또는</span>
+              <span className="text-xs text-slate-400">{tc("or")}</span>
               <span className="h-px flex-1 bg-slate-200" />
             </div>
             <button
               type="button"
               onClick={() => void handleGoogleSignIn()}
               disabled={isLoading}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-70"
+              className="mt-4 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-70"
             >
               <GoogleIcon />
-              {isLoading ? "이동 중..." : "Google 계정으로 계속하기"}
+              {isLoading ? t("moving") : t("googleContinue")}
             </button>
-          </>
+          </div>
         ) : null}
 
         {mode === "login" ? (
           <p className="text-center text-xs text-slate-500">
-            계정이 없으신가요?{" "}
+            {t("noAccount")}{" "}
             <button
               type="button"
               onClick={() => switchMode("signup")}
               className="font-semibold text-slate-700 hover:underline"
             >
-              이메일 가입
+              {t("emailSignup")}
             </button>
           </p>
         ) : null}
 
         {mode === "signup" ? (
           <p className="text-center text-xs text-slate-500">
-            이미 계정이 있으신가요?{" "}
+            {t("hasAccount")}{" "}
             <button
               type="button"
               onClick={() => switchMode("login")}
               className="font-semibold text-slate-700 hover:underline"
             >
-              로그인
+              {t("login")}
             </button>
           </p>
         ) : null}
 
         <p className="text-center text-[11px] leading-5 text-slate-400">
-          인증·비밀번호 재설정 링크는 {getPublicSiteOrigin()} 도메인으로 발송됩니다.
+          {t("redirectNote", { origin: getPublicSiteOrigin() })}
         </p>
       </div>
     </div>
@@ -485,19 +543,22 @@ export function AuthPanelCard({
 }
 
 export function AuthPageLinks() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
+
   return (
     <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
       <Link href="/auth/login" className="text-slate-700 hover:underline">
-        로그인
+        {t("authLinksLogin")}
       </Link>
       <Link href="/auth/signup" className="text-slate-700 hover:underline">
-        가입
+        {t("authLinksSignup")}
       </Link>
       <Link href="/auth/forgot-password" className="text-slate-700 hover:underline">
-        비밀번호 찾기
+        {t("authLinksForgot")}
       </Link>
       <Link href="/" className="text-slate-500 hover:underline">
-        홈으로
+        {tc("homeLink")}
       </Link>
     </div>
   );

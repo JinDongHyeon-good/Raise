@@ -165,3 +165,5 @@ export const TAROT_TOPIC_PAGES: TarotTopicPage[] = [
 export function getTarotTopicPage(slug: string) {
   return TAROT_TOPIC_PAGES.find((page) => page.slug === slug) ?? null;
 }
+
+/** @deprecated Use getTarotTopicPage from tarot-content-i18n with locale */

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import type { TarotGuide } from "@/data/tarot-guides";
 import type { TarotTopicPage } from "@/data/tarot-topic-pages";
+import type { AppLocale } from "@/i18n/routing";
+import { defaultLocale } from "@/i18n/routing";
 import {
+  GOOGLE_ADSENSE_CLIENT,
   GOOGLE_SITE_VERIFICATION,
   NAVER_SITE_VERIFICATION,
   SERVICE_DESCRIPTION,
@@ -11,8 +14,14 @@ import {
   SERVICE_TAGLINE,
   getSiteUrl,
 } from "@/lib/brand";
+import {
+  buildLanguageAlternates,
+  getOpenGraphLocale,
+  getSeoCopy,
+  localizedSeoPath,
+} from "@/lib/seo-i18n";
 
-function getSiteVerification(): Metadata["verification"] {
+function getSiteVerification(locale: AppLocale = defaultLocale): Metadata["verification"] {
   const google =
     process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || GOOGLE_SITE_VERIFICATION;
   const naver =
@@ -22,7 +31,7 @@ function getSiteVerification(): Metadata["verification"] {
 
   const verification: NonNullable<Metadata["verification"]> = {};
   if (google) verification.google = google;
-  if (naver) {
+  if (locale === "ko" && naver) {
     verification.other = { "naver-site-verification": naver };
   }
   return verification;
@@ -32,20 +41,22 @@ function buildOpenGraph(
   title: string,
   description: string,
   path: string,
+  locale: AppLocale = defaultLocale,
 ): NonNullable<Metadata["openGraph"]> {
+  const copy = getSeoCopy(locale);
   return {
     title,
     description,
-    url: path,
-    siteName: SERVICE_NAME,
-    locale: "ko_KR",
+    url: localizedSeoPath(path, locale),
+    siteName: copy.siteName,
+    locale: getOpenGraphLocale(locale),
     type: "website",
     images: [
       {
         url: OG_IMAGE_PATH,
         width: 1200,
         height: 630,
-        alt: `${SERVICE_NAME} — AI 타로 온라인 리딩`,
+        alt: copy.ogAlt,
       },
     ],
   };
@@ -63,20 +74,22 @@ export function getOgImageUrl() {
   return new URL(OG_IMAGE_PATH, getSiteUrl()).toString();
 }
 
-export function buildRootMetadata(): Metadata {
+export function buildRootMetadata(locale: AppLocale = defaultLocale): Metadata {
   const siteUrl = getSiteUrl();
+  const copy = getSeoCopy(locale);
 
   return {
     metadataBase: new URL(siteUrl),
-    applicationName: SERVICE_NAME,
+    applicationName: copy.siteName,
     title: {
-      default: SEO_HOME_TITLE,
-      template: `%s | ${SERVICE_NAME}`,
+      default: copy.homeTitle,
+      template: `%s | ${copy.siteName}`,
     },
-    description: SEO_HOME_DESCRIPTION,
+    description: copy.homeDescription,
     keywords: [...SERVICE_KEYWORDS],
     alternates: {
-      canonical: "/",
+      canonical: localizedSeoPath("/", locale),
+      languages: buildLanguageAlternates("/"),
     },
     robots: {
       index: true,
@@ -89,12 +102,12 @@ export function buildRootMetadata(): Metadata {
         "max-snippet": -1,
       },
     },
-    verification: getSiteVerification(),
-    openGraph: buildOpenGraph(SEO_HOME_TITLE, SEO_HOME_DESCRIPTION, "/"),
+    verification: getSiteVerification(locale),
+    openGraph: buildOpenGraph(copy.homeTitle, copy.homeDescription, "/", locale),
     twitter: {
       card: "summary_large_image",
-      title: SEO_HOME_TITLE,
-      description: SEO_HOME_DESCRIPTION,
+      title: copy.homeTitle,
+      description: copy.homeDescription,
       images: [OG_IMAGE_PATH],
     },
     icons: {
@@ -103,28 +116,39 @@ export function buildRootMetadata(): Metadata {
       apple: "/favicon.ico",
     },
     category: "lifestyle",
+    other: {
+      "application-name": SERVICE_NAME_EN,
+      "google-adsense-account": GOOGLE_ADSENSE_CLIENT,
+    },
   };
 }
 
-export function buildHomePageMetadata(): Metadata {
+export function buildHomePageMetadata(locale: AppLocale = defaultLocale): Metadata {
+  const copy = getSeoCopy(locale);
   return {
-    title: SEO_HOME_TITLE,
-    description: SEO_HOME_DESCRIPTION,
-    alternates: { canonical: "/" },
-    openGraph: buildOpenGraph(SEO_HOME_TITLE, SEO_HOME_DESCRIPTION, "/"),
+    title: copy.homeTitle,
+    description: copy.homeDescription,
+    alternates: {
+      canonical: localizedSeoPath("/", locale),
+      languages: buildLanguageAlternates("/"),
+    },
+    openGraph: buildOpenGraph(copy.homeTitle, copy.homeDescription, "/", locale),
   };
 }
 
-export function buildTopicPageMetadata(page: TarotTopicPage): Metadata {
+export function buildTopicPageMetadata(page: TarotTopicPage, locale: AppLocale = defaultLocale): Metadata {
   const path = `/topics/${page.slug}`;
 
   return {
     title: page.title,
     description: page.description,
     keywords: [...page.keywords, ...SERVICE_KEYWORDS],
-    alternates: { canonical: path },
+    alternates: {
+      canonical: localizedSeoPath(path, locale),
+      languages: buildLanguageAlternates(path),
+    },
     robots: { index: true, follow: true },
-    openGraph: buildOpenGraph(page.title, page.description, path),
+    openGraph: buildOpenGraph(page.title, page.description, path, locale),
     twitter: {
       card: "summary_large_image",
       title: page.title,
@@ -134,15 +158,18 @@ export function buildTopicPageMetadata(page: TarotTopicPage): Metadata {
   };
 }
 
-export function buildGuidePageMetadata(guide: TarotGuide): Metadata {
+export function buildGuidePageMetadata(guide: TarotGuide, locale: AppLocale = defaultLocale): Metadata {
   const path = `/guides/${guide.slug}`;
 
   return {
     title: guide.title,
     description: guide.description,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: localizedSeoPath(path, locale),
+      languages: buildLanguageAlternates(path),
+    },
     robots: { index: true, follow: true },
-    openGraph: buildOpenGraph(guide.title, guide.description, path),
+    openGraph: buildOpenGraph(guide.title, guide.description, path, locale),
     twitter: {
       card: "summary_large_image",
       title: guide.title,
@@ -152,9 +179,11 @@ export function buildGuidePageMetadata(guide: TarotGuide): Metadata {
   };
 }
 
-export function getTopicPageJsonLd(page: TarotTopicPage): JsonLdObject[] {
+export function getTopicPageJsonLd(page: TarotTopicPage, locale: AppLocale = defaultLocale): JsonLdObject[] {
   const siteUrl = getSiteUrl();
-  const pageUrl = `${siteUrl}/topics/${page.slug}`;
+  const copy = getSeoCopy(locale);
+  const pageUrl = `${siteUrl}${localizedSeoPath(`/topics/${page.slug}`, locale)}`;
+  const homeUrl = `${siteUrl}${localizedSeoPath("/", locale)}`;
 
   return [
     {
@@ -164,8 +193,8 @@ export function getTopicPageJsonLd(page: TarotTopicPage): JsonLdObject[] {
       url: pageUrl,
       name: page.title,
       description: page.description,
-      inLanguage: "ko-KR",
-      isPartOf: { "@id": `${siteUrl}/#website` },
+      inLanguage: copy.schemaLanguage,
+      isPartOf: { "@id": `${homeUrl}#website` },
       about: {
         "@type": "Thing",
         name: page.heading,
@@ -178,8 +207,8 @@ export function getTopicPageJsonLd(page: TarotTopicPage): JsonLdObject[] {
         {
           "@type": "ListItem",
           position: 1,
-          name: SERVICE_NAME,
-          item: siteUrl,
+          name: copy.siteName,
+          item: homeUrl,
         },
         {
           "@type": "ListItem",
@@ -192,9 +221,11 @@ export function getTopicPageJsonLd(page: TarotTopicPage): JsonLdObject[] {
   ];
 }
 
-export function getGuidePageJsonLd(guide: TarotGuide): JsonLdObject[] {
+export function getGuidePageJsonLd(guide: TarotGuide, locale: AppLocale = defaultLocale): JsonLdObject[] {
   const siteUrl = getSiteUrl();
-  const pageUrl = `${siteUrl}/guides/${guide.slug}`;
+  const copy = getSeoCopy(locale);
+  const pageUrl = `${siteUrl}${localizedSeoPath(`/guides/${guide.slug}`, locale)}`;
+  const homeUrl = `${siteUrl}${localizedSeoPath("/", locale)}`;
 
   return [
     {
@@ -204,22 +235,22 @@ export function getGuidePageJsonLd(guide: TarotGuide): JsonLdObject[] {
       headline: guide.title,
       description: guide.description,
       url: pageUrl,
-      inLanguage: "ko-KR",
+      inLanguage: copy.schemaLanguage,
       author: {
         "@type": "Organization",
-        name: SERVICE_NAME,
-        url: siteUrl,
+        name: copy.siteName,
+        url: homeUrl,
       },
       publisher: {
         "@type": "Organization",
-        name: SERVICE_NAME,
-        url: siteUrl,
+        name: copy.siteName,
+        url: homeUrl,
         logo: {
           "@type": "ImageObject",
           url: getOgImageUrl(),
         },
       },
-      isPartOf: { "@id": `${siteUrl}/#website` },
+      isPartOf: { "@id": `${homeUrl}#website` },
     },
     {
       "@context": "https://schema.org",
@@ -228,14 +259,14 @@ export function getGuidePageJsonLd(guide: TarotGuide): JsonLdObject[] {
         {
           "@type": "ListItem",
           position: 1,
-          name: SERVICE_NAME,
-          item: siteUrl,
+          name: copy.siteName,
+          item: homeUrl,
         },
         {
           "@type": "ListItem",
           position: 2,
-          name: "타로 가이드",
-          item: `${siteUrl}/guides`,
+          name: locale === "ko" ? "타로 가이드" : locale === "ja" ? "タロットガイド" : "Tarot guides",
+          item: `${siteUrl}${localizedSeoPath("/guides", locale)}`,
         },
         {
           "@type": "ListItem",
@@ -250,51 +281,48 @@ export function getGuidePageJsonLd(guide: TarotGuide): JsonLdObject[] {
 
 type JsonLdObject = Record<string, unknown>;
 
-export function getHomeJsonLd(): JsonLdObject[] {
+export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[] {
   const siteUrl = getSiteUrl();
   const ogImage = getOgImageUrl();
+  const copy = getSeoCopy(locale);
+  const homeUrl = `${siteUrl}${localizedSeoPath("/", locale)}`;
 
   return [
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "@id": `${siteUrl}/#website`,
-      url: siteUrl,
-      name: SERVICE_NAME,
-      alternateName: [SERVICE_NAME_EN, "멜로타로 AI 타로", "AI 타로 멜로타로"],
+      "@id": `${homeUrl}#website`,
+      url: homeUrl,
+      name: copy.siteName,
+      alternateName: [SERVICE_NAME_EN, SERVICE_NAME, "Melotaro AI Tarot"],
       description: SERVICE_DESCRIPTION,
-      inLanguage: "ko-KR",
+      inLanguage: copy.schemaLanguage,
     },
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "@id": `${siteUrl}/#app`,
-      name: SERVICE_NAME,
+      "@id": `${homeUrl}#app`,
+      name: copy.siteName,
       alternateName: SERVICE_NAME_EN,
-      url: siteUrl,
+      url: homeUrl,
       applicationCategory: "LifestyleApplication",
       operatingSystem: "Web",
       browserRequirements: "Requires JavaScript",
-      description: SEO_HOME_DESCRIPTION,
-      inLanguage: "ko-KR",
+      description: copy.homeDescription,
+      inLanguage: copy.schemaLanguage,
       offers: {
         "@type": "Offer",
         price: "0",
-        priceCurrency: "KRW",
+        priceCurrency: locale === "ko" ? "KRW" : locale === "ja" ? "JPY" : "USD",
       },
-      featureList: [
-        "AI 타로 리딩",
-        "연애·직장·재물·오늘의 운세 주제 선택",
-        "1장·3장 타로 스프레드",
-        "78장 타로 카드",
-      ],
+      featureList: copy.featureList,
     },
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "@id": `${siteUrl}/#organization`,
-      name: SERVICE_NAME,
-      url: siteUrl,
+      "@id": `${homeUrl}#organization`,
+      name: copy.siteName,
+      url: homeUrl,
       logo: {
         "@type": "ImageObject",
         url: ogImage,
@@ -303,41 +331,15 @@ export function getHomeJsonLd(): JsonLdObject[] {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "@id": `${siteUrl}/#faq`,
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "멜로타로 AI 타로는 무엇인가요?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "멜로타로는 질문 주제와 뽑은 타로 카드를 바탕으로 AI가 리딩 문장을 생성해 주는 온라인 AI 타로 서비스입니다. 연애, 커리어, 재물, 오늘의 운세 등 다양한 영역에서 활용할 수 있습니다.",
-          },
+      "@id": `${homeUrl}#faq`,
+      mainEntity: copy.faq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
         },
-        {
-          "@type": "Question",
-          name: "AI 타로는 어떻게 이용하나요?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "리딩 영역을 선택한 뒤 궁금한 내용을 적고(선택), 스프레드를 고른 다음 카드를 뽑으면 AI 타로 리딩 결과를 확인할 수 있습니다. Google 로그인 후 이용할 수 있습니다.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "오늘의 운세·연애 타로도 볼 수 있나요?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "네. 오늘의 운세, 이번 주 운세, 연애·썸, 커플, 재물, 취업·이직 등 멜로타로에서 제공하는 주제 중에서 골라 AI 타로 리딩을 받을 수 있습니다.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "AI 타로 결과는 의료·투자 조언인가요?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "아니요. 멜로타로 AI 타로는 오락·자기성찰 목적의 콘텐츠이며, 의료 진단, 법률·투자 종목 추천을 대체하지 않습니다.",
-          },
-        },
-      ],
+      })),
     },
   ];
 }

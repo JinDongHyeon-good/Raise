@@ -1,34 +1,44 @@
+import createIntlMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { detectLocaleFromRequest } from "@/i18n/locale-detect";
+import { routing } from "@/i18n/routing";
 
-/** 세션 갱신이 필요한 경로만 미들웨어 처리 (공개 SEO 페이지는 캐시 허용) */
+const intlMiddleware = createIntlMiddleware(routing);
+
 const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume"] as const;
 
+function stripLocalePrefix(pathname: string) {
+  const match = pathname.match(/^\/(ko|en|ja)(\/.*)?$/);
+  if (!match) return pathname;
+  return match[2] || "/";
+}
+
 function needsSessionRefresh(pathname: string) {
+  const bare = stripLocalePrefix(pathname);
   return SESSION_PATH_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    (prefix) => bare === prefix || bare.startsWith(`${prefix}/`),
   );
 }
 
-export async function middleware(request: NextRequest) {
-  if (!needsSessionRefresh(request.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
+function shouldSkipIntl(pathname: string) {
+  return (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/auth/signout") ||
+    pathname.startsWith("/_next") ||
+    pathname.includes(".")
+  );
+}
 
-  // 로그아웃 라우트에서는 세션 갱신(getUser)을 돌리지 않음 — signOut 직전 쿠키가 덮어쓰이지 않도록
-  if (request.nextUrl.pathname === "/auth/signout") {
-    return NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    });
-  }
+function pathnameHasLocale(pathname: string) {
+  return routing.locales.some((locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`));
+}
 
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+async function refreshSupabaseSession(request: NextRequest, response: NextResponse) {
+  if (stripLocalePrefix(request.nextUrl.pathname) === "/auth/signout") {
+    return response;
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -36,6 +46,8 @@ export async function middleware(request: NextRequest) {
   if (!supabaseUrl || !supabaseAnonKey) {
     return response;
   }
+
+  let sessionResponse = response;
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -46,17 +58,19 @@ export async function middleware(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });
-        response = NextResponse.next({
+        sessionResponse = NextResponse.next({
           request,
         });
+        response.cookies.getAll().forEach((cookie) => {
+          sessionResponse.cookies.set(cookie);
+        });
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          sessionResponse.cookies.set(name, value, options);
         });
       },
     },
   });
 
-  // 이메일 인증·비밀번호 재설정 등으로 code가 /auth/callback이 아닌 경로에 붙은 경우 교환 후 URL 정리
   const code = request.nextUrl.searchParams.get("code");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
 
@@ -68,21 +82,8 @@ export async function middleware(request: NextRequest) {
       nextUrl.hash = "";
 
       const redirectResponse = NextResponse.redirect(nextUrl);
-      response.cookies.getAll().forEach((cookie) => {
-        const { name, value, ...options } = cookie as {
-          name: string;
-          value: string;
-          path?: string;
-          maxAge?: number;
-          domain?: string;
-          secure?: boolean;
-          httpOnly?: boolean;
-          sameSite?: "strict" | "lax" | "none";
-        };
-        redirectResponse.cookies.set(name, value, {
-          ...options,
-          path: options.path ?? "/",
-        });
+      sessionResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie);
       });
       redirectResponse.headers.set(
         "Cache-Control",
@@ -96,20 +97,46 @@ export async function middleware(request: NextRequest) {
 
   await supabase.auth.getUser();
 
-  response.headers.set(
+  sessionResponse.headers.set(
     "Cache-Control",
     "no-store, no-cache, must-revalidate, proxy-revalidate",
   );
-  response.headers.set("Vary", "Cookie");
+  sessionResponse.headers.set("Vary", "Cookie");
 
-  return response;
+  return sessionResponse;
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (shouldSkipIntl(pathname)) {
+    if (needsSessionRefresh(pathname)) {
+      const response = NextResponse.next({
+        request: { headers: request.headers },
+      });
+      return refreshSupabaseSession(request, response);
+    }
+    return NextResponse.next();
+  }
+
+  if (!pathnameHasLocale(pathname)) {
+    const locale = detectLocaleFromRequest(request);
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
+    const redirect = NextResponse.redirect(url);
+    redirect.cookies.set("NEXT_LOCALE", locale, { path: "/", maxAge: 60 * 60 * 24 * 365 });
+    return redirect;
+  }
+
+  const intlResponse = intlMiddleware(request);
+
+  if (needsSessionRefresh(pathname)) {
+    return refreshSupabaseSession(request, intlResponse);
+  }
+
+  return intlResponse;
 }
 
 export const config = {
-  matcher: [
-    "/mypage/:path*",
-    "/auth/:path*",
-    "/trading-floor/:path*",
-    "/resume",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

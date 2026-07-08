@@ -1,41 +1,47 @@
-import Link from "next/link";
+import { Link } from "@/navigation";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SitePageShell } from "@/components/site/site-page-shell";
-import { getTarotTopicPage, TAROT_TOPIC_PAGES } from "@/data/tarot-topic-pages";
+import { getTarotTopicPage, getTarotTopicPages } from "@/data/tarot-content-i18n";
+import type { AppLocale } from "@/i18n/routing";
+import { locales } from "@/i18n/routing";
 import { buildTopicPageMetadata, getTopicPageJsonLd } from "@/lib/seo";
 
 type PageProps = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 };
 
 export function generateStaticParams() {
-  return TAROT_TOPIC_PAGES.map((page) => ({ slug: page.slug }));
+  return locales.flatMap((locale) => getTarotTopicPages(locale).map((page) => ({ locale, slug: page.slug })));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const page = getTarotTopicPage(slug);
+  const { slug, locale } = await params;
+  const page = getTarotTopicPage(slug, locale as AppLocale);
   if (!page) return {};
 
-  return buildTopicPageMetadata(page);
+  return buildTopicPageMetadata(page, locale as AppLocale);
 }
 
 export default async function TopicPage({ params }: PageProps) {
-  const { slug } = await params;
-  const page = getTarotTopicPage(slug);
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const page = getTarotTopicPage(slug, locale as AppLocale);
   if (!page) notFound();
 
+  const t = await getTranslations({ locale, namespace: "pages" });
+  const tCommon = await getTranslations({ locale, namespace: "common" });
   const startHref = `/?topic=${page.topicId}`;
 
   return (
     <SitePageShell>
-      <JsonLd data={getTopicPageJsonLd(page)} />
+      <JsonLd data={getTopicPageJsonLd(page, locale as AppLocale)} />
       <article className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
         <nav className="text-sm text-slate-600" aria-label="breadcrumb">
           <Link href="/" className="hover:underline">
-            홈
+            {tCommon("home")}
           </Link>
           <span className="mx-2 text-slate-300" aria-hidden>
             /
@@ -62,20 +68,16 @@ export default async function TopicPage({ params }: PageProps) {
         </div>
 
         <div className="mt-10 rounded-xl border border-slate-200 bg-slate-50/60 p-5">
-          <p className="text-sm leading-6 text-slate-800">
-            지금 바로 {page.heading} AI 타로 리딩을 시작해 보세요. 주제가 자동으로 선택됩니다.
-          </p>
+          <p className="text-sm leading-6 text-slate-800">{t("topicCta", { heading: page.heading })}</p>
           <Link
             href={startHref}
             className="mt-4 inline-flex rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-500"
           >
-            {page.heading} 타로 시작하기
+            {t("topicStart", { heading: page.heading })}
           </Link>
         </div>
 
-        <p className="mt-6 text-xs leading-6 text-slate-500">
-          멜로타로 AI 타로는 오락·자기성찰 목적이며, 의료·법률·투자 조언을 대체하지 않습니다.
-        </p>
+        <p className="mt-6 text-xs leading-6 text-slate-500">{t("disclaimer")}</p>
       </article>
     </SitePageShell>
   );
