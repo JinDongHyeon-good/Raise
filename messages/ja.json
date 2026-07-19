@@ -88,7 +88,6 @@
     "authLinksLogin": "ログイン",
     "authLinksSignup": "登録",
     "authLinksForgot": "パスワードを忘れた",
-    "redirectNote": "認証・再設定リンクは {origin} から送信されます。",
     "moving": "移動中...",
     "errors": {
       "fallback": "エラーが発生しました。しばらくしてからお試しください。",
@@ -135,8 +134,8 @@
     }
   },
   "pages": {
-    "topicsTitle": "AIタロット テーマ別",
-    "topicsDescription": "人気テーマ別のAIタロットページです。選ぶとそのテーマでリーディングを始められます。",
+    "topicsTitle": "今日のタロット・今日の運勢・恋愛タロット",
+    "topicsDescription": "今日のタロット、今日の運勢、恋愛タロット、今週の運勢など検索キーワード向けのAIタロットページです。テーマを選ぶとその設定でリーディングを始められます。",
     "guidesTitle": "タロットガイド",
     "guidesDescription": "AIタロットの使い方、スプレッド、恋愛・仕事・今日の運勢などの参考記事です。",
     "guidesBack": "← ガイド一覧",
@@ -169,15 +168,15 @@
     "tagline": "AIタロット · メロタロ",
     "privacy": "プライバシーポリシー",
     "terms": "利用規約",
-    "disclaimer": "© {year} {name}. AIタロットリーディングは娯楽・自己省察目的の参考コンテンツであり、医療・法律・投資の判断を代替しません。"
+    "disclaimer": "© {year} {name}. AIタロットリーディングは娯楽・自己省察目的の参考コンテンツであり、予言・専門助言ではありません。医療・法律・投資の判断を代替しません。Cookie・広告（Google AdSense）はプライバシーポリシーをご確認ください。"
   },
   "seo": {
-    "homeTitle": "AIタロット | メロタロ — 無料オンラインAIタロット",
-    "homeDescription": "メロタロは恋愛・仕事・金運・今日の運勢などのAIタロットサービスです。",
-    "ogAlt": "メロタロ — AIタロットオンライン",
-    "topicsMetaTitle": "AIタロット テーマ別",
-    "topicsMetaDescription": "今日の運勢、恋愛タロット、金運などメロタロのテーマ別ページ。",
-    "guidesMetaTitle": "タロットガイド",
-    "guidesMetaDescription": "AIタロットの使い方、スプレッド選択、テーマ別ガイド。"
+    "homeTitle": "無料タロット・無料AIタロット | 今日の運勢 — メロタロ",
+    "homeDescription": "無料タロット・無料AIタロットを今すぐ。今日のタロット・今日の運勢、恋愛タロット、今週の運勢まで、ログイン後無料でカードを引いてAIリーディング。",
+    "ogAlt": "メロタロ — 無料タロット・無料AIタロット・今日の運勢",
+    "topicsMetaTitle": "無料タロット・無料AIタロット | 今日の運勢・恋愛",
+    "topicsMetaDescription": "無料タロット・無料AIタロット、今日のタロット、今日の運勢、恋愛タロット、今週の運勢などメロタロのテーマ別ページ。",
+    "guidesMetaTitle": "タロットガイド | 無料AIタロット・今日の運勢・スプレッド",
+    "guidesMetaDescription": "無料AIタロットの使い方、1枚・3枚スプレッド、今日の運勢ルーチン、恋愛・仕事・金運の質問例。"
   }
 }

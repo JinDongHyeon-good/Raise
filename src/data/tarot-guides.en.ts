@@ -149,4 +149,58 @@ export const TAROT_GUIDES_EN: TarotGuide[] = [
       },
     ],
   },
+  {
+    slug: "good-tarot-questions",
+    title: "How to Ask Better Tarot Questions",
+    description:
+      "Common yes/no prophecy-style questions that blur readings, and how to reframe them into practical, actionable prompts.",
+    sections: [
+      {
+        paragraphs: [
+          "The same cards feel more useful when the question invites action. 'Will it go well?' often stays vague; 'What should I prepare this week?' turns a reading into a checklist. Melotaro works best with that practical framing.",
+        ],
+      },
+      {
+        heading: "Questions to avoid",
+        paragraphs: [
+          "Avoid locking in exact timing, forcing someone else's private feelings, or demanding medical, legal, or investment answers. Those patterns raise anxiety and conflict with entertainment-only use.",
+          "Repeating the same draw in a short window can also scramble meaning. Try one reading, act on it for a day, then ask again if needed.",
+        ],
+      },
+      {
+        heading: "Reframe examples",
+        paragraphs: [
+          "'Do they like me?' → 'How can I stay respectful while being honest?'",
+          "'Should I change jobs?' → 'If I prepare a move, what is my priority this week?'",
+          "'Will money come?' → 'Which spending pattern can I reduce this month?'",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "tarot-ethics-disclaimer",
+    title: "Using Tarot Healthily: Limits and Self-Care",
+    description:
+      "How to treat tarot as entertainment and self-reflection, and what Melotaro does not provide.",
+    sections: [
+      {
+        paragraphs: [
+          "Tarot can support curiosity and reflection. When anxiety is high, it is easy to over-rely on interpretations. Melotaro offers AI tarot for leisure and self-insight — not prophecy or professional advice.",
+        ],
+      },
+      {
+        heading: "What Melotaro does not do",
+        paragraphs: [
+          "We do not diagnose illness, give legal judgments, recommend investments, or claim certainty about other people. If a reading seems to push that way, treat the Terms of Service description of the service as the source of truth.",
+        ],
+      },
+      {
+        heading: "Self-care checklist",
+        paragraphs: [
+          "If a reading heightens anxiety, pause. Walk, rest, or talk with someone you trust. When sleep, appetite, or daily functioning suffer, prioritize rest and professional help over more draws.",
+          "For privacy or ads questions, use the Contact page and Privacy Policy.",
+        ],
+      },
+    ],
+  },
 ];

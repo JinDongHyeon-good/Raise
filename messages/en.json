@@ -88,7 +88,6 @@
     "authLinksLogin": "Log in",
     "authLinksSignup": "Sign up",
     "authLinksForgot": "Forgot password",
-    "redirectNote": "Verification and reset links are sent from {origin}.",
     "moving": "Redirecting...",
     "errors": {
       "fallback": "Something went wrong. Please try again.",
@@ -135,8 +134,8 @@
     }
   },
   "pages": {
-    "topicsTitle": "AI tarot by topic",
-    "topicsDescription": "Landing pages for popular tarot topics. Pick one to start a reading with that theme.",
+    "topicsTitle": "Today's tarot, daily fortune & love tarot",
+    "topicsDescription": "Topic landings for today's tarot, daily fortune, love tarot, weekly fortune, and more. Pick a theme to start a reading.",
     "guidesTitle": "Tarot guides",
     "guidesDescription": "Reference articles on AI tarot, spreads, love, career, and daily fortune readings.",
     "guidesBack": "← All tarot guides",
@@ -169,15 +168,15 @@
     "tagline": "AI Tarot · Melotaro",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
-    "disclaimer": "© {year} {name}. AI tarot readings are for entertainment and self-reflection only—not medical, legal, or investment advice."
+    "disclaimer": "© {year} {name}. AI tarot readings are for entertainment and self-reflection only—not prophecy or professional advice, and not a substitute for medical, legal, or investment decisions. See the Privacy Policy for cookies and Google AdSense."
   },
   "seo": {
-    "homeTitle": "AI Tarot | Melotaro — Free Online AI Tarot Reading",
-    "homeDescription": "Melotaro is an AI tarot service for love, career, money, daily fortune, and more.",
-    "ogAlt": "Melotaro — AI tarot online reading",
-    "topicsMetaTitle": "AI tarot by topic",
-    "topicsMetaDescription": "Today's fortune, love tarot, money fortune, and more on Melotaro.",
-    "guidesMetaTitle": "Tarot guides",
-    "guidesMetaDescription": "How to use AI tarot, choose spreads, and read by topic."
+    "homeTitle": "Free Tarot & Free AI Tarot | Today's Fortune — Melotaro",
+    "homeDescription": "Free tarot and free AI tarot online. Read today's tarot, daily fortune, love tarot, and weekly fortune—log in and draw cards for a free AI tarot reading on Melotaro.",
+    "ogAlt": "Melotaro — free tarot, free AI tarot, daily fortune",
+    "topicsMetaTitle": "Free Tarot & Free AI Tarot | Daily Fortune & Love",
+    "topicsMetaDescription": "Free tarot, free AI tarot, today's tarot, daily fortune, love tarot, weekly fortune, and more on Melotaro. Log in and start free.",
+    "guidesMetaTitle": "Tarot Guides | Free AI Tarot, Daily Fortune & Spreads",
+    "guidesMetaDescription": "How to use free AI tarot, 1-card vs 3-card spreads, daily fortune routines, and love/career/money question examples."
   }
 }

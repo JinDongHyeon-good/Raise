@@ -4,10 +4,19 @@ export const TAROT_TOPIC_PAGES_EN: TarotTopicPage[] = [
   {
     slug: "today-fortune",
     topicId: "today",
-    title: "Today's Fortune Tarot | Free AI Tarot — Melotaro",
+    title: "Today's Fortune Tarot | Free Daily Fortune AI Tarot — Melotaro",
     description:
-      "Check today's fortune with AI tarot. Draw cards on Melotaro for energy, cautions, and action advice for your day. Free online daily fortune tarot.",
-    keywords: ["today's fortune", "daily fortune", "today fortune tarot", "free daily fortune", "AI daily fortune"],
+      "Check today's fortune with free AI tarot. Draw cards on Melotaro for daily energy, cautions, and action advice. Online daily fortune tarot reading.",
+    keywords: [
+      "today's fortune",
+      "daily fortune",
+      "today fortune tarot",
+      "free daily fortune",
+      "AI daily fortune",
+      "daily fortune reading",
+      "today luck tarot",
+      "free fortune tarot",
+    ],
     heading: "Today's Fortune Tarot",
     intro:
       "Before starting your day, lightly check today's energy and what to watch for. Melotaro AI tarot offers daily fortune readings with 78 cards and AI interpretation.",
@@ -30,10 +39,19 @@ export const TAROT_TOPIC_PAGES_EN: TarotTopicPage[] = [
   {
     slug: "today-tarot",
     topicId: "today",
-    title: "Today's Tarot | Free Online AI Tarot — Melotaro",
+    title: "Today's Tarot Reading | Free Online AI Daily Tarot — Melotaro",
     description:
-      "Read today's tarot for free. Draw cards on Melotaro for a reading tailored to your day and practical guidance.",
-    keywords: ["today's tarot", "daily tarot", "free today tarot", "AI today tarot"],
+      "Read today's tarot for free. Draw cards on Melotaro for a daily tarot reading and practical guidance. Pair with today's fortune for your day.",
+    keywords: [
+      "today's tarot",
+      "daily tarot",
+      "free today tarot",
+      "AI today tarot",
+      "online daily tarot",
+      "tarot of the day",
+      "free daily tarot reading",
+      "today card tarot",
+    ],
     heading: "Today's Tarot",
     intro:
       "Today's tarot reads the flow of your day with one or three cards. Melotaro AI connects card symbols with your question to generate a reading in your language.",
@@ -58,7 +76,15 @@ export const TAROT_TOPIC_PAGES_EN: TarotTopicPage[] = [
     title: "Love Tarot | AI Tarot Reading — Melotaro",
     description:
       "Sort out love and dating worries with AI tarot. Get readings on feelings, confession timing, and relationship progress — free on Melotaro.",
-    keywords: ["love tarot", "dating tarot", "relationship tarot", "AI love tarot", "free love tarot"],
+    keywords: [
+      "love tarot",
+      "dating tarot",
+      "relationship tarot",
+      "AI love tarot",
+      "free love tarot",
+      "love fortune tarot",
+      "romance tarot reading",
+    ],
     heading: "Love & Dating Tarot",
     intro:
       "Love tarot focuses less on pinning down someone's feelings and more on what attitude serves you best in the relationship. It's often used to clarify mixed emotions.",
@@ -77,7 +103,13 @@ export const TAROT_TOPIC_PAGES_EN: TarotTopicPage[] = [
     title: "This Week's Fortune Tarot | AI Tarot — Melotaro",
     description:
       "Check this week's fortune with AI tarot. See weekly flow, opportunities, and cautions through card readings.",
-    keywords: ["weekly fortune", "week tarot", "this week fortune tarot"],
+    keywords: [
+      "weekly fortune",
+      "week tarot",
+      "this week fortune tarot",
+      "weekly tarot reading",
+      "week ahead tarot",
+    ],
     heading: "This Week's Fortune Tarot",
     intro:
       "Use weekly fortune tarot when you want to scan the whole week ahead. Especially helpful when you have interviews, plans, or key dates.",
@@ -131,19 +163,38 @@ export const TAROT_TOPIC_PAGES_EN: TarotTopicPage[] = [
   {
     slug: "free-ai-tarot",
     topicId: "general",
-    title: "Free AI Tarot | Online Tarot Reading — Melotaro",
+    title: "Free Tarot & Free AI Tarot | Free Tarot Reading Online — Melotaro",
     description:
-      "Start free AI tarot now. Melotaro offers online readings for love, career, money, daily fortune, and more with 78 cards and AI interpretation.",
-    keywords: ["free AI tarot", "free tarot", "online free tarot", "AI tarot free"],
-    heading: "Free AI Tarot",
+      "Start free tarot and free AI tarot now. Looking for free tarot reading, free online tarot, or AI tarot free? Log in on Melotaro for a free 78-card AI reading—today's fortune, love tarot, and more.",
+    keywords: [
+      "free tarot",
+      "free AI tarot",
+      "AI tarot free",
+      "free tarot reading",
+      "free online tarot",
+      "online free tarot",
+      "free tarot reading online",
+      "free tarot cards",
+      "free tarot site",
+      "AI tarot reading free",
+      "free daily tarot",
+    ],
+    heading: "Free Tarot & Free AI Tarot",
     intro:
-      "Melotaro is a free AI tarot service in your browser. Log in, draw cards, and receive AI-generated readings.",
+      "Melotaro is a free tarot and free AI tarot service in your browser. Log in, draw cards, and receive AI-generated readings without a paid subscription for basic use.",
     sections: [
+      {
+        heading: "What can you do with free tarot?",
+        paragraphs: [
+          "Choose today's tarot, daily fortune, love tarot, weekly fortune, career or money topics, then draw a 1-card or 3-card spread. AI connects card symbols with your question.",
+          "Built for people searching free tarot reading, free online tarot, or AI tarot free—start right after login.",
+        ],
+      },
       {
         heading: "Melotaro free AI tarot features",
         paragraphs: [
           "16 reading topics, 1-card and 3-card spreads, full 78-card deck, Google and email sign-in.",
-          "Browse tarot guides and FAQ to learn how to use AI tarot effectively.",
+          "Browse tarot guides and FAQ to learn how to use AI tarot effectively. Ads may appear to support the free service—see the Privacy Policy for cookies and ads.",
         ],
       },
     ],

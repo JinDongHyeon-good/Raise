@@ -7,7 +7,6 @@ import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName } from "@/lib/brand";
 import { mapAuthErrorMessage } from "@/lib/auth-errors";
 import { getAuthCallbackUrl, getPasswordResetUrl } from "@/lib/auth-urls";
-import { getPublicSiteOrigin } from "@/lib/site-origin";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 
 export type AuthMode = "login" | "signup" | "forgot";
@@ -516,10 +515,6 @@ export function AuthPanel({
             </button>
           </p>
         ) : null}
-
-        <p className="text-center text-[11px] leading-5 text-slate-400">
-          {t("redirectNote", { origin: getPublicSiteOrigin() })}
-        </p>
       </div>
     </div>
   );

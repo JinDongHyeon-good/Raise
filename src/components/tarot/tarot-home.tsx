@@ -48,7 +48,6 @@ import { getDefaultNicknameFromUser } from "@/lib/default-nickname";
 import { ensureUserProfileClient } from "@/lib/ensure-user-profile-client";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
-import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { AuthPanel } from "@/components/auth/auth-panel";
 import { TarotReadingSkeleton } from "@/components/tarot/tarot-reading-skeleton";
@@ -970,50 +969,53 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
             <span className="block truncate">{brandName}</span>
           </Link>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2">
             <LanguageSwitcher />
 
-            <div ref={userMenuRef} className="relative shrink-0">
-            {isLoggedIn ? (
-              <button
-                type="button"
-                aria-label={tCommon("userMenu")}
-                aria-expanded={isUserMenuOpen}
-                aria-haspopup="menu"
-                onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                className={`h-10 w-10 overflow-hidden rounded-full border bg-white shadow-sm transition ${
-                  isUserMenuOpen
-                    ? "border-violet-200 ring-2 ring-violet-100"
-                    : "border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                {userAvatarUrl ? (
-                  <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="inline-flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold text-slate-700">
-                    ME
-                  </span>
-                )}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setPendingAuthAction(null);
-                  setIsLoginModalOpen(true);
-                }}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                {tCommon("login")}
-              </button>
-            )}
+            <div
+              ref={userMenuRef}
+              className={`relative flex h-10 shrink-0 items-center justify-center ${isLoggedIn ? "w-10" : "w-auto"}`}
+            >
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  aria-label={tCommon("userMenu")}
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border p-0 leading-none shadow-sm transition ${
+                    isUserMenuOpen
+                      ? "border-violet-200 ring-2 ring-violet-100"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  {userAvatarUrl ? (
+                    <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="inline-flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold leading-none text-slate-700">
+                      ME
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPendingAuthAction(null);
+                    setIsLoginModalOpen(true);
+                  }}
+                  className="flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold leading-none text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  {tCommon("login")}
+                </button>
+              )}
 
-            <UserMenuDropdown
-              open={isLoggedIn && isUserMenuOpen}
-              onLogout={handleLogout}
-              onNavigate={() => setIsUserMenuOpen(false)}
-            />
-          </div>
+              <UserMenuDropdown
+                open={isLoggedIn && isUserMenuOpen}
+                onLogout={handleLogout}
+                onNavigate={() => setIsUserMenuOpen(false)}
+              />
+            </div>
           </div>
         </header>
 
@@ -1219,8 +1221,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
           ) : null}
         </section>
       </div>
-
-      <MeloballoonPromoBanner />
 
       {isLoginModalOpen && (
         <div className="tarot-login-modal-backdrop fixed inset-0 z-[300] flex items-end justify-center p-0 sm:items-center sm:p-4">

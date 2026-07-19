@@ -37,10 +37,7 @@ export function SitePageShell({
           </LocaleLink>
           <nav className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs text-slate-600 sm:text-sm">
             <LanguageSwitcher />
-            <LocaleLink href="/guides" className="hover:text-slate-900 hover:underline">
-              {t("guides")}
-            </LocaleLink>
-            <LocaleLink href="/contact" className="hover:text-slate-900 hover:underline">
+            <LocaleLink href="/contact" className="leading-none hover:text-slate-900 hover:underline">
               {t("contact")}
             </LocaleLink>
           </nav>

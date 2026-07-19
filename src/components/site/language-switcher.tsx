@@ -50,20 +50,20 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
   };
 
   return (
-    <div ref={rootRef} className={`relative ${className}`}>
+    <div ref={rootRef} className={`relative flex h-10 w-10 shrink-0 items-center justify-center ${className}`}>
       <button
         type="button"
         aria-label={t("language")}
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
-        className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 ${
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border p-0 leading-none transition-all duration-200 ${
           open
             ? "border-violet-200 bg-violet-50 text-violet-600 shadow-sm ring-2 ring-violet-100"
-            : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+            : "border-slate-200 bg-white text-slate-500 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
         }`}
       >
-        <Globe className="h-[17px] w-[17px]" strokeWidth={1.75} aria-hidden />
+        <Globe className="h-4 w-4" strokeWidth={1.75} aria-hidden />
       </button>
 
       <div

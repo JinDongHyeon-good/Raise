@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { SitePageShell } from "@/components/site/site-page-shell";
 import { getTarotGuides } from "@/data/tarot-content-i18n";
-import { buildLanguageAlternates, localizedSeoPath } from "@/lib/seo-i18n";
+import { buildLanguageAlternates, getSeoCopy, localizedSeoPath } from "@/lib/seo-i18n";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -12,13 +12,18 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "seo" });
+  const copy = getSeoCopy(locale as AppLocale);
   return {
-    title: t("guidesMetaTitle"),
-    description: t("guidesMetaDescription"),
+    title: { absolute: copy.guidesMetaTitle },
+    description: copy.guidesMetaDescription,
     alternates: {
       canonical: localizedSeoPath("/guides", locale as AppLocale),
       languages: buildLanguageAlternates("/guides"),
+    },
+    openGraph: {
+      title: copy.guidesMetaTitle,
+      description: copy.guidesMetaDescription,
+      url: localizedSeoPath("/guides", locale as AppLocale),
     },
   };
 }

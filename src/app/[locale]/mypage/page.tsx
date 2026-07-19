@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { MeloballoonPromoBanner } from "@/components/tarot/meloballoon-promo-banner";
 import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
 import { getLocalizedBrandName } from "@/lib/brand";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
@@ -280,8 +279,6 @@ export default function MyPage() {
 
         <p className="text-pretty pb-2 text-center text-[11px] leading-5 text-slate-400">{t("disclaimer")}</p>
       </div>
-
-      <MeloballoonPromoBanner />
     </main>
   );
 }
