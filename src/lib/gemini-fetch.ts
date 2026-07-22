@@ -72,6 +72,8 @@ export async function callGeminiGenerateContent(options: {
   temperature?: number;
   topP?: number;
   maxHttpRetries?: number;
+  /** Absolute Date.now()-style timestamp all internal retries/backoffs must finish before. */
+  deadlineAt?: number;
 }): Promise<GeminiCallResult> {
   const {
     apiKey,
@@ -82,6 +84,7 @@ export async function callGeminiGenerateContent(options: {
     temperature = 0.6,
     topP = 0.92,
     maxHttpRetries = 2,
+    deadlineAt,
   } = options;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -95,12 +98,28 @@ export async function callGeminiGenerateContent(options: {
   });
 
   let lastError = "AI 리딩 요청에 실패했습니다.";
+  const MIN_ATTEMPT_MS = 1_000;
 
   for (let retry = 0; retry <= maxHttpRetries; retry += 1) {
-    if (retry > 0) {
-      const backoffMs = Math.min(1500 * 2 ** (retry - 1), 6000);
-      await sleep(backoffMs);
+    const remainingMs = deadlineAt !== undefined ? deadlineAt - Date.now() : Infinity;
+    if (remainingMs < MIN_ATTEMPT_MS) {
+      return {
+        ok: false,
+        response: new Response(null, { status: 504 }),
+        data: {},
+        text: "",
+        error: lastError,
+        retryable: false,
+      };
     }
+
+    if (retry > 0) {
+      const backoffMs = Math.min(Math.min(1500 * 2 ** (retry - 1), 6000), remainingMs - MIN_ATTEMPT_MS);
+      if (backoffMs > 0) await sleep(backoffMs);
+    }
+
+    const attemptRemainingMs = deadlineAt !== undefined ? deadlineAt - Date.now() : Infinity;
+    const attemptTimeoutMs = Math.max(MIN_ATTEMPT_MS, Math.min(timeoutMs, attemptRemainingMs));
 
     try {
       const response = await fetchWithTimeout(
@@ -110,7 +129,7 @@ export async function callGeminiGenerateContent(options: {
           headers: { "Content-Type": "application/json" },
           body,
         },
-        timeoutMs,
+        attemptTimeoutMs,
       );
 
       const data = (await response.json()) as GeminiGenerateResponse;
@@ -121,7 +140,8 @@ export async function callGeminiGenerateContent(options: {
         const message = data.error?.message || "AI 리딩 요청에 실패했습니다.";
         lastError = message;
         const retryable = isRetryableGeminiError(response.status, message);
-        if (retry < maxHttpRetries && retryable) {
+        const hasBudgetLeft = deadlineAt === undefined || deadlineAt - Date.now() >= MIN_ATTEMPT_MS;
+        if (retry < maxHttpRetries && retryable && hasBudgetLeft) {
           continue;
         }
         return {
@@ -139,7 +159,8 @@ export async function callGeminiGenerateContent(options: {
     } catch (error) {
       const isAbort = error instanceof Error && error.name === "AbortError";
       lastError = isAbort ? "AI 응답 시간이 초과되었습니다." : "AI 서버와 통신하지 못했습니다.";
-      if (retry < maxHttpRetries) {
+      const hasBudgetLeft = deadlineAt === undefined || deadlineAt - Date.now() >= MIN_ATTEMPT_MS;
+      if (retry < maxHttpRetries && hasBudgetLeft) {
         continue;
       }
       throw error;

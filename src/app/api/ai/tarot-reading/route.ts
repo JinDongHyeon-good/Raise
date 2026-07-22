@@ -171,6 +171,7 @@ async function generateFullReading(apiKey: string, body: TarotRequestBody) {
   const basePrompt = buildLocalizedPrompt(body, locale);
   let accumulated = "";
   const requestStartedAt = Date.now();
+  const deadlineAt = requestStartedAt + GEMINI_TOTAL_BUDGET_MS;
   let lastError = "AI 리딩 요청에 실패했습니다.";
 
   for (let attempt = 1; attempt <= MAX_READING_ATTEMPTS; attempt += 1) {
@@ -209,6 +210,7 @@ async function generateFullReading(apiKey: string, body: TarotRequestBody) {
         timeoutMs: perRequestTimeoutMs,
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         maxHttpRetries: GEMINI_HTTP_RETRIES,
+        deadlineAt,
       });
 
       if (!result.ok) {
@@ -326,6 +328,7 @@ async function logTarotReadingRequest(
 
 export async function POST(request: NextRequest) {
   let inFlightKey: string | null = null;
+  let inFlightToken: string | null = null;
 
   try {
     pruneStaleLocks();
@@ -378,12 +381,14 @@ export async function POST(request: NextRequest) {
     }
 
     inFlightKey = user.id;
-    if (!acquireInFlightLock(inFlightKey, IN_FLIGHT_TTL_MS)) {
+    const acquiredToken = acquireInFlightLock(inFlightKey, IN_FLIGHT_TTL_MS);
+    if (!acquiredToken) {
       return NextResponse.json(
         { error: "이미 리딩이 진행 중입니다. 완료될 때까지 잠시만 기다려 주세요.", code: "in_flight" },
         { status: 409 },
       );
     }
+    inFlightToken = acquiredToken;
 
     const result = await generateFullReading(apiKey, parsed.body);
 
@@ -430,8 +435,8 @@ export async function POST(request: NextRequest) {
     console.error("[tarot-reading] unexpected error", error);
     return NextResponse.json({ error: "AI 타로 리딩 중 오류가 발생했습니다." }, { status: 500 });
   } finally {
-    if (inFlightKey) {
-      releaseInFlightLock(inFlightKey);
+    if (inFlightKey && inFlightToken) {
+      releaseInFlightLock(inFlightKey, inFlightToken);
     }
   }
 }

@@ -46,21 +46,25 @@ export class SlidingRateLimiter {
   }
 }
 
-const inFlightLocks = new Map<string, number>();
+const inFlightLocks = new Map<string, { startedAt: number; token: string }>();
 const cooldownUntil = new Map<string, number>();
 
-export function acquireInFlightLock(key: string, ttlMs: number): boolean {
+export function acquireInFlightLock(key: string, ttlMs: number): string | false {
   const now = Date.now();
-  const startedAt = inFlightLocks.get(key);
-  if (startedAt !== undefined && now - startedAt < ttlMs) {
+  const existing = inFlightLocks.get(key);
+  if (existing !== undefined && now - existing.startedAt < ttlMs) {
     return false;
   }
-  inFlightLocks.set(key, now);
-  return true;
+  const token = `${now}-${Math.random().toString(36).slice(2)}`;
+  inFlightLocks.set(key, { startedAt: now, token });
+  return token;
 }
 
-export function releaseInFlightLock(key: string) {
-  inFlightLocks.delete(key);
+export function releaseInFlightLock(key: string, token: string) {
+  const existing = inFlightLocks.get(key);
+  if (existing !== undefined && existing.token === token) {
+    inFlightLocks.delete(key);
+  }
 }
 
 export function checkCooldown(key: string, cooldownMs: number): { allowed: boolean; retryAfterMs: number } {
@@ -75,8 +79,8 @@ export function checkCooldown(key: string, cooldownMs: number): { allowed: boole
 
 export function pruneStaleLocks(maxAgeMs = 5 * 60 * 1000) {
   const now = Date.now();
-  for (const [key, startedAt] of inFlightLocks) {
-    if (now - startedAt > maxAgeMs) {
+  for (const [key, lock] of inFlightLocks) {
+    if (now - lock.startedAt > maxAgeMs) {
       inFlightLocks.delete(key);
     }
   }
