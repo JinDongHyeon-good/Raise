@@ -90,6 +90,16 @@ body {
     linear-gradient(180deg, #ebe3d4 0%, #f4efe6 48%, #e8f0ea 100%);
 }
 
+.piclick-login-modal-backdrop {
+  background: rgb(26 46 31 / 0.32);
+  backdrop-filter: blur(6px);
+}
+
+.piclick-login-modal {
+  background: var(--piclick-beige-soft);
+  border-color: var(--piclick-line);
+}
+
 .tarot-home-page {
   background:
     radial-gradient(ellipse 90% 60% at 50% -8%, rgb(248 250 252 / 0.9), transparent 65%),

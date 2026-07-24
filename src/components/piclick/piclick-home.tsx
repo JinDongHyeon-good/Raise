@@ -1,13 +1,18 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { Link as LocaleLink } from "@/navigation";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { SiteFooter } from "@/components/site/site-footer";
 import { HomeSeoContent } from "@/components/seo/home-seo-content";
+import { LoginModal } from "@/components/auth/login-modal";
+import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
+import type { AuthMode } from "@/components/auth/auth-panel";
 import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName, getLocalizedTagline } from "@/lib/brand";
+import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 
 const FEATURE_IDS = ["booking", "community", "venue", "ads"] as const;
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -19,6 +24,109 @@ export default function PiclickHome() {
   const brandName = getLocalizedBrandName(locale);
   const tagline = getLocalizedTagline(locale);
   const reduceMotion = useReducedMotion();
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthMode>("login");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const openAuthModal = useCallback((mode: AuthMode = "login") => {
+    setAuthModalMode(mode);
+    setIsLoginModalOpen(true);
+    setIsUserMenuOpen(false);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setIsLoginModalOpen(false);
+  }, []);
+
+  const syncSession = useCallback(async () => {
+    const supabase = getSupabaseBrowserClientSafe();
+    if (!supabase) {
+      setIsLoggedIn(false);
+      setUserAvatarUrl(null);
+      return null;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    let user = sessionData.session?.user ?? null;
+
+    if (!user) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      user = refreshed.session?.user ?? null;
+    }
+
+    if (user) {
+      setIsLoggedIn(true);
+      setUserAvatarUrl(
+        (user.user_metadata?.avatar_url as string | undefined) ??
+          (user.user_metadata?.picture as string | undefined) ??
+          null,
+      );
+    } else {
+      setIsLoggedIn(false);
+      setUserAvatarUrl(null);
+    }
+
+    return user;
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    void syncSession();
+
+    const supabase = getSupabaseBrowserClientSafe();
+    if (!supabase) return;
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      const user = session?.user ?? null;
+      if (user) {
+        setIsLoggedIn(true);
+        setUserAvatarUrl(
+          (user.user_metadata?.avatar_url as string | undefined) ??
+            (user.user_metadata?.picture as string | undefined) ??
+            null,
+        );
+        setIsLoginModalOpen(false);
+      } else {
+        setIsLoggedIn(false);
+        setUserAvatarUrl(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, [syncSession]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const handleLogout = async () => {
+    setIsUserMenuOpen(false);
+    const supabase = getSupabaseBrowserClientSafe();
+    if (supabase) await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    setUserAvatarUrl(null);
+    window.location.assign(`${window.location.origin}/auth/signout`);
+  };
+
+  const handleAuthenticated = useCallback(async () => {
+    await syncSession();
+    setIsLoginModalOpen(false);
+  }, [syncSession]);
 
   return (
     <div className="piclick-home flex min-h-dvh flex-col">
@@ -41,12 +149,45 @@ export default function PiclickHome() {
             <LocaleLink href="/contact" className="transition hover:text-[var(--piclick-green-deep)]">
               {tc("contact")}
             </LocaleLink>
-            <LocaleLink
-              href="/auth/login"
-              className="inline-flex h-9 items-center rounded bg-[var(--piclick-green)] px-3.5 text-sm font-medium text-white transition hover:bg-[var(--piclick-green-deep)]"
-            >
-              {tc("login")}
-            </LocaleLink>
+
+            <div ref={userMenuRef} className="relative">
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  aria-label={tc("userMenu")}
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border p-0 leading-none transition ${
+                    isUserMenuOpen
+                      ? "border-[var(--piclick-green)]/40 ring-2 ring-[var(--piclick-green)]/15"
+                      : "border-[var(--piclick-line)] bg-white hover:border-[var(--piclick-green)]/30"
+                  }`}
+                >
+                  {userAvatarUrl ? (
+                    <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-beige)] text-[10px] font-semibold leading-none text-[var(--piclick-green-deep)]">
+                      ME
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openAuthModal("login")}
+                  className="inline-flex h-9 items-center rounded bg-[var(--piclick-green)] px-3.5 text-sm font-medium text-white transition hover:bg-[var(--piclick-green-deep)]"
+                >
+                  {tc("login")}
+                </button>
+              )}
+
+              <UserMenuDropdown
+                open={isLoggedIn && isUserMenuOpen}
+                onLogout={() => void handleLogout()}
+                onNavigate={() => setIsUserMenuOpen(false)}
+              />
+            </div>
           </nav>
         </div>
       </header>
@@ -105,12 +246,13 @@ export default function PiclickHome() {
                 >
                   {t("hero.ctaPrimary")}
                 </a>
-                <LocaleLink
-                  href="/auth/signup"
+                <button
+                  type="button"
+                  onClick={() => openAuthModal("signup")}
                   className="inline-flex h-11 items-center justify-center rounded border border-[var(--piclick-green)]/25 bg-transparent px-6 text-sm font-semibold text-[var(--piclick-green-deep)] transition hover:border-[var(--piclick-green)] hover:bg-[var(--piclick-beige)]"
                 >
                   {t("hero.ctaSecondary")}
-                </LocaleLink>
+                </button>
               </motion.div>
             </div>
           </div>
@@ -163,12 +305,13 @@ export default function PiclickHome() {
                 {t("cta.sub")}
               </p>
             </div>
-            <LocaleLink
-              href="/auth/signup"
+            <button
+              type="button"
+              onClick={() => openAuthModal("signup")}
               className="inline-flex h-11 shrink-0 items-center justify-center rounded bg-[var(--piclick-beige)] px-6 text-sm font-semibold text-[var(--piclick-green-deep)] transition hover:bg-white"
             >
               {t("cta.button")}
-            </LocaleLink>
+            </button>
           </div>
         </section>
 
@@ -176,6 +319,14 @@ export default function PiclickHome() {
       </main>
 
       <SiteFooter maxWidthClassName="piclick-container" />
+
+      <LoginModal
+        open={isLoginModalOpen}
+        initialMode={authModalMode}
+        nextPath="/"
+        onClose={closeAuthModal}
+        onAuthenticated={handleAuthenticated}
+      />
     </div>
   );
 }
