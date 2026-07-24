@@ -19,6 +19,43 @@
     "save": "저장",
     "processing": "처리 중..."
   },
+  "piclick": {
+    "nav": {
+      "features": "기능"
+    },
+    "hero": {
+      "headline": "코트 예약부터 모임까지, 피클볼을 한곳에서",
+      "sub": "가까운 코트를 예약하고, 함께 칠 사람을 만나고, 대관·클럽·광고까지 Piclick에서 이어 보세요.",
+      "ctaPrimary": "기능 살펴보기",
+      "ctaSecondary": "시작하기"
+    },
+    "features": {
+      "eyebrow": "What you can do",
+      "heading": "예약 · 모임 · 대관 · 광고",
+      "sub": "피클볼을 치는 사람, 모임을 만드는 사람, 코트를 운영하는 사람 모두를 위한 흐름입니다.",
+      "booking": {
+        "title": "코트 예약",
+        "body": "실내·야외 피클볼 코트의 빈 시간을 확인하고 예약하세요. 단발부터 정기 슬롯까지 찾기 쉽게 정리합니다."
+      },
+      "community": {
+        "title": "모임 커뮤니티",
+        "body": "레벨·지역·시간에 맞는 오픈 게임과 클럽 모임을 만들고 참가하세요. 초보부터 매치까지 연결합니다."
+      },
+      "venue": {
+        "title": "대관",
+        "body": "모임·리그·이벤트를 위한 코트·시설 대관을 신청하고 운영자와 일정을 맞출 수 있습니다."
+      },
+      "ads": {
+        "title": "클럽 · 광고",
+        "body": "레슨, 클럽, 용품, 코트 시설 운영자는 Piclick에서 피클볼 플레이어에게 자연스럽게 노출될 수 있습니다."
+      }
+    },
+    "cta": {
+      "heading": "다음 랠리는 Piclick에서",
+      "sub": "예약과 모임을 먼저 열어 두고, 대관·광고는 곧 이어집니다. 지금 계정을 만들어 두세요.",
+      "button": "무료로 시작하기"
+    }
+  },
   "tarot": {
     "steps": {
       "1": { "title": "리딩 영역 선택", "description": "지금 가장 깊이 들여다보고 싶은 질문의 영역을 골라 주세요. 선택하신 테마에 맞춰 카드의 흐름을 읽습니다." },
@@ -133,15 +170,15 @@
       "configLoadFailed": "비밀번호 재설정 설정을 불러올 수 없습니다."
     }
   },
-  "pages": {
-    "topicsTitle": "오늘의 타로·오늘의 운세·연애 타로",
-    "topicsDescription": "오늘의 타로, 오늘의 운세, 연애 타로, 이번 주 운세 등 검색 키워드에 맞춘 AI 타로 페이지입니다. 주제를 고르면 해당 테마로 바로 리딩을 시작할 수 있습니다.",
-    "guidesTitle": "타로 가이드",
-    "guidesDescription": "AI 타로를 처음 이용하시거나, 연애·커리어·오늘의 운세 등 주제별로 리딩을 받기 전에 참고할 수 있는 가이드 모음입니다.",
-    "guidesBack": "← 타로 가이드 목록",
-    "topicCta": "지금 바로 {heading} AI 타로 리딩을 시작해 보세요. 주제가 자동으로 선택됩니다.",
-    "topicStart": "{heading} 타로 시작하기",
-    "disclaimer": "멜로타로 AI 타로는 오락·자기성찰 목적이며, 의료·법률·투자 조언을 대체하지 않습니다."
+    "pages": {
+    "topicsTitle": "피클볼 예약·모임",
+    "topicsDescription": "피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고 등 Piclick의 주요 기능을 소개합니다.",
+    "guidesTitle": "피클볼 가이드",
+    "guidesDescription": "피클볼 초보 가이드, 코트 예약 팁, 모임 참여 방법, 대관·클럽 이용 안내를 모았습니다.",
+    "guidesBack": "← 가이드 목록",
+    "topicCta": "{heading} 기능을 Piclick에서 확인해 보세요.",
+    "topicStart": "{heading} 시작하기",
+    "disclaimer": "Piclick은 피클볼 예약·모임·대관을 위한 서비스입니다. 코트·시설 이용 시 각 운영 규정을 함께 확인해 주세요."
   },
   "mypage": {
     "title": "마이페이지",
@@ -159,24 +196,24 @@
     "subtitle": "회원 정보 및 닉네임을 관리합니다.",
     "nicknamePlaceholder": "닉네임을 입력해 주세요",
     "saving": "저장 중...",
-    "backToTarot": "← 타로 리딩으로 돌아가기",
-    "disclaimer": "멜로타로 AI 타로는 참고용 인사이트입니다. 중요한 결정은 본인의 판단과 전문가 상담을 함께 고려해 주세요."
+    "backToTarot": "← 홈으로 돌아가기",
+    "disclaimer": "Piclick은 피클볼 예약·모임·대관을 위한 서비스입니다. 코트·시설 이용 시 각 운영 규정을 함께 확인해 주세요."
   },
   "footer": {
     "siteNav": "사이트 링크",
     "legalNav": "법적 고지",
-    "tagline": "AI 타로 · 멜로타로",
+    "tagline": "피클볼 예약 · 모임 · 대관",
     "privacy": "개인정보처리방침",
     "terms": "이용약관",
-    "disclaimer": "© {year} {name}. AI 타로 리딩은 오락·자기성찰을 위한 참고 콘텐츠이며 예언·전문 자문이 아닙니다. 의료·법률·투자 판단을 대체하지 않습니다. 쿠키·광고(Google AdSense) 안내는 개인정보처리방침을 확인하세요."
+    "disclaimer": "© {year} {name}. 피클볼 코트·시설 이용은 각 운영자의 규정과 안전 수칙을 따릅니다. 쿠키·광고(Google AdSense) 안내는 개인정보처리방침을 확인하세요."
   },
   "seo": {
-    "homeTitle": "무료 타로·무료 AI 타로 | 오늘의 운세·오늘의 타로 — 멜로타로",
-    "homeDescription": "무료 타로·무료 AI 타로를 지금 바로. 오늘의 타로·오늘의 운세, 연애 타로, 이번 주 운세까지 로그인 후 무료로 카드를 뽑고 AI 타로 리딩을 받아 보세요. 온라인 무료 타로 사이트 멜로타로.",
-    "ogAlt": "멜로타로 — 무료 타로·무료 AI 타로·오늘의 운세",
-    "topicsMetaTitle": "무료 타로·무료 AI 타로 | 오늘의 운세·연애 타로",
-    "topicsMetaDescription": "무료 타로·무료 AI 타로, 오늘의 타로, 오늘의 운세, 연애 타로, 이번 주 운세 등 멜로타로 주제별 페이지입니다. 로그인 후 무료로 시작하세요.",
-    "guidesMetaTitle": "타로 가이드 | 무료 AI 타로·오늘의 운세·스프레드",
-    "guidesMetaDescription": "무료 AI 타로 이용법, 1장·3장 스프레드, 오늘의 운세 루틴, 연애·직장·재물 타로 질문 예시와 면책 가이드를 모았습니다."
+    "homeTitle": "피클볼 예약·모임·대관 | Piclick 피클릭",
+    "homeDescription": "Piclick에서 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고까지. 가까운 코트를 찾고 함께 칠 사람을 만나보세요.",
+    "ogAlt": "Piclick — 피클볼 예약·모임·대관",
+    "topicsMetaTitle": "피클볼 예약·모임 | Piclick",
+    "topicsMetaDescription": "피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고 등 Piclick의 주요 기능을 모아 둔 페이지입니다.",
+    "guidesMetaTitle": "피클볼 가이드 | Piclick",
+    "guidesMetaDescription": "피클볼 초보 가이드, 코트 예약 팁, 모임 참여 방법, 대관·클럽 이용 안내를 모았습니다."
   }
 }

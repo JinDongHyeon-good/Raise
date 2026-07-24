@@ -23,201 +23,201 @@ export type SeoLocaleCopy = {
 export const SEO_COPY: Record<AppLocale, SeoLocaleCopy> = {
   ko: {
     siteName: SERVICE_NAME,
-    homeTitle: "무료 타로·무료 AI 타로 | 오늘의 운세·오늘의 타로 — 멜로타로",
+    homeTitle: "피클볼 예약·모임·대관 | Piclick 피클릭",
     homeDescription:
-      "무료 타로·무료 AI 타로를 지금 바로. 오늘의 타로·오늘의 운세, 연애 타로, 이번 주 운세까지 로그인 후 무료로 카드를 뽑고 AI 타로 리딩을 받아 보세요. 온라인 무료 타로 사이트 멜로타로.",
-    ogAlt: "멜로타로 — 무료 타로·무료 AI 타로·오늘의 운세",
+      "Piclick에서 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고까지. 가까운 코트를 찾고 함께 칠 사람을 만나보세요.",
+    ogAlt: "Piclick — 피클볼 예약·모임·대관",
     schemaLanguage: "ko-KR",
     featureList: [
-      "무료 타로·무료 AI 타로 리딩",
-      "오늘의 타로·오늘의 운세",
-      "연애·직장·재물·주간 운세 주제 선택",
-      "1장·3장 타로 스프레드",
-      "78장 타로 카드",
-      "온라인 무료 타로",
+      "피클볼 코트 예약",
+      "피클볼 모임·커뮤니티",
+      "코트·시설 대관",
+      "클럽·레슨·광고 노출",
+      "초보부터 클럽까지 매칭",
+      "실시간 일정·참가 관리",
     ],
     faq: [
       {
-        question: "무료 타로·무료 AI 타로로 이용할 수 있나요?",
+        question: "Piclick은 어떤 서비스인가요?",
         answer:
-          "네. 멜로타로는 로그인 후 기본 AI 타로 리딩을 무료로 이용할 수 있는 무료 타로·무료 AI 타로 서비스입니다. 오늘의 타로, 오늘의 운세, 연애 타로 등도 무료로 시작할 수 있습니다.",
+          "Piclick(피클릭)은 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 한곳에서 연결하는 피클볼 플랫폼입니다.",
       },
       {
-        question: "오늘의 타로와 오늘의 운세는 어떻게 보나요?",
+        question: "코트 예약은 어떻게 하나요?",
         answer:
-          "멜로타로 홈에서 ‘오늘의 운세’ 주제를 고른 뒤 카드를 뽑으면 AI가 오늘 하루의 기운과 주의점을 타로 리딩으로 해석합니다. 주제별 페이지(오늘의 타로·오늘의 운세·무료 AI 타로)에서도 바로 시작할 수 있습니다.",
+          "원하는 지역·시간대를 고른 뒤 빈 코트를 확인하고 예약할 수 있습니다. 대관이 필요한 모임·리그도 같은 흐름으로 신청할 수 있어요.",
       },
       {
-        question: "멜로타로 AI 타로는 무엇인가요?",
+        question: "모임 커뮤니티는 무엇인가요?",
         answer:
-          "질문 주제와 뽑은 타로 카드를 바탕으로 AI가 리딩을 생성하는 무료 온라인 AI 타로 서비스입니다. 연애 타로, 직장·재물, 이번 주 운세 등에도 활용할 수 있습니다.",
+          "레벨·지역·시간에 맞는 피클볼 모임을 만들고 참가할 수 있는 커뮤니티입니다. 초보 오픈 게임부터 클럽 매치까지 연결합니다.",
       },
       {
-        question: "연애 타로·주간 운세도 무료인가요?",
+        question: "광고·클럽 홍보는 가능한가요?",
         answer:
-          "네. 연애·썸 타로, 이번 주 운세, 재물·직장 타로 등 주제별 페이지와 홈 주제 선택으로 무료 AI 타로 리딩을 받을 수 있습니다.",
+          "네. 클럽, 레슨, 용품, 코트 시설 운영자는 Piclick 광고·노출 영역으로 피클볼 플레이어에게 서비스를 알릴 수 있습니다.",
       },
     ],
-    homeSeoHeading: "무료 타로·무료 AI 타로 — 오늘의 운세·오늘의 타로",
+    homeSeoHeading: "피클볼 예약·모임·대관 — Piclick",
     homeSeoBody:
-      "멜로타로는 무료 타로·무료 AI 타로를 제공하는 온라인 타로 사이트입니다. 오늘의 타로, 오늘의 운세, 연애 타로, 이번 주 운세를 로그인 후 무료로 뽑고, 78장 카드와 AI 해석으로 하루의 기운과 실천 힌트를 정리해 보세요.",
+      "Piclick은 피클볼을 더 쉽게 치고, 모이고, 대관할 수 있게 돕는 서비스입니다. 코트 예약부터 커뮤니티 모임, 시설 대관, 클럽·광고까지 피클볼에 필요한 흐름을 한곳에서 이어 보세요.",
     homeSeoSections: [
       {
-        heading: "무료 타로·무료 AI 타로",
-        body: "카드 뽑기와 AI 타로 리딩의 기본 이용은 무료입니다. 타로 무료 보기, 온라인 무료 타로, AI 타로 무료로 검색하신 분도 멜로타로에서 바로 시작할 수 있습니다.",
+        heading: "피클볼 코트 예약",
+        body: "가까운 피클볼 코트의 빈 시간을 확인하고 예약하세요. 실내·야외 코트, 단발 예약부터 정기 슬롯까지 찾기 쉽게 정리합니다.",
       },
       {
-        heading: "오늘의 타로·오늘의 운세",
-        body: "아침이나 중요한 일정 전에 한 장으로 오늘의 타로를 보면 하루 태도를 빠르게 정할 수 있습니다. 운세 표현이 익숙하다면 오늘의 운세 주제로 동일하게 이용하세요.",
+        heading: "모임 커뮤니티",
+        body: "혼자 가기 부담스러울 때도 레벨·지역에 맞는 오픈 게임과 클럽 모임을 찾아 참가할 수 있습니다.",
       },
       {
-        heading: "연애·주간·재물 타로도",
-        body: "연애 타로, 이번 주 운세, 재물·직장 타로는 주제별 페이지에서 검색·공유하기 쉽게 정리되어 있습니다. 질문은 구체적일수록 실용적인 힌트가 나옵니다.",
+        heading: "대관·시설",
+        body: "모임·리그·이벤트를 위한 코트·시설 대관을 신청하고, 운영자와 일정을 맞출 수 있습니다.",
       },
       {
-        heading: "오락·참고 목적",
-        body: "모든 리딩은 예언이나 전문 자문이 아닙니다. 의료·법률·투자 결정은 본인 판단과 전문가 상담을 우선해 주세요.",
+        heading: "클럽·광고",
+        body: "레슨, 클럽, 용품, 코트 사업자는 Piclick에서 피클볼 플레이어에게 자연스럽게 노출될 수 있습니다.",
       },
     ],
-    homeSeoTopicsHeading: "인기 검색 주제",
-    topicsMetaTitle: "무료 타로·무료 AI 타로 | 오늘의 운세·연애 타로",
+    homeSeoTopicsHeading: "주요 기능",
+    topicsMetaTitle: "피클볼 예약·모임 | Piclick",
     topicsMetaDescription:
-      "무료 타로·무료 AI 타로, 오늘의 타로, 오늘의 운세, 연애 타로, 이번 주 운세 등 멜로타로 주제별 페이지입니다. 로그인 후 무료로 시작하세요.",
-    guidesMetaTitle: "타로 가이드 | 무료 AI 타로·오늘의 운세·스프레드",
+      "피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고 등 Piclick의 주요 기능을 모아 둔 페이지입니다.",
+    guidesMetaTitle: "피클볼 가이드 | Piclick",
     guidesMetaDescription:
-      "무료 AI 타로 이용법, 1장·3장 스프레드, 오늘의 운세 루틴, 연애·직장·재물 타로 질문 예시와 면책 가이드를 모았습니다.",
+      "피클볼 초보 가이드, 코트 예약 팁, 모임 참여 방법, 대관·클럽 이용 안내를 모았습니다.",
   },
   en: {
     siteName: SERVICE_NAME_EN,
-    homeTitle: "Free Tarot & Free AI Tarot | Today's Fortune — Melotaro",
+    homeTitle: "Pickleball Booking, Meetups & Courts | Piclick",
     homeDescription:
-      "Free tarot and free AI tarot online. Read today's tarot, daily fortune, love tarot, and weekly fortune—log in and draw cards for a free AI tarot reading on Melotaro.",
-    ogAlt: "Melotaro — free tarot, free AI tarot, daily fortune",
+      "Book pickleball courts, join meetups, rent venues, and grow your club on Piclick—reserve, play, and host in one place.",
+    ogAlt: "Piclick — pickleball booking, meetups & courts",
     schemaLanguage: "en",
     featureList: [
-      "Free tarot & free AI tarot readings",
-      "Today's tarot & daily fortune",
-      "Love, career, money, and weekly fortune topics",
-      "1-card and 3-card spreads",
-      "Full 78-card tarot deck",
-      "Free online tarot",
+      "Pickleball court booking",
+      "Meetup community",
+      "Venue & court rental",
+      "Club & lesson discovery",
+      "Ads for pickleball businesses",
+      "Schedule & RSVP tools",
     ],
     faq: [
       {
-        question: "Is Melotaro free tarot / free AI tarot?",
+        question: "What is Piclick?",
         answer:
-          "Yes. After logging in you can use basic AI tarot readings for free—including today's tarot, daily fortune, and love tarot.",
+          "Piclick is a pickleball platform for court booking, meetups, venue rental, and club or business ads—so you can reserve, play, and host in one place.",
       },
       {
-        question: "How do I read today's tarot or daily fortune?",
+        question: "How do I book a court?",
         answer:
-          "Choose the daily fortune topic, draw cards, and AI interprets today's energy. You can also start from the Today's Tarot, Today's Fortune, or Free AI Tarot topic pages.",
+          "Pick a location and time, check open courts, and reserve. Group rentals for meetups and leagues follow the same flow.",
       },
       {
-        question: "What is Melotaro AI tarot?",
+        question: "What is the meetup community?",
         answer:
-          "A free online AI tarot service that generates readings from your topic and drawn cards—love, career, money, weekly fortune, and more.",
+          "Find or create open games and club sessions by level, area, and schedule—from beginner-friendly play to competitive matches.",
       },
       {
-        question: "Are love tarot and weekly fortune free too?",
+        question: "Can clubs advertise?",
         answer:
-          "Yes. Use topic pages or the home topic picker for free AI tarot readings on love, weekly fortune, money, and career.",
+          "Yes. Clubs, coaches, gear shops, and venue operators can reach pickleball players through Piclick placements.",
       },
     ],
-    homeSeoHeading: "Free Tarot & Free AI Tarot — Today's Fortune & Today's Tarot",
+    homeSeoHeading: "Pickleball booking, meetups & courts — Piclick",
     homeSeoBody:
-      "Melotaro is a free online tarot site with free AI tarot readings. Draw today's tarot, daily fortune, love tarot, or weekly fortune after login—78 cards and AI interpretation for the day's energy and next steps.",
+      "Piclick helps you book courts, join meetups, rent venues, and promote clubs—everything you need to play more pickleball, in one place.",
     homeSeoSections: [
       {
-        heading: "Free tarot & free AI tarot",
-        body: "Basic card draws and AI readings are free. If you searched for free tarot reading, free online tarot, or AI tarot free, you can start here.",
+        heading: "Court booking",
+        body: "Find nearby indoor and outdoor courts and reserve open slots—single sessions or recurring times.",
       },
       {
-        heading: "Today's tarot & daily fortune",
-        body: "A one-card morning draw helps set the day's mindset. Prefer 'fortune' wording? Use the daily fortune topic the same way.",
+        heading: "Meetup community",
+        body: "Join open games and club meetups matched to your level, area, and schedule.",
       },
       {
-        heading: "Love, weekly & money too",
-        body: "Love tarot, weekly fortune, and career/money pages are organized for search and sharing. Specific questions yield more practical hints.",
+        heading: "Venue rental",
+        body: "Request courts and facilities for groups, leagues, and events, then align schedules with operators.",
       },
       {
-        heading: "Entertainment only",
-        body: "Readings are not prophecy or professional advice. For medical, legal, or investment decisions, prioritize your judgment and experts.",
+        heading: "Clubs & ads",
+        body: "Lessons, clubs, gear, and venues can reach players naturally on Piclick.",
       },
     ],
-    homeSeoTopicsHeading: "Popular topics",
-    topicsMetaTitle: "Free Tarot & Free AI Tarot | Daily Fortune & Love",
+    homeSeoTopicsHeading: "Core features",
+    topicsMetaTitle: "Pickleball booking & meetups | Piclick",
     topicsMetaDescription:
-      "Free tarot, free AI tarot, today's tarot, daily fortune, love tarot, weekly fortune, and more on Melotaro. Log in and start free.",
-    guidesMetaTitle: "Tarot Guides | Free AI Tarot, Daily Fortune & Spreads",
+      "Explore Piclick features: pickleball court booking, meetup community, venue rental, and club ads.",
+    guidesMetaTitle: "Pickleball guides | Piclick",
     guidesMetaDescription:
-      "How to use free AI tarot, 1-card vs 3-card spreads, daily fortune routines, and love/career/money question examples.",
+      "Beginner tips, court booking advice, how to join meetups, and venue or club guides on Piclick.",
   },
   ja: {
     siteName: SERVICE_NAME_JA,
-    homeTitle: "無料タロット・無料AIタロット | 今日の運勢 — メロタロ",
+    homeTitle: "ピックルボール予約・コミュニティ・コート | Piclick",
     homeDescription:
-      "無料タロット・無料AIタロットを今すぐ。今日のタロット・今日の運勢、恋愛タロット、今週の運勢まで、ログイン後無料でカードを引いてAIリーディング。オンライン無料タロット メロタロ。",
-    ogAlt: "メロタロ — 無料タロット・無料AIタロット・今日の運勢",
+      "Piclickでピックルボールのコート予約、コミュニティ、レンタル、クラブ・広告まで。近くのコートを見つけて一緒にプレーしましょう。",
+    ogAlt: "Piclick — ピックルボール予約・コミュニティ・コート",
     schemaLanguage: "ja",
     featureList: [
-      "無料タロット・無料AIタロットリーディング",
-      "今日のタロット・今日の運勢",
-      "恋愛・仕事・金運・週間運勢テーマ",
-      "1枚・3枚スプレッド",
-      "78枚フルデッキ",
-      "オンライン無料タロット",
+      "ピックルボールコート予約",
+      "ミートアップコミュニティ",
+      "コート・施設レンタル",
+      "クラブ・レッスン発見",
+      "広告・露出",
+      "スケジュール・参加管理",
     ],
     faq: [
       {
-        question: "無料タロット・無料AIタロットで使えますか？",
+        question: "Piclickとは何ですか？",
         answer:
-          "はい。メロタロはログイン後の基本AIタロットリーディングを無料で使える無料タロット・無料AIタロットサービスです。今日のタロットや今日の運勢も無料で始められます。",
+          "Piclickはピックルボールのコート予約、コミュニティ、レンタル、クラブ・広告をつなぐプラットフォームです。",
       },
       {
-        question: "今日のタロット・今日の運勢の見方は？",
+        question: "コート予約の方法は？",
         answer:
-          "メロタロで「今日の運勢」テーマを選びカードを引くと、AIが一日の気配と注意点を解釈します。テーマ別ページ（今日のタロット・今日の運勢・無料AIタロット）からも開始できます。",
+          "エリアと時間を選び、空きコートを確認して予約できます。集まりやリーグ向けのレンタルも同じ流れで申請できます。",
       },
       {
-        question: "メロタロ AIタロットとは？",
+        question: "コミュニティ機能とは？",
         answer:
-          "選んだテーマと引いたカードをもとにAIがリーディングを生成する無料オンラインAIタロットです。恋愛・仕事・金運・今週の運勢にも使えます。",
+          "レベル・地域・時間に合うオープンゲームやクラブの集まりを作り、参加できるコミュニティです。",
       },
       {
-        question: "恋愛タロットや今週の運勢も無料ですか？",
+        question: "広告は出せますか？",
         answer:
-          "はい。テーマ別ページまたはホームのテーマ選択から、恋愛タロット、今週の運勢、金運・仕事も無料AIタロットとして利用できます。",
+          "はい。クラブ、レッスン、用品、コート運営者はPiclickの広告枠でプレイヤーにリーチできます。",
       },
     ],
-    homeSeoHeading: "無料タロット・無料AIタロット — 今日の運勢・今日のタロット",
+    homeSeoHeading: "ピックルボール予約・コミュニティ・コート — Piclick",
     homeSeoBody:
-      "メロタロは無料タロット・無料AIタロットを提供するオンラインタロットサイトです。今日のタロット、今日の運勢、恋愛タロット、今週の運勢をログイン後無料で引き、78枚デッキとAI解釈で一日の気配と行動のヒントを整理しましょう。",
+      "Piclickはコート予約からコミュニティ、レンタル、クラブ・広告まで、ピックルボールに必要な流れをひとつにつなぎます。",
     homeSeoSections: [
       {
-        heading: "無料タロット・無料AIタロット",
-        body: "カードを引くことと基本のAIリーディングは無料です。無料タロット診断、オンライン無料タロット、AIタロット無料で検索した方もここで始められます。",
+        heading: "コート予約",
+        body: "近くのインドア・アウトドアコートの空きを確認して予約。単発から定期枠まで探しやすく整理します。",
       },
       {
-        heading: "今日のタロット・今日の運勢",
-        body: "朝や大切な予定の前に1枚で今日のタロットを見ると、一日の心構えを早く決められます。「運勢」という言葉がしっくりくる場合は今日の運勢テーマで同じように利用できます。",
+        heading: "コミュニティ",
+        body: "レベルや地域に合うオープンゲーム・クラブ集まりを見つけて参加できます。",
       },
       {
-        heading: "恋愛・週間・金運も",
-        body: "恋愛タロット、今週の運勢、金運・仕事タロットはテーマ別に整理されています。質問が具体的なほど実用的なヒントが得られます。",
+        heading: "レンタル",
+        body: "集まり・リーグ・イベント向けのコート・施設レンタルを申請し、運営者と日程を合わせられます。",
       },
       {
-        heading: "娯楽・参考目的",
-        body: "リーディングは予言や専門助言ではありません。医療・法律・投資の判断はご自身と専門家を優先してください。",
+        heading: "クラブ・広告",
+        body: "レッスン、クラブ、用品、コートはPiclickでプレイヤーに自然に届きます。",
       },
     ],
-    homeSeoTopicsHeading: "人気の検索テーマ",
-    topicsMetaTitle: "無料タロット・無料AIタロット | 今日の運勢・恋愛",
+    homeSeoTopicsHeading: "主な機能",
+    topicsMetaTitle: "ピックルボール予約・コミュニティ | Piclick",
     topicsMetaDescription:
-      "無料タロット・無料AIタロット、今日のタロット、今日の運勢、恋愛タロット、今週の運勢などメロタロのテーマ別ページ。ログイン後無料で始められます。",
-    guidesMetaTitle: "タロットガイド | 無料AIタロット・今日の運勢・スプレッド",
+      "ピックルボールのコート予約、コミュニティ、レンタル、クラブ・広告などPiclickの主な機能ページです。",
+    guidesMetaTitle: "ピックルボールガイド | Piclick",
     guidesMetaDescription:
-      "無料AIタロットの使い方、1枚・3枚スプレッド、今日の運勢ルーチン、恋愛・仕事・金運の質問例と安心して使うためのガイド。",
+      "初心者ガイド、コート予約のコツ、コミュニティ参加方法、レンタル・クラブ案内をまとめました。",
   },
 };
 

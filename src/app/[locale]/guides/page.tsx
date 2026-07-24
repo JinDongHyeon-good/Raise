@@ -16,6 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: { absolute: copy.guidesMetaTitle },
     description: copy.guidesMetaDescription,
+    robots: { index: false, follow: false },
     alternates: {
       canonical: localizedSeoPath("/guides", locale as AppLocale),
       languages: buildLanguageAlternates("/guides"),

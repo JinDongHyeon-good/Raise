@@ -62,10 +62,10 @@ function buildOpenGraph(
 }
 
 /** 구글 검색 제목·스니펫용 (홈·기본) — locale별 값은 getSeoCopy 참고 */
-export const SEO_HOME_TITLE = "무료 타로·무료 AI 타로 | 오늘의 운세·오늘의 타로 — 멜로타로";
+export const SEO_HOME_TITLE = "피클볼 예약·모임·대관 | Piclick 피클릭";
 
 export const SEO_HOME_DESCRIPTION =
-  "무료 타로·무료 AI 타로를 지금 바로. 오늘의 타로·오늘의 운세, 연애 타로, 이번 주 운세까지 로그인 후 무료로 카드를 뽑고 AI 타로 리딩을 받아 보세요.";
+  "Piclick에서 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고까지. 가까운 코트를 찾고 함께 칠 사람을 만나보세요.";
 
 const OG_IMAGE_PATH = "/ogImage.png";
 
@@ -110,11 +110,14 @@ export function buildRootMetadata(locale: AppLocale = defaultLocale): Metadata {
       images: [OG_IMAGE_PATH],
     },
     icons: {
-      icon: "/favicon.ico",
+      icon: [
+        { url: "/favicon.ico", sizes: "32x32" },
+        { url: "/favicon.png", sizes: "1024x1024", type: "image/png" },
+      ],
       shortcut: "/favicon.ico",
-      apple: "/favicon.ico",
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     },
-    category: "lifestyle",
+    category: "sports",
     other: {
       "application-name": SERVICE_NAME_EN,
       "google-adsense-account": GOOGLE_ADSENSE_CLIENT,
@@ -153,7 +156,7 @@ export function buildTopicPageMetadata(page: TarotTopicPage, locale: AppLocale =
       canonical: localizedSeoPath(path, locale),
       languages: buildLanguageAlternates(path),
     },
-    robots: { index: true, follow: true },
+    robots: { index: false, follow: false },
     openGraph: buildOpenGraph(page.title, page.description, path, locale),
     twitter: {
       card: "summary_large_image",
@@ -176,7 +179,7 @@ export function buildGuidePageMetadata(guide: TarotGuide, locale: AppLocale = de
       canonical: localizedSeoPath(path, locale),
       languages: buildLanguageAlternates(path),
     },
-    robots: { index: true, follow: true },
+    robots: { index: false, follow: false },
     openGraph: buildOpenGraph(guide.title, guide.description, path, locale),
     twitter: {
       card: "summary_large_image",
@@ -314,7 +317,7 @@ export function getGuidePageJsonLd(guide: TarotGuide, locale: AppLocale = defaul
         {
           "@type": "ListItem",
           position: 2,
-          name: locale === "ko" ? "타로 가이드" : locale === "ja" ? "タロットガイド" : "Tarot guides",
+          name: locale === "ko" ? "가이드" : locale === "ja" ? "ガイド" : "Guides",
           item: `${siteUrl}${localizedSeoPath("/guides", locale)}`,
         },
         {
@@ -343,7 +346,7 @@ export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[]
       "@id": `${homeUrl}#website`,
       url: homeUrl,
       name: copy.siteName,
-      alternateName: [SERVICE_NAME_EN, SERVICE_NAME, "Melotaro AI Tarot"],
+      alternateName: [SERVICE_NAME_EN, SERVICE_NAME, "피클릭", "Piclick Pickleball"],
       description: copy.homeDescription,
       inLanguage: copy.schemaLanguage,
     },
@@ -354,7 +357,7 @@ export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[]
       name: copy.siteName,
       alternateName: SERVICE_NAME_EN,
       url: homeUrl,
-      applicationCategory: "LifestyleApplication",
+      applicationCategory: "SportsApplication",
       operatingSystem: "Web",
       browserRequirements: "Requires JavaScript",
       description: copy.homeDescription,
@@ -396,39 +399,39 @@ export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[]
 
 /** 서비스 소개·FAQ 페이지용 문구 (한국어 기본; 홈 하단은 getSeoCopy 사용) */
 export const HOME_SEO_INTRO = {
-  heading: "무료 타로·무료 AI 타로 — 멜로타로",
-  body: `멜로타로는 무료 타로·무료 AI 타로로 오늘의 타로, 오늘의 운세, 연애 타로까지 한곳에서 뽑을 수 있는 온라인 타로 사이트입니다. ${SERVICE_TAGLINE}. 로그인 후 78장 카드와 AI 해석을 무료로 이용해 보세요.`,
+  heading: "피클볼 예약·모임·대관 — Piclick",
+  body: `Piclick은 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 한곳에서 연결하는 서비스입니다. ${SERVICE_TAGLINE}. 가까운 코트를 찾고, 함께 칠 사람을 만나고, 시설을 대관해 보세요.`,
 };
 
 export const HOME_SEO_FAQ: Array<{ question: string; answer: string }> = [
   {
-    question: "멜로타로 AI 타로는 무엇인가요?",
+    question: "Piclick은 어떤 서비스인가요?",
     answer:
-      "질문 주제와 뽑은 타로 카드를 바탕으로 AI가 리딩을 작성해 주는 온라인 AI 타로 서비스입니다. 연애, 직장, 재물, 오늘의 운세 등에서 활용할 수 있으며, 결과는 참고용 인사이트로 이해해 주세요.",
+      "Piclick(피클릭)은 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 연결하는 피클볼 플랫폼입니다.",
   },
   {
-    question: "AI 타로는 어떻게 이용하나요?",
+    question: "코트 예약은 어떻게 하나요?",
     answer:
-      "리딩 영역 선택 → 궁금한 점 입력(선택) → 카드 스프레드 선택 후 뽑기 → 로그인 후 AI 타로 리딩 결과 확인 순서로 진행합니다. 가이드 글에서 질문 예시와 스프레드 선택 팁도 확인할 수 있습니다.",
+      "지역과 시간을 고른 뒤 빈 코트를 확인하고 예약합니다. 모임·리그를 위한 대관도 같은 흐름으로 신청할 수 있습니다.",
   },
   {
-    question: "어떤 주제의 타로를 볼 수 있나요?",
+    question: "모임 커뮤니티는 무엇인가요?",
     answer:
-      "오늘의 운세, 연애·썸, 커플, 재물, 취업·이직, 사업, 학업, 마음·힐링, 선택·결정 등 다양한 AI 타로 주제를 제공합니다.",
+      "레벨·지역·시간에 맞는 오픈 게임과 클럽 모임을 만들고 참가할 수 있는 커뮤니티입니다.",
   },
   {
-    question: "타로 결과가 사실인가요? 미래를 예측하나요?",
+    question: "대관은 누가 이용하나요?",
     answer:
-      "아니요. 멜로타로 리딩은 오락·자기성찰 목적의 참고 콘텐츠이며 사실 보장이나 확정된 예언이 아닙니다. 의료·법률·투자 등 중요한 결정은 전문가 상담과 본인 판단을 우선하세요.",
+      "정기 모임, 리그, 이벤트 등 코트가 필요한 개인·클럽·운영자가 시설 대관을 신청하고 일정을 맞출 수 있습니다.",
   },
   {
-    question: "무료로 이용할 수 있나요?",
+    question: "광고·클럽 홍보는 가능한가요?",
     answer:
-      "로그인 후 기본 AI 타로 리딩을 무료로 이용할 수 있습니다. 서비스 운영을 위해 일부 페이지에 광고가 표시될 수 있으며, 쿠키·광고 관련 내용은 개인정보처리방침을 참고해 주세요.",
+      "네. 클럽, 레슨, 용품, 코트 시설 운영자는 Piclick 광고·노출로 피클볼 플레이어에게 서비스를 알릴 수 있습니다. 쿠키·광고 안내는 개인정보처리방침을 참고해 주세요.",
   },
   {
     question: "문의는 어디로 하면 되나요?",
     answer:
-      "문의 페이지의 이메일(wlsehdgus23@gmail.com) 또는 전화(010-3230-1521)로 연락해 주세요. 계정·오류·개인정보·광고 정책 관련 문의를 접수합니다.",
+      "문의 페이지의 이메일(wlsehdgus23@gmail.com) 또는 전화(010-3230-1521)로 연락해 주세요. 계정·오류·개인정보·제휴·광고 관련 문의를 접수합니다.",
   },
 ];

@@ -59,8 +59,8 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         onClick={() => setOpen((prev) => !prev)}
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border p-0 leading-none transition-all duration-200 ${
           open
-            ? "border-violet-200 bg-violet-50 text-violet-600 shadow-sm ring-2 ring-violet-100"
-            : "border-slate-200 bg-white text-slate-500 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+            ? "border-[var(--piclick-green)]/30 bg-[var(--piclick-beige-soft)] text-[var(--piclick-green)] shadow-sm ring-2 ring-[var(--piclick-green)]/15"
+            : "border-[var(--piclick-green)]/15 bg-white text-[var(--piclick-ink-muted)] shadow-sm hover:border-[var(--piclick-green)]/30 hover:bg-[var(--piclick-beige-soft)] hover:text-[var(--piclick-green-deep)]"
         }`}
       >
         <Globe className="h-4 w-4" strokeWidth={1.75} aria-hidden />
@@ -90,15 +90,15 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
                   onClick={() => selectLocale(code)}
                   className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors duration-150 ${
                     isActive
-                      ? "bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 text-violet-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-[var(--piclick-beige-soft)] text-[var(--piclick-green-deep)]"
+                      : "text-[var(--piclick-ink)] hover:bg-[var(--piclick-beige)]/70"
                   }`}
                 >
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold tracking-wide ${
                       isActive
-                        ? "bg-white text-violet-600 shadow-sm ring-1 ring-violet-100"
-                        : "bg-slate-100 text-slate-500"
+                        ? "bg-white text-[var(--piclick-green)] shadow-sm ring-1 ring-[var(--piclick-green)]/20"
+                        : "bg-[var(--piclick-beige)] text-[var(--piclick-ink-muted)]"
                     }`}
                   >
                     {localeMeta[code].code}
@@ -107,7 +107,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
                     {localeLabels[code]}
                   </span>
                   {isActive ? (
-                    <Check className="h-4 w-4 shrink-0 text-violet-500" strokeWidth={2.25} aria-hidden />
+                    <Check className="h-4 w-4 shrink-0 text-[var(--piclick-green)]" strokeWidth={2.25} aria-hidden />
                   ) : (
                     <span className="h-4 w-4 shrink-0" aria-hidden />
                   )}

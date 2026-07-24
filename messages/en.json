@@ -19,11 +19,57 @@
     "save": "Save",
     "processing": "Processing..."
   },
+  "piclick": {
+    "nav": {
+      "features": "Features"
+    },
+    "hero": {
+      "headline": "Book courts, join meetups, play more pickleball",
+      "sub": "Reserve nearby courts, find people to play with, and connect rentals, clubs, and ads—all on Piclick.",
+      "ctaPrimary": "Explore features",
+      "ctaSecondary": "Get started"
+    },
+    "features": {
+      "eyebrow": "What you can do",
+      "heading": "Book · Meet · Rent · Promote",
+      "sub": "Built for players, organizers, and venue operators who want more pickleball with less friction.",
+      "booking": {
+        "title": "Court booking",
+        "body": "Check open indoor and outdoor courts and reserve—from one-off sessions to recurring slots."
+      },
+      "community": {
+        "title": "Meetup community",
+        "body": "Create or join open games and club sessions by level, area, and schedule."
+      },
+      "venue": {
+        "title": "Venue rental",
+        "body": "Request courts and facilities for groups, leagues, and events, then align schedules with operators."
+      },
+      "ads": {
+        "title": "Clubs & ads",
+        "body": "Lessons, clubs, gear, and venues can reach pickleball players naturally on Piclick."
+      }
+    },
+    "cta": {
+      "heading": "Your next rally starts on Piclick",
+      "sub": "Booking and meetups come first—rentals and ads follow. Create an account to get ready.",
+      "button": "Start free"
+    }
+  },
   "tarot": {
     "steps": {
-      "1": { "title": "Choose a reading area", "description": "Pick the theme that matches what you want to explore." },
-      "2": { "title": "Your question", "description": "Write what is on your mind." },
-      "3": { "title": "Draw cards", "description": "After drawing cards, tap View result to see your AI tarot reading." }
+      "1": {
+        "title": "Choose a reading area",
+        "description": "Pick the theme that matches what you want to explore."
+      },
+      "2": {
+        "title": "Your question",
+        "description": "Write what is on your mind."
+      },
+      "3": {
+        "title": "Draw cards",
+        "description": "After drawing cards, tap View result to see your AI tarot reading."
+      }
     },
     "questionOptional": "You can continue without writing a question.",
     "spreadAria": "Number of cards to draw",
@@ -134,14 +180,14 @@
     }
   },
   "pages": {
-    "topicsTitle": "Today's tarot, daily fortune & love tarot",
-    "topicsDescription": "Topic landings for today's tarot, daily fortune, love tarot, weekly fortune, and more. Pick a theme to start a reading.",
-    "guidesTitle": "Tarot guides",
-    "guidesDescription": "Reference articles on AI tarot, spreads, love, career, and daily fortune readings.",
-    "guidesBack": "← All tarot guides",
-    "topicCta": "Start your {heading} AI tarot reading now. The topic will be selected automatically.",
-    "topicStart": "Start {heading} tarot",
-    "disclaimer": "Melotaro AI tarot is for entertainment and self-reflection, not medical, legal, or investment advice."
+    "topicsTitle": "Pickleball booking & meetups",
+    "topicsDescription": "Explore Piclick features: court booking, meetup community, venue rental, and club ads.",
+    "guidesTitle": "Pickleball guides",
+    "guidesDescription": "Beginner tips, court booking advice, how to join meetups, and venue or club guides.",
+    "guidesBack": "← All guides",
+    "topicCta": "Explore {heading} on Piclick.",
+    "topicStart": "Start {heading}",
+    "disclaimer": "Piclick helps you book, meet, and rent for pickleball. Always follow each venue's rules and safety guidelines."
   },
   "mypage": {
     "title": "My page",
@@ -159,24 +205,24 @@
     "subtitle": "Manage your profile and nickname.",
     "nicknamePlaceholder": "Enter a nickname",
     "saving": "Saving...",
-    "backToTarot": "← Back to tarot reading",
-    "disclaimer": "Melotaro AI tarot is for reference only. For important decisions, use your judgment and professional advice."
+    "backToTarot": "← Back to home",
+    "disclaimer": "Piclick is for pickleball booking, meetups, and venue rental. Follow each venue's rules when you play."
   },
   "footer": {
     "siteNav": "Site links",
     "legalNav": "Legal",
-    "tagline": "AI Tarot · Melotaro",
+    "tagline": "Pickleball · Reserve · Play · Host",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
-    "disclaimer": "© {year} {name}. AI tarot readings are for entertainment and self-reflection only—not prophecy or professional advice, and not a substitute for medical, legal, or investment decisions. See the Privacy Policy for cookies and Google AdSense."
+    "disclaimer": "© {year} {name}. Court and facility use follows each operator's rules and safety guidelines. See the Privacy Policy for cookies and Google AdSense."
   },
   "seo": {
-    "homeTitle": "Free Tarot & Free AI Tarot | Today's Fortune — Melotaro",
-    "homeDescription": "Free tarot and free AI tarot online. Read today's tarot, daily fortune, love tarot, and weekly fortune—log in and draw cards for a free AI tarot reading on Melotaro.",
-    "ogAlt": "Melotaro — free tarot, free AI tarot, daily fortune",
-    "topicsMetaTitle": "Free Tarot & Free AI Tarot | Daily Fortune & Love",
-    "topicsMetaDescription": "Free tarot, free AI tarot, today's tarot, daily fortune, love tarot, weekly fortune, and more on Melotaro. Log in and start free.",
-    "guidesMetaTitle": "Tarot Guides | Free AI Tarot, Daily Fortune & Spreads",
-    "guidesMetaDescription": "How to use free AI tarot, 1-card vs 3-card spreads, daily fortune routines, and love/career/money question examples."
+    "homeTitle": "Pickleball Booking, Meetups & Courts | Piclick",
+    "homeDescription": "Book pickleball courts, join meetups, rent venues, and grow your club on Piclick—reserve, play, and host in one place.",
+    "ogAlt": "Piclick — pickleball booking, meetups & courts",
+    "topicsMetaTitle": "Pickleball booking & meetups | Piclick",
+    "topicsMetaDescription": "Explore Piclick features: pickleball court booking, meetup community, venue rental, and club ads.",
+    "guidesMetaTitle": "Pickleball guides | Piclick",
+    "guidesMetaDescription": "Beginner tips, court booking advice, how to join meetups, and venue or club guides on Piclick."
   }
 }

@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: { absolute: copy.topicsMetaTitle },
     description: copy.topicsMetaDescription,
     keywords: copy.topicsMetaTitle.split(/[·|、,]/).map((s) => s.trim()).filter(Boolean),
+    robots: { index: false, follow: false },
     alternates: {
       canonical: localizedSeoPath("/topics", locale as AppLocale),
       languages: buildLanguageAlternates("/topics"),

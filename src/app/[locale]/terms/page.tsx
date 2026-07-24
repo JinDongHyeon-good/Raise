@@ -13,28 +13,29 @@ export default function TermsPage() {
     <SitePageShell title="이용약관">
       <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-800 sm:px-6">
         <h1 className="font-brand-display text-3xl text-slate-900 sm:text-4xl">이용약관</h1>
-        <p className="mt-4 text-sm text-slate-500">시행일: 2026-06-02 · 최종 개정일: 2026-07-19</p>
+        <p className="mt-4 text-sm text-slate-500">시행일: 2026-06-02 · 최종 개정일: 2026-07-24</p>
 
         <section className="mt-8 space-y-3 leading-7">
           <h2 className="text-xl font-semibold text-slate-800">1. 목적</h2>
           <p>
-            본 약관은 {SERVICE_NAME}가 제공하는 AI 타로 및 관련 콘텐츠 서비스의 이용 조건, 권리·의무 및 책임사항을
-            규정함을 목적으로 합니다.
+            본 약관은 {SERVICE_NAME}가 제공하는 피클볼 예약·모임 커뮤니티·대관·광고 및 관련 콘텐츠 서비스의 이용 조건,
+            권리·의무 및 책임사항을 규정함을 목적으로 합니다.
           </p>
         </section>
 
         <section className="mt-8 space-y-3 leading-7">
           <h2 className="text-xl font-semibold text-slate-800">2. 서비스 성격 (중요)</h2>
           <p>
-            본 서비스의 타로 리딩·운세·가이드 콘텐츠는 <strong>오락·자기성찰·참고</strong> 목적의 정보입니다. 결과는 사실
-            보장, 예언, 확정된 미래 예측, 또는 전문 자문(의료·법률·재무·투자·심리상담 등)을 의미하지 않습니다. 이용자는
-            결과를 독립적으로 해석하고, 중요한 결정에 대한 최종 책임을 집니다.
+            본 서비스는 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고 연결을 위한 플랫폼입니다. 코트·시설의 실제
+            이용 조건, 요금, 안전 수칙은 각 운영자의 규정을 따르며, {SERVICE_NAME}는 시설 운영자·이용자 간 거래의
+            당사자가 아닐 수 있습니다. 이용자는 예약·참가·대관 정보를 정확히 확인하고, 현장 안전에 대한 최종 책임을
+            집니다.
           </p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>건강·질병 진단·치료 조언을 제공하지 않습니다.</li>
-            <li>법률 해석·소송 결과 예측을 제공하지 않습니다.</li>
-            <li>투자·매매·재테크 종목 추천이나 수익을 보장하지 않습니다.</li>
-            <li>타인의 마음·행동을 단정하거나 조작하는 용도로 사용해서는 안 됩니다.</li>
+            <li>코트·시설의 운영 상태·가용성을 항상 보장하지 않습니다.</li>
+            <li>모임 참가자 간 분쟁·부상·손실에 대해 직접 책임지지 않습니다.</li>
+            <li>광고·홍보 콘텐츠의 정확성은 광고주·게시자에게 책임이 있습니다.</li>
+            <li>타인의 권리를 침해하거나 혐오·폭력·불법 콘텐츠를 게시·유포해서는 안 됩니다.</li>
           </ul>
         </section>
 
@@ -52,8 +53,8 @@ export default function TermsPage() {
           <h2 className="text-xl font-semibold text-slate-800">4. 콘텐츠·지식재산</h2>
           <p>
             서비스에 게시된 문구, UI, 가이드, 브랜드 요소 등의 권리는 {SERVICE_NAME} 또는 정당한 권리자에게 있습니다.
-            이용자는 개인적·비상업적 범위에서 서비스를 이용할 수 있으며, 무단 복제·배포·재판매를 해서는 안 됩니다. 타로
-            카드 이미지는 장식·참고용으로 제공되며, 별도 라이선스가 명시되지 않은 자산의 상업적 재사용은 금지됩니다.
+            이용자는 개인적·비상업적 범위에서 서비스를 이용할 수 있으며, 무단 복제·배포·재판매를 해서는 안 됩니다. 사용자가
+            업로드한 모임·대관·광고 콘텐츠의 책임은 게시자에게 있습니다.
           </p>
         </section>
 

@@ -1,6 +1,6 @@
 import type { Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { GOOGLE_ADSENSE_CLIENT, SERVICE_NAME_EN } from "@/lib/brand";
+import { GOOGLE_ADSENSE_CLIENT } from "@/lib/brand";
 import { brandDisplayFont } from "@/lib/brand-font";
 import "./globals.css";
 
@@ -18,7 +18,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#2D6A4F",
 };
 
 export default function RootLayout({
@@ -39,7 +39,7 @@ export default function RootLayout({
           suppressHydrationWarning
         />
       </head>
-      <body className="min-h-full flex flex-col bg-white text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col bg-[var(--piclick-beige-soft)] text-[var(--piclick-ink)]">{children}</body>
     </html>
   );
 }

@@ -1,8 +1,8 @@
-import { Jua } from "next/font/google";
+import { Outfit } from "next/font/google";
 
-/** 멜로타로 로고·브랜드 타이틀용 (둥근 한글 디스플레이) */
-export const brandDisplayFont = Jua({
-  weight: "400",
+/** Piclick 로고·브랜드 타이틀용 (모던 스포츠 디스플레이) */
+export const brandDisplayFont = Outfit({
+  weight: ["500", "600", "700", "800"],
   subsets: ["latin"],
   display: "swap",
   variable: "--font-brand-display",

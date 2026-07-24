@@ -5,7 +5,7 @@ import { SERVICE_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: "문의",
-  description: `${SERVICE_NAME} AI 타로 서비스 문의 및 고객 지원 연락처입니다.`,
+  description: `${SERVICE_NAME} 피클볼 예약·모임·대관 서비스 문의 및 고객 지원 연락처입니다.`,
 };
 
 export default function ContactPage() {

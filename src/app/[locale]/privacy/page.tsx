@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <SitePageShell title="개인정보처리방침">
       <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-800 sm:px-6">
         <h1 className="font-brand-display text-3xl text-slate-900 sm:text-4xl">개인정보처리방침</h1>
-        <p className="mt-4 text-sm text-slate-500">시행일: 2026-06-02 · 최종 개정일: 2026-07-19</p>
+        <p className="mt-4 text-sm text-slate-500">시행일: 2026-06-02 · 최종 개정일: 2026-07-24</p>
         <p className="mt-4 leading-7 text-slate-700">
           {SERVICE_NAME}(이하 &quot;서비스&quot;)는 이용자의 개인정보를 중요하게 여기며, 「개인정보 보호법」 등 관련 법령을 준수합니다.
           본 방침은 서비스가 어떤 정보를 왜 처리하는지, 광고·쿠키는 어떻게 운영되는지, 이용자가 어떤 권리를 갖는지 안내합니다.
@@ -23,9 +23,9 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold text-slate-800">1. 수집하는 정보</h2>
           <p>
             서비스는 제공에 필요한 최소한의 정보를 처리합니다. 로그인 시 이메일 계정 또는 Google 계정의 기본 프로필
-            정보(이메일, 이름, 프로필 이미지), 서비스 이용 과정에서 사용자가 직접 입력한 질문·선택값·리딩 기록이 포함될 수
-            있습니다. 또한 서비스 안정성과 품질 개선을 위해 접속 로그, 기기·브라우저 정보, IP 주소, 쿠키 식별자 등 자동
-            수집 정보가 생성될 수 있습니다.
+            정보(이메일, 이름, 프로필 이미지), 서비스 이용 과정에서 사용자가 직접 입력한 예약·모임·대관·프로필 정보가
+            포함될 수 있습니다. 또한 서비스 안정성과 품질 개선을 위해 접속 로그, 기기·브라우저 정보, IP 주소, 쿠키 식별자
+            등 자동 수집 정보가 생성될 수 있습니다.
           </p>
         </section>
 
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold text-slate-800">2. 이용 목적</h2>
           <ul className="list-disc space-y-1 pl-5">
             <li>회원 식별 및 로그인 제공</li>
-            <li>AI 타로 리딩 결과 생성 및 기록 관리</li>
+            <li>피클볼 예약·모임·대관·커뮤니티 기능 제공 및 기록 관리</li>
             <li>부정 이용 방지, 서비스 품질 개선, 문의 대응</li>
             <li>법령 준수 및 분쟁 대응</li>
             <li>서비스 내 광고 게재·측정(Google AdSense 등) 및 관련 통계 분석</li>

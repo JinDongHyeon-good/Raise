@@ -20,36 +20,30 @@ export function SitePageShell({
   const tagline = getLocalizedTagline(locale);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+    <div className="flex min-h-dvh flex-col bg-[var(--piclick-beige-soft)] text-[var(--piclick-ink)]">
+      <header className="border-b border-[var(--piclick-line)] bg-[var(--piclick-beige)]/90 backdrop-blur-sm">
+        <div className="piclick-container flex h-14 items-center justify-between sm:h-16">
           <LocaleLink
             href="/"
-            className="font-brand-display flex items-center gap-1.5 text-xl tracking-tight text-slate-900 hover:text-slate-700"
+            className="font-brand-display text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] hover:text-[var(--piclick-green)] sm:text-2xl"
           >
-            <span
-              aria-hidden
-              className="bg-gradient-to-br from-violet-500 to-fuchsia-500 bg-clip-text text-transparent"
-            >
-              ✦
-            </span>
             {brandName}
           </LocaleLink>
-          <nav className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs text-slate-600 sm:text-sm">
+          <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)]">
             <LanguageSwitcher />
-            <LocaleLink href="/contact" className="leading-none hover:text-slate-900 hover:underline">
+            <LocaleLink href="/contact" className="transition hover:text-[var(--piclick-green-deep)]">
               {t("contact")}
             </LocaleLink>
           </nav>
         </div>
         {title ? (
-          <div className="mx-auto w-full max-w-5xl px-4 pb-4 sm:px-6">
-            <p className="text-xs text-slate-500">{tagline}</p>
+          <div className="piclick-container pb-3">
+            <p className="text-xs text-[var(--piclick-ink-muted)]">{tagline}</p>
           </div>
         ) : null}
       </header>
       <div className="flex-1">{children}</div>
-      <SiteFooter />
+      <SiteFooter maxWidthClassName="piclick-container" />
     </div>
   );
 }

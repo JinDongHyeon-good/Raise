@@ -1,21 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4efe6;
+  --foreground: #1a2e1f;
+  --piclick-green: #2f6b4f;
+  --piclick-green-deep: #1a3d2e;
+  --piclick-green-soft: #3f8a62;
+  --piclick-beige: #ebe3d4;
+  --piclick-beige-soft: #f4efe6;
+  --piclick-ink: #1a2e1f;
+  --piclick-ink-muted: #5a6f60;
+  --piclick-line: rgb(47 107 79 / 0.14);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-piclick-green: var(--piclick-green);
+  --color-piclick-green-deep: var(--piclick-green-deep);
+  --color-piclick-beige: var(--piclick-beige);
+  --color-piclick-beige-soft: var(--piclick-beige-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #f5f7fa;
-    --foreground: #0f172a;
+    --background: #f4efe6;
+    --foreground: #1a2e1f;
   }
 }
 
@@ -43,12 +55,39 @@ body {
 .trading-floor-page a,
 .trading-floor-page input[type="checkbox"],
 .tarot-home-page button,
-.tarot-home-page a {
+.tarot-home-page a,
+.piclick-home button,
+.piclick-home a {
   cursor: pointer;
 }
 
 .font-brand-display {
   font-family: var(--font-brand-display), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+.piclick-container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .piclick-container {
+    padding-inline: 1.75rem;
+  }
+}
+
+.piclick-home {
+  background: var(--piclick-beige-soft);
+  color: var(--piclick-ink);
+}
+
+.piclick-hero-bg {
+  background:
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgb(47 107 79 / 0.14), transparent 55%),
+    radial-gradient(ellipse 70% 55% at 100% 10%, rgb(235 227 212 / 0.95), transparent 50%),
+    linear-gradient(180deg, #ebe3d4 0%, #f4efe6 48%, #e8f0ea 100%);
 }
 
 .tarot-home-page {
