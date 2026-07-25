@@ -7,6 +7,8 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 type BoardEditorProps = {
   value: string;
@@ -16,6 +18,7 @@ type BoardEditorProps = {
 
 export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) {
   const t = useTranslations("board");
+  const [isUploading, setIsUploading] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -61,20 +64,25 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
       if (!file) return;
       const formData = new FormData();
       formData.append("file", file);
-      const response = await fetch("/api/board/upload-image", {
-        method: "POST",
-        body: formData,
-      });
-      if (response.status === 401) {
-        onNeedLogin?.();
-        return;
+      setIsUploading(true);
+      try {
+        const response = await fetch("/api/board/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+        if (response.status === 401) {
+          onNeedLogin?.();
+          return;
+        }
+        const data = (await response.json()) as { url?: string; error?: string };
+        if (!response.ok || !data.url) {
+          alert(data.error ?? t("imageUploadFailed"));
+          return;
+        }
+        editor.chain().focus().setImage({ src: data.url, alt: "board-image" }).run();
+      } finally {
+        setIsUploading(false);
       }
-      const data = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !data.url) {
-        alert(data.error ?? t("imageUploadFailed"));
-        return;
-      }
-      editor.chain().focus().setImage({ src: data.url, alt: "board-image" }).run();
     };
     input.click();
   };
@@ -82,7 +90,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
   if (!editor) return null;
 
   const toolClass = (active: boolean) =>
-    `rounded px-2.5 py-1.5 text-xs font-medium transition ${
+    `inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition disabled:opacity-60 ${
       active
         ? "bg-[var(--piclick-green)] text-white"
         : "bg-white text-[var(--piclick-ink-muted)] hover:bg-[var(--piclick-beige)] hover:text-[var(--piclick-ink)]"
@@ -107,7 +115,13 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
         <button type="button" onClick={handleInsertLink} className={toolClass(false)}>
           {t("toolbar.link")}
         </button>
-        <button type="button" onClick={() => void handleImageUpload()} className={toolClass(false)}>
+        <button
+          type="button"
+          onClick={() => void handleImageUpload()}
+          disabled={isUploading}
+          className={toolClass(false)}
+        >
+          {isUploading ? <Spinner size="sm" className="text-[var(--piclick-green)]" /> : null}
           {t("toolbar.image")}
         </button>
       </div>

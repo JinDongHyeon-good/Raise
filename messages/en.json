@@ -19,7 +19,8 @@
     "save": "Save",
     "processing": "Processing...",
     "community": "Community",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "pickleball": "About pickleball"
   },
   "dashboard": {
     "metaTitle": "Dashboard | Piclick",
@@ -30,7 +31,12 @@
     "soon": "Soon",
     "openBoard": "Open board",
     "openItem": "Open",
+    "openPickleball": "Read intro",
     "items": {
+      "pickleball": {
+        "title": "About pickleball",
+        "body": "What it is, how to play, and why it’s catching on—explained simply."
+      },
       "community": {
         "title": "Community board",
         "body": "Share meetup notes, find partners, and swap court tips with comments and likes."
@@ -51,6 +57,104 @@
         "title": "My page",
         "body": "Manage your nickname and posts."
       }
+    }
+  },
+  "pickleball": {
+    "metaTitle": "What is pickleball? | Piclick",
+    "metaDescription": "Learn what pickleball is, how to play, and why it’s growing so fast—explained simply on Piclick.",
+    "hero": {
+      "headline": "Pickleball: rallies you can join on day one",
+      "sub": "A smaller court than tennis, a slower ball than badminton. An easy sport for almost anyone to share.",
+      "ctaPrimary": "Go to dashboard",
+      "ctaSecondary": "Learn more"
+    },
+    "what": {
+      "eyebrow": "What is pickleball",
+      "heading": "A net sport with paddles and a plastic ball",
+      "body": "Pickleball is played on a badminton-sized court with solid paddles and a perforated plastic ball. The rules are simple and the ball moves relatively slowly, so first-timers can keep a rally going quickly."
+    },
+    "why": {
+      "eyebrow": "Why play",
+      "heading": "Why people fall for pickleball",
+      "sub": "It’s easy to learn, fun with others, and light enough to fit into a busy week.",
+      "items": {
+        "easy": {
+          "title": "Easy to learn",
+          "body": "Know the serve and a few basics, and you’re in a game. There’s no steep tennis-style learning curve."
+        },
+        "social": {
+          "title": "Built for groups",
+          "body": "Doubles is the norm, so conversation and teamwork come naturally—great for clubs and meetups."
+        },
+        "active": {
+          "title": "Gentle but active",
+          "body": "The court is compact, yet you still move. Intensity scales with your partners and pace."
+        }
+      }
+    },
+    "basics": {
+      "eyebrow": "The basics",
+      "heading": "Just a few things to know",
+      "sub": "Understand the gear and court, and you can start your first game.",
+      "items": {
+        "paddle": {
+          "title": "Paddle",
+          "body": "A solid wood or composite paddle—no strings. Stable feel and easy control for beginners."
+        },
+        "ball": {
+          "title": "Ball",
+          "body": "A plastic ball with holes. Air resistance keeps speed down and rallies longer."
+        },
+        "court": {
+          "title": "Court",
+          "body": "About the size of a badminton court with a center net. Play indoors or outdoors."
+        }
+      }
+    },
+    "play": {
+      "eyebrow": "How it works",
+      "heading": "How a game usually flows",
+      "steps": {
+        "serve": {
+          "title": "Underhand serve",
+          "body": "Serve upward from below, diagonally into the opposite court. Most games start as doubles."
+        },
+        "rally": {
+          "title": "Rallies and the kitchen",
+          "body": "Near the net is the non-volley zone (kitchen)—you can only hit after a bounce there. It cuts down on smash chaos and adds strategy."
+        },
+        "score": {
+          "title": "Scoring",
+          "body": "Games often go to 11 (win by 2). Local groups tweak details—check once before your first match."
+        }
+      }
+    },
+    "who": {
+      "eyebrow": "Who it's for",
+      "heading": "A good fit if you…",
+      "items": {
+        "beginner": {
+          "title": "Are starting a new sport",
+          "body": "The skill barrier is low—it doesn’t feel like “only experts belong here.”"
+        },
+        "friends": {
+          "title": "Want meetups with friends",
+          "body": "Four players is the default, so plans are easy and the rally is the fun—not just the score."
+        },
+        "families": {
+          "title": "Want something for families",
+          "body": "Different ages can share the same court without feeling left out."
+        }
+      }
+    },
+    "faq": {
+      "heading": "Pickleball FAQ",
+      "sub": "From rules and gear to court booking and venue rental—answers to the most common questions."
+    },
+    "cta": {
+      "heading": "Connect beyond the court",
+      "sub": "Browse the Piclick community, and get ready for booking and venue tools coming next.",
+      "dashboard": "Open dashboard"
     }
   },
   "board": {

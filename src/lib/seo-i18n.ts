@@ -1,5 +1,5 @@
 import type { AppLocale } from "@/i18n/routing";
-import { htmlLang, locales, openGraphLocales } from "@/i18n/routing";
+import { openGraphLocales } from "@/i18n/routing";
 import { SERVICE_NAME, SERVICE_NAME_EN, SERVICE_NAME_JA } from "@/lib/brand";
 
 export type SeoLocaleCopy = {
@@ -225,15 +225,14 @@ export function getSeoCopy(locale: AppLocale) {
   return SEO_COPY[locale] ?? SEO_COPY.ko;
 }
 
-export function localizedSeoPath(path: string, locale: AppLocale) {
+export function localizedSeoPath(path: string, _locale?: AppLocale) {
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  if (normalized === "/") return `/${locale}`;
-  return `/${locale}${normalized}`;
+  return normalized;
 }
 
 export function buildLanguageAlternates(path: string) {
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  return Object.fromEntries(locales.map((locale) => [htmlLang[locale], localizedSeoPath(normalized, locale)]));
+  return { ko: normalized };
 }
 
 export function getOpenGraphLocale(locale: AppLocale) {

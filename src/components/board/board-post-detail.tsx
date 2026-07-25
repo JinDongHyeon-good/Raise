@@ -7,6 +7,7 @@ import {
   type BoardPostSummary,
 } from "@/lib/board-types";
 import { BoardPostTypeBadge } from "@/components/board/board-post-type-badge";
+import { Spinner } from "@/components/ui/spinner";
 import { Heart, MessageCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AppLocale } from "@/i18n/routing";
@@ -138,8 +139,8 @@ function CommentItem({
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
-              className="rounded-lg px-3 py-1.5 text-xs text-[var(--piclick-ink-muted)]"
+                onClick={() => setIsEditing(false)}
+                className="pk-btn pk-btn-xs pk-btn-ghost font-medium"
             >
               {t("cancel")}
             </button>
@@ -147,8 +148,9 @@ function CommentItem({
               type="button"
               disabled={isSaving}
               onClick={() => void saveEdit()}
-              className="rounded-lg bg-[var(--piclick-green)] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+              className="pk-btn pk-btn-xs pk-btn-primary"
             >
+              {isSaving ? <Spinner size="sm" /> : null}
               {t("save")}
             </button>
           </div>
@@ -211,14 +213,14 @@ export function BoardPostDetail({
               <button
                 type="button"
                 onClick={onEditPost}
-                className="rounded-lg border border-[var(--piclick-line)] px-3 py-1.5 text-xs font-medium text-[var(--piclick-ink)] hover:bg-[var(--piclick-beige-soft)]"
+                className="pk-btn pk-btn-xs pk-btn-neutral font-medium"
               >
                 {t("edit")}
               </button>
               <button
                 type="button"
                 onClick={onDeletePost}
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                className="pk-btn pk-btn-xs pk-btn-danger font-medium"
               >
                 {t("delete")}
               </button>
@@ -279,7 +281,7 @@ export function BoardPostDetail({
             <button
               type="button"
               onClick={onCreateComment}
-              className="rounded-lg bg-[var(--piclick-green)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--piclick-green-deep)]"
+              className="pk-btn pk-btn-md pk-btn-primary"
             >
               {replyTarget ? t("submitReply") : t("submitComment")}
             </button>

@@ -7,6 +7,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: {
+      canonical: "/dashboard",
+      languages: { ko: "/dashboard" },
+    },
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      url: "/dashboard",
+      type: "website",
+      locale: "ko_KR",
+    },
   };
 }
 

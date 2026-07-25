@@ -90,6 +90,22 @@ body {
     linear-gradient(180deg, #ebe3d4 0%, #f4efe6 48%, #e8f0ea 100%);
 }
 
+.pickleball-hero-bg {
+  background:
+    linear-gradient(90deg, rgb(47 107 79 / 0.07) 1px, transparent 1px),
+    linear-gradient(rgb(47 107 79 / 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 60% at 85% 20%, rgb(63 138 98 / 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 80%, rgb(47 107 79 / 0.1), transparent 50%),
+    linear-gradient(165deg, #ebe3d4 0%, #f4efe6 42%, #e4efe8 100%);
+  background-size:
+    48px 48px,
+    48px 48px,
+    auto,
+    auto,
+    auto;
+}
+
+
 .piclick-login-modal-backdrop {
   background: rgb(26 46 31 / 0.32);
   backdrop-filter: blur(6px);
@@ -98,6 +114,157 @@ body {
 .piclick-login-modal {
   background: var(--piclick-beige-soft);
   border-color: var(--piclick-line);
+}
+
+/* Shared action-button scale: radius/height/padding live here so every
+   primary·secondary button in the product stays in sync.
+   Kept in the components layer so per-instance Tailwind utilities still win. */
+@layer components {
+  .pk-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      color 0.18s ease;
+  }
+
+  .pk-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .pk-btn-xs {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .pk-btn-sm {
+    height: 2.25rem;
+    padding-inline: 0.875rem;
+  }
+
+  .pk-btn-md {
+    height: 2.5rem;
+    padding-inline: 1rem;
+  }
+
+  .pk-btn-lg {
+    height: 2.75rem;
+    padding-inline: 1.5rem;
+  }
+
+  .pk-btn-block {
+    width: 100%;
+  }
+
+  .pk-btn-primary {
+    background: var(--piclick-green);
+    color: #ffffff;
+  }
+
+  .pk-btn-primary:hover:not(:disabled) {
+    background: var(--piclick-green-deep);
+  }
+
+  .pk-btn-outline {
+    border-color: color-mix(in srgb, var(--piclick-green) 25%, transparent);
+    color: var(--piclick-green-deep);
+  }
+
+  .pk-btn-outline:hover:not(:disabled) {
+    border-color: var(--piclick-green);
+    background: var(--piclick-beige);
+  }
+
+  .pk-btn-quiet {
+    border-color: var(--piclick-line);
+    color: var(--piclick-ink-muted);
+  }
+
+  .pk-btn-quiet:hover:not(:disabled) {
+    background: var(--piclick-beige-soft);
+    color: var(--piclick-ink);
+  }
+
+  .pk-btn-ghost {
+    color: var(--piclick-ink-muted);
+  }
+
+  .pk-btn-ghost:hover:not(:disabled) {
+    background: var(--piclick-beige-soft);
+    color: var(--piclick-ink);
+  }
+
+  .pk-btn-neutral {
+    border-color: var(--piclick-line);
+    color: var(--piclick-ink);
+  }
+
+  .pk-btn-neutral:hover:not(:disabled) {
+    background: var(--piclick-beige-soft);
+  }
+
+  .pk-btn-danger {
+    border-color: rgb(254 202 202);
+    color: rgb(220 38 38);
+  }
+
+  .pk-btn-danger:hover:not(:disabled) {
+    background: rgb(254 242 242);
+  }
+
+  /* On dark/green surfaces */
+  .pk-btn-invert {
+    background: var(--piclick-beige);
+    color: var(--piclick-green-deep);
+  }
+
+  .pk-btn-invert:hover:not(:disabled) {
+    background: #ffffff;
+  }
+
+  .pk-btn-invert-outline {
+    border-color: color-mix(in srgb, var(--piclick-beige) 35%, transparent);
+    color: var(--piclick-beige);
+  }
+
+  .pk-btn-invert-outline:hover:not(:disabled) {
+    border-color: var(--piclick-beige);
+    background: rgb(255 255 255 / 0.08);
+  }
+}
+
+.pk-spinner {
+  display: inline-block;
+  flex: none;
+  border-radius: 9999px;
+  border-style: solid;
+  border-color: currentColor;
+  border-top-color: transparent;
+  animation: pk-spin 0.65s linear infinite;
+}
+
+@keyframes pk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-spinner {
+    animation-duration: 1.6s;
+  }
 }
 
 .board-prose p {

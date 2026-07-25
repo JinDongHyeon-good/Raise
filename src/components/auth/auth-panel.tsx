@@ -8,6 +8,7 @@ import { getLocalizedBrandName } from "@/lib/brand";
 import { mapAuthErrorMessage } from "@/lib/auth-errors";
 import { getAuthCallbackUrl, getPasswordResetUrl } from "@/lib/auth-urls";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
+import { Spinner } from "@/components/ui/spinner";
 
 export type AuthMode = "login" | "signup" | "forgot";
 
@@ -293,7 +294,7 @@ export function AuthPanel({
             type="button"
             onClick={() => setShowEmailForm(true)}
             disabled={isLoading}
-            className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+            className="pk-btn pk-btn-lg pk-btn-primary pk-btn-block"
           >
             {t("emailLogin")}
           </button>
@@ -349,9 +350,10 @@ export function AuthPanel({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+              className="pk-btn pk-btn-lg pk-btn-primary pk-btn-block"
             >
-              {isLoading ? tc("processing") : t("emailLogin")}
+              {isLoading ? <Spinner size="sm" label={tc("processing")} /> : null}
+              {t("emailLogin")}
             </button>
           </form>
         ) : null}
@@ -361,7 +363,7 @@ export function AuthPanel({
             type="button"
             onClick={() => setShowEmailForm(true)}
             disabled={isLoading}
-            className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+            className="pk-btn pk-btn-lg pk-btn-primary pk-btn-block"
           >
             {t("signupAction")}
           </button>
@@ -422,9 +424,10 @@ export function AuthPanel({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+              className="pk-btn pk-btn-lg pk-btn-primary pk-btn-block"
             >
-              {isLoading ? tc("processing") : t("signupAction")}
+              {isLoading ? <Spinner size="sm" label={tc("processing")} /> : null}
+              {t("signupAction")}
             </button>
             {info ? (
               <button
@@ -457,9 +460,10 @@ export function AuthPanel({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+              className="pk-btn pk-btn-lg pk-btn-primary pk-btn-block"
             >
-              {isLoading ? tc("processing") : t("resetEmail")}
+              {isLoading ? <Spinner size="sm" label={tc("processing")} /> : null}
+              {t("resetEmail")}
             </button>
             <button
               type="button"
@@ -482,10 +486,10 @@ export function AuthPanel({
               type="button"
               onClick={() => void handleGoogleSignIn()}
               disabled={isLoading}
-              className="mt-4 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-70"
+              className="pk-btn pk-btn-lg pk-btn-block mt-4 border-slate-200 bg-white text-slate-800 shadow-sm hover:border-slate-300 hover:bg-slate-50"
             >
-              <GoogleIcon />
-              {isLoading ? t("moving") : t("googleContinue")}
+              {isLoading ? <Spinner size="sm" label={t("moving")} /> : <GoogleIcon />}
+              {t("googleContinue")}
             </button>
           </div>
         ) : null}

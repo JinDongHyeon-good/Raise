@@ -1,22 +1,33 @@
 import createIntlMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
-import { detectLocaleFromRequest } from "@/i18n/locale-detect";
 import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
 const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume", "/board", "/dashboard"] as const;
+const AUTH_REQUIRED_PREFIXES = ["/mypage"] as const;
 
-function stripLocalePrefix(pathname: string) {
+function stripLegacyLocalePrefix(pathname: string) {
   const match = pathname.match(/^\/(ko|en|ja)(\/.*)?$/);
-  if (!match) return pathname;
+  if (!match) return null;
   return match[2] || "/";
 }
 
+function barePathname(pathname: string) {
+  return stripLegacyLocalePrefix(pathname) ?? pathname;
+}
+
 function needsSessionRefresh(pathname: string) {
-  const bare = stripLocalePrefix(pathname);
+  const bare = barePathname(pathname);
   return SESSION_PATH_PREFIXES.some(
+    (prefix) => bare === prefix || bare.startsWith(`${prefix}/`),
+  );
+}
+
+function requiresAuth(pathname: string) {
+  const bare = barePathname(pathname);
+  return AUTH_REQUIRED_PREFIXES.some(
     (prefix) => bare === prefix || bare.startsWith(`${prefix}/`),
   );
 }
@@ -31,12 +42,19 @@ function shouldSkipIntl(pathname: string) {
   );
 }
 
-function pathnameHasLocale(pathname: string) {
-  return routing.locales.some((locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`));
+function copyCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((cookie) => {
+    to.cookies.set(cookie);
+  });
 }
 
-async function refreshSupabaseSession(request: NextRequest, response: NextResponse) {
-  if (stripLocalePrefix(request.nextUrl.pathname) === "/auth/signout") {
+async function refreshSupabaseSession(
+  request: NextRequest,
+  response: NextResponse,
+  options?: { requireAuth?: boolean },
+) {
+  const bare = barePathname(request.nextUrl.pathname);
+  if (bare === "/auth/signout") {
     return response;
   }
 
@@ -64,8 +82,8 @@ async function refreshSupabaseSession(request: NextRequest, response: NextRespon
         response.cookies.getAll().forEach((cookie) => {
           sessionResponse.cookies.set(cookie);
         });
-        cookiesToSet.forEach(({ name, value, options }) => {
-          sessionResponse.cookies.set(name, value, options);
+        cookiesToSet.forEach(({ name, value, options: cookieOptions }) => {
+          sessionResponse.cookies.set(name, value, cookieOptions);
         });
       },
     },
@@ -82,9 +100,7 @@ async function refreshSupabaseSession(request: NextRequest, response: NextRespon
       nextUrl.hash = "";
 
       const redirectResponse = NextResponse.redirect(nextUrl);
-      sessionResponse.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie);
-      });
+      copyCookies(sessionResponse, redirectResponse);
       redirectResponse.headers.set(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -95,7 +111,25 @@ async function refreshSupabaseSession(request: NextRequest, response: NextRespon
     console.error("[middleware] exchangeCodeForSession", error.message);
   }
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (options?.requireAuth && !user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/";
+    loginUrl.search = "";
+    loginUrl.searchParams.set("login", "1");
+    loginUrl.searchParams.set("next", bare);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    copyCookies(sessionResponse, redirectResponse);
+    redirectResponse.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    redirectResponse.headers.set("Vary", "Cookie");
+    return redirectResponse;
+  }
 
   sessionResponse.headers.set(
     "Cache-Control",
@@ -109,29 +143,29 @@ async function refreshSupabaseSession(request: NextRequest, response: NextRespon
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const legacyPath = stripLegacyLocalePrefix(pathname);
+  if (legacyPath !== null) {
+    const url = request.nextUrl.clone();
+    url.pathname = legacyPath;
+    return NextResponse.redirect(url);
+  }
+
+  const authRequired = requiresAuth(pathname);
+
   if (shouldSkipIntl(pathname)) {
-    if (needsSessionRefresh(pathname)) {
+    if (needsSessionRefresh(pathname) || authRequired) {
       const response = NextResponse.next({
         request: { headers: request.headers },
       });
-      return refreshSupabaseSession(request, response);
+      return refreshSupabaseSession(request, response, { requireAuth: authRequired });
     }
     return NextResponse.next();
   }
 
-  if (!pathnameHasLocale(pathname)) {
-    const locale = detectLocaleFromRequest(request);
-    const url = request.nextUrl.clone();
-    url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-    const redirect = NextResponse.redirect(url);
-    redirect.cookies.set("NEXT_LOCALE", locale, { path: "/", maxAge: 60 * 60 * 24 * 365 });
-    return redirect;
-  }
-
   const intlResponse = intlMiddleware(request);
 
-  if (needsSessionRefresh(pathname)) {
-    return refreshSupabaseSession(request, intlResponse);
+  if (needsSessionRefresh(pathname) || authRequired) {
+    return refreshSupabaseSession(request, intlResponse, { requireAuth: authRequired });
   }
 
   return intlResponse;

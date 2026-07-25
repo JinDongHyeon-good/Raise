@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useLocale, useTranslations } from "next-intl";
 import { Link as LocaleLink } from "@/navigation";
-import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { SiteFooter } from "@/components/site/site-footer";
 import { HomeSeoContent } from "@/components/seo/home-seo-content";
 import { LoginModal } from "@/components/auth/login-modal";
@@ -13,6 +11,7 @@ import type { AuthMode } from "@/components/auth/auth-panel";
 import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName, getLocalizedTagline } from "@/lib/brand";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
+import { useLocale, useTranslations } from "next-intl";
 
 const FEATURE_IDS = ["booking", "community", "venue", "ads"] as const;
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -27,6 +26,7 @@ export default function PiclickHome() {
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthMode>("login");
+  const [loginNextPath, setLoginNextPath] = useState("/dashboard");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -72,6 +72,22 @@ export default function PiclickHome() {
 
     return user;
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const wantsLogin = params.get("login") === "1";
+    const next = params.get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      setLoginNextPath(next);
+    }
+    if (wantsLogin) {
+      openAuthModal("login");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("login");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+  }, [openAuthModal]);
 
   useEffect(() => {
     let mounted = true;
@@ -126,7 +142,10 @@ export default function PiclickHome() {
   const handleAuthenticated = useCallback(async () => {
     await syncSession();
     setIsLoginModalOpen(false);
-  }, [syncSession]);
+    if (loginNextPath && loginNextPath !== "/" && loginNextPath !== window.location.pathname) {
+      window.location.assign(loginNextPath);
+    }
+  }, [loginNextPath, syncSession]);
 
   return (
     <div className="piclick-home flex min-h-dvh flex-col">
@@ -138,60 +157,45 @@ export default function PiclickHome() {
           >
             {brandName}
           </LocaleLink>
-          <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)] sm:gap-5">
-            <LanguageSwitcher />
-            <LocaleLink href="/dashboard" className="transition hover:text-[var(--piclick-green-deep)]">
-              {tc("dashboard")}
-            </LocaleLink>
-            <a href="#features" className="hidden transition hover:text-[var(--piclick-green-deep)] sm:inline">
-              {t("nav.features")}
-            </a>
-            <LocaleLink href="/about" className="hidden transition hover:text-[var(--piclick-green-deep)] sm:inline">
-              {tc("about")}
-            </LocaleLink>
-            <LocaleLink href="/contact" className="hidden transition hover:text-[var(--piclick-green-deep)] sm:inline">
-              {tc("contact")}
-            </LocaleLink>
+          <div ref={userMenuRef} className="relative">
+            {isLoggedIn ? (
+              <button
+                type="button"
+                aria-label={tc("userMenu")}
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border p-0 leading-none transition ${
+                  isUserMenuOpen
+                    ? "border-[var(--piclick-green)]/40 ring-2 ring-[var(--piclick-green)]/15"
+                    : "border-[var(--piclick-line)] bg-white hover:border-[var(--piclick-green)]/30"
+                }`}
+              >
+                {userAvatarUrl ? (
+                  <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-beige)] text-[10px] font-semibold leading-none text-[var(--piclick-green-deep)]">
+                    ME
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="pk-btn pk-btn-sm pk-btn-primary"
+              >
+                {tc("login")}
+              </button>
+            )}
 
-            <div ref={userMenuRef} className="relative">
-              {isLoggedIn ? (
-                <button
-                  type="button"
-                  aria-label={tc("userMenu")}
-                  aria-expanded={isUserMenuOpen}
-                  aria-haspopup="menu"
-                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border p-0 leading-none transition ${
-                    isUserMenuOpen
-                      ? "border-[var(--piclick-green)]/40 ring-2 ring-[var(--piclick-green)]/15"
-                      : "border-[var(--piclick-line)] bg-white hover:border-[var(--piclick-green)]/30"
-                  }`}
-                >
-                  {userAvatarUrl ? (
-                    <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-beige)] text-[10px] font-semibold leading-none text-[var(--piclick-green-deep)]">
-                      ME
-                    </span>
-                  )}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => openAuthModal("login")}
-                  className="inline-flex h-9 items-center rounded bg-[var(--piclick-green)] px-3.5 text-sm font-medium text-white transition hover:bg-[var(--piclick-green-deep)]"
-                >
-                  {tc("login")}
-                </button>
-              )}
-
-              <UserMenuDropdown
-                open={isLoggedIn && isUserMenuOpen}
-                onLogout={() => void handleLogout()}
-                onNavigate={() => setIsUserMenuOpen(false)}
-              />
-            </div>
-          </nav>
+            <UserMenuDropdown
+              open={isLoggedIn && isUserMenuOpen}
+              onLogout={() => void handleLogout()}
+              onNavigate={() => setIsUserMenuOpen(false)}
+              showAppLinks={false}
+            />
+          </div>
         </div>
       </header>
 
@@ -245,15 +249,9 @@ export default function PiclickHome() {
               >
                 <LocaleLink
                   href="/dashboard"
-                  className="inline-flex h-11 items-center justify-center rounded bg-[var(--piclick-green)] px-6 text-sm font-semibold text-white transition hover:bg-[var(--piclick-green-deep)]"
+                  className="pk-btn pk-btn-lg pk-btn-primary"
                 >
                   {t("hero.ctaPrimary")}
-                </LocaleLink>
-                <LocaleLink
-                  href="/dashboard"
-                  className="inline-flex h-11 items-center justify-center rounded border border-[var(--piclick-green)]/25 bg-transparent px-6 text-sm font-semibold text-[var(--piclick-green-deep)] transition hover:border-[var(--piclick-green)] hover:bg-[var(--piclick-beige)]"
-                >
-                  {t("hero.ctaSecondary")}
                 </LocaleLink>
               </motion.div>
             </div>
@@ -322,7 +320,7 @@ export default function PiclickHome() {
             </div>
             <LocaleLink
               href="/dashboard"
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded bg-[var(--piclick-beige)] px-6 text-sm font-semibold text-[var(--piclick-green-deep)] transition hover:bg-white"
+              className="pk-btn pk-btn-lg pk-btn-invert shrink-0"
             >
               {t("cta.button")}
             </LocaleLink>
@@ -337,7 +335,7 @@ export default function PiclickHome() {
       <LoginModal
         open={isLoginModalOpen}
         initialMode={authModalMode}
-        nextPath="/dashboard"
+        nextPath={loginNextPath}
         onClose={closeAuthModal}
         onAuthenticated={handleAuthenticated}
       />

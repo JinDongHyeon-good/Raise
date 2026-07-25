@@ -1,21 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
 import { Link as LocaleLink, usePathname } from "@/navigation";
-import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { SiteFooter } from "@/components/site/site-footer";
 import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
 import { LoginModal } from "@/components/auth/login-modal";
 import { getLocalizedBrandName } from "@/lib/brand";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 import type { AppLocale } from "@/i18n/routing";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type AuthMode = "login" | "signup";
 
 type AppShellProps = {
   children: React.ReactNode;
-  active?: "dashboard" | "board" | "mypage";
+  active?: "dashboard" | "board" | "mypage" | "pickleball";
   nextPath?: string;
   showFooter?: boolean;
   loginOpen?: boolean;
@@ -114,9 +113,11 @@ export function AppShell({
       ? "board"
       : pathname.startsWith("/mypage")
         ? "mypage"
-        : pathname.startsWith("/dashboard")
-          ? "dashboard"
-          : undefined);
+        : pathname.startsWith("/pickleball")
+          ? "pickleball"
+          : pathname.startsWith("/dashboard")
+            ? "dashboard"
+            : undefined);
 
   const navClass = (key: string) =>
     `transition hover:text-[var(--piclick-green-deep)] ${
@@ -126,21 +127,24 @@ export function AppShell({
   return (
     <div className="piclick-home flex min-h-dvh flex-col">
       <header className="sticky top-0 z-20 border-b border-[var(--piclick-line)] bg-[var(--piclick-beige)]/90 backdrop-blur-md">
-        <div className="piclick-container flex h-14 items-center justify-between sm:h-16">
+        <div className="piclick-container grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-3 sm:h-16">
           <LocaleLink
             href="/dashboard"
-            className="font-brand-display text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
+            className="font-brand-display justify-self-start text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
           >
             {brandName}
           </LocaleLink>
-          <nav className="flex items-center gap-3 text-sm text-[var(--piclick-ink-muted)] sm:gap-5">
-            <LanguageSwitcher />
-            <LocaleLink href="/dashboard" className={navClass("dashboard")}>
-              {tc("dashboard")}
-            </LocaleLink>
-            <LocaleLink href="/dashboard/board" className={`hidden sm:inline ${navClass("board")}`}>
+
+          <nav className="flex items-center justify-center gap-4 text-sm text-[var(--piclick-ink-muted)] sm:gap-7">
+            <LocaleLink href="/dashboard/board" className={navClass("board")}>
               {tc("community")}
             </LocaleLink>
+            <LocaleLink href="/pickleball" className={navClass("pickleball")}>
+              {tc("pickleball")}
+            </LocaleLink>
+          </nav>
+
+          <div className="flex items-center justify-self-end">
             <div ref={userMenuRef} className="relative">
               {isLoggedIn ? (
                 <button
@@ -167,7 +171,7 @@ export function AppShell({
                 <button
                   type="button"
                   onClick={() => openLogin("login")}
-                  className="inline-flex h-9 items-center rounded bg-[var(--piclick-green)] px-3.5 text-sm font-medium text-white transition hover:bg-[var(--piclick-green-deep)]"
+                  className="pk-btn pk-btn-sm pk-btn-primary"
                 >
                   {tc("login")}
                 </button>
@@ -176,9 +180,10 @@ export function AppShell({
                 open={isLoggedIn && isUserMenuOpen}
                 onLogout={() => void handleLogout()}
                 onNavigate={() => setIsUserMenuOpen(false)}
+                showAppLinks={false}
               />
             </div>
-          </nav>
+          </div>
         </div>
       </header>
 

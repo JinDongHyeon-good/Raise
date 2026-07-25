@@ -12,6 +12,7 @@ import {
 import { BoardEditor } from "@/components/board/board-editor";
 import { BoardPostList } from "@/components/board/board-post-list";
 import { BoardPostDetail } from "@/components/board/board-post-detail";
+import { LoadingBlock, Spinner } from "@/components/ui/spinner";
 
 type BoardTabProps = {
   onNeedLogin: () => void;
@@ -38,6 +39,8 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [isWriting, setIsWriting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [myAuthId, setMyAuthId] = useState<string | null>(null);
   const pageSize = 15;
 
@@ -71,6 +74,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
 
   const loadPostDetail = async (postId: string) => {
     setError(null);
+    setIsDetailLoading(true);
     try {
       const res = await fetch(`/api/board/posts/${postId}`, { cache: "no-store" });
       const data = (await res.json()) as { item?: BoardPostSummary; comments?: BoardCommentView[]; error?: string };
@@ -82,6 +86,8 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
       setReplyToId(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("errors.loadDetail"));
+    } finally {
+      setIsDetailLoading(false);
     }
   };
 
@@ -92,7 +98,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
       const uid = data.session?.user?.id ?? null;
       setMyAuthId(uid);
       if (!uid) {
-        setError(t("errors.loginRequired"));
+        setError(null);
         onNeedLogin();
         return null;
       }
@@ -129,46 +135,57 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
   };
 
   const handleCreatePost = async () => {
+    if (isSubmitting) return;
     const uid = await requireAuthOrOpen();
     if (!uid) return;
-    const res = await fetch("/api/board/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content_html: contentHtml, post_type: postType }),
-    });
-    const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
-    if (!res.ok || !data.item) {
-      setError(data.error ?? t("errors.createFailed"));
-      return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/board/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content_html: contentHtml, post_type: postType }),
+      });
+      const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
+      if (!res.ok || !data.item) {
+        setError(data.error ?? t("errors.createFailed"));
+        return;
+      }
+      setIsWriting(false);
+      setTitle("");
+      setPostType("free");
+      setContentHtml("");
+      await loadPosts(1);
+      await loadPostDetail(data.item.id);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsWriting(false);
-    setTitle("");
-    setPostType("free");
-    setContentHtml("");
-    await loadPosts(1);
-    await loadPostDetail(data.item.id);
   };
 
   const handleUpdatePost = async () => {
-    if (!selectedPostId) return;
+    if (!selectedPostId || isSubmitting) return;
     const uid = await requireAuthOrOpen();
     if (!uid) return;
-    const res = await fetch(`/api/board/posts/${selectedPostId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content_html: contentHtml, post_type: postType }),
-    });
-    const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
-    if (!res.ok || !data.item) {
-      setError(data.error ?? t("errors.updateFailed"));
-      return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/board/posts/${selectedPostId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content_html: contentHtml, post_type: postType }),
+      });
+      const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
+      if (!res.ok || !data.item) {
+        setError(data.error ?? t("errors.updateFailed"));
+        return;
+      }
+      setIsEditing(false);
+      setSelectedPost(data.item);
+      setTitle("");
+      setPostType("free");
+      setContentHtml("");
+      await loadPosts(page);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsEditing(false);
-    setSelectedPost(data.item);
-    setTitle("");
-    setPostType("free");
-    setContentHtml("");
-    await loadPosts(page);
   };
 
   const handleDeletePost = async () => {
@@ -246,6 +263,8 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
     await loadPosts(page);
   };
 
+  const isListBusy = isPostsLoading || isDetailLoading;
+
   const filterChipClass = (active: boolean) =>
     `rounded-full px-3 py-1.5 text-xs font-semibold transition ${
       active
@@ -278,7 +297,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
                 setIsWriting(false);
               }
             }}
-            className="inline-flex h-10 items-center rounded-lg bg-[var(--piclick-green)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--piclick-green-deep)]"
+            className="pk-btn pk-btn-md pk-btn-primary"
           >
             {t("write")}
           </button>
@@ -343,15 +362,18 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
                 setIsWriting(false);
                 setIsEditing(false);
               }}
-              className="rounded-lg border border-[var(--piclick-line)] px-4 py-2 text-sm text-[var(--piclick-ink-muted)] hover:bg-[var(--piclick-beige-soft)]"
+              disabled={isSubmitting}
+              className="pk-btn pk-btn-md pk-btn-quiet font-medium"
             >
               {t("cancel")}
             </button>
             <button
               type="button"
               onClick={() => void (isEditing ? handleUpdatePost() : handleCreatePost())}
-              className="rounded-lg bg-[var(--piclick-green)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--piclick-green-deep)]"
+              disabled={isSubmitting}
+              className="pk-btn pk-btn-md pk-btn-primary"
             >
+              {isSubmitting ? <Spinner size="sm" label={t("loading")} /> : null}
               {isEditing ? t("saveEdit") : t("publish")}
             </button>
           </div>
@@ -386,22 +408,29 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
         />
       ) : !isWriting && !isEditing ? (
         <>
-          {isPostsLoading && posts.length === 0 ? (
-            <p className="py-10 text-center text-sm text-[var(--piclick-ink-muted)]">{t("loading")}</p>
+          {isListBusy && posts.length === 0 ? (
+            <LoadingBlock label={t("loading")} />
           ) : (
-            <BoardPostList
-              posts={posts}
-              onSelect={(id) => void loadPostDetail(id)}
-              emptyMessage={typeFilter === "all" ? emptyMessage : t("emptyFiltered")}
-            />
+            <div className={`relative transition-opacity ${isListBusy ? "opacity-50" : ""}`}>
+              <BoardPostList
+                posts={posts}
+                onSelect={(id) => void loadPostDetail(id)}
+                emptyMessage={typeFilter === "all" ? emptyMessage : t("emptyFiltered")}
+              />
+              {isListBusy ? (
+                <div className="absolute inset-0 flex items-start justify-center pt-10">
+                  <Spinner size="lg" className="text-[var(--piclick-green)]" label={t("loading")} />
+                </div>
+              ) : null}
+            </div>
           )}
           {totalPages > 1 ? (
             <div className="flex items-center justify-between text-sm text-[var(--piclick-ink-muted)]">
               <button
                 type="button"
-                disabled={page <= 1}
+                disabled={page <= 1 || isListBusy}
                 onClick={() => void loadPosts(page - 1)}
-                className="rounded-lg border border-[var(--piclick-line)] px-3 py-1.5 disabled:opacity-40"
+                className="pk-btn pk-btn-sm pk-btn-quiet font-medium"
               >
                 {t("prev")}
               </button>
@@ -410,9 +439,9 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
               </span>
               <button
                 type="button"
-                disabled={page >= totalPages}
+                disabled={page >= totalPages || isListBusy}
                 onClick={() => void loadPosts(page + 1)}
-                className="rounded-lg border border-[var(--piclick-line)] px-3 py-1.5 disabled:opacity-40"
+                className="pk-btn pk-btn-sm pk-btn-quiet font-medium"
               >
                 {t("next")}
               </button>

@@ -33,7 +33,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getLocalizedBrandName, getLocalizedTagline } from "@/lib/brand";
-import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
 import type { AppLocale } from "@/i18n/routing";
 import {
@@ -970,8 +969,6 @@ export default function TarotHome({ initialTopic }: { initialTopic?: TarotTopicI
           </Link>
 
           <div className="flex shrink-0 items-center gap-2">
-            <LanguageSwitcher />
-
             <div
               ref={userMenuRef}
               className={`relative flex h-10 shrink-0 items-center justify-center ${isLoggedIn ? "w-10" : "w-auto"}`}

@@ -8,8 +8,9 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale;
   }
 
+  // 서빙은 항상 한국어 메시지
   return {
-    locale,
-    messages: (await import(`../../messages/${locale}.json`)).default,
+    locale: "ko",
+    messages: (await import(`../../messages/ko.json`)).default,
   };
 });

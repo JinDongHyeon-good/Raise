@@ -16,6 +16,7 @@ export function SiteFooter({ maxWidthClassName = "piclick-container" }: { maxWid
   const primaryLinks = useMemo(
     () => [
       { href: "/" as const, label: tc("home") },
+      { href: "/pickleball" as const, label: tc("pickleball") },
       { href: "/dashboard" as const, label: tc("dashboard") },
       { href: "/dashboard/board" as const, label: tc("community") },
       { href: "/about" as const, label: tc("about") },

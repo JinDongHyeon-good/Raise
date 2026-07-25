@@ -1,6 +1,5 @@
 "use client";
 
-import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Link as LocaleLink } from "@/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -24,18 +23,17 @@ export function SitePageShell({
       <header className="border-b border-[var(--piclick-line)] bg-[var(--piclick-beige)]/90 backdrop-blur-sm">
         <div className="piclick-container flex h-14 items-center justify-between sm:h-16">
           <LocaleLink
-            href="/"
+            href="/dashboard"
             className="font-brand-display text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] hover:text-[var(--piclick-green)] sm:text-2xl"
           >
             {brandName}
           </LocaleLink>
-          <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)]">
-            <LanguageSwitcher />
-            <LocaleLink href="/dashboard" className="transition hover:text-[var(--piclick-green-deep)]">
-              {t("dashboard")}
+          <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)] sm:gap-7">
+            <LocaleLink href="/dashboard/board" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("community")}
             </LocaleLink>
-            <LocaleLink href="/contact" className="transition hover:text-[var(--piclick-green-deep)]">
-              {t("contact")}
+            <LocaleLink href="/pickleball" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("pickleball")}
             </LocaleLink>
           </nav>
         </div>

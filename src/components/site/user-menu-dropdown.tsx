@@ -8,9 +8,11 @@ type UserMenuDropdownProps = {
   open: boolean;
   onLogout: () => void;
   onNavigate?: () => void;
+  /** 대시보드·커뮤니티 바로가기 노출 (랜딩에서는 숨김) */
+  showAppLinks?: boolean;
 };
 
-export function UserMenuDropdown({ open, onLogout, onNavigate }: UserMenuDropdownProps) {
+export function UserMenuDropdown({ open, onLogout, onNavigate, showAppLinks = true }: UserMenuDropdownProps) {
   const tc = useTranslations("common");
 
   return (
@@ -22,28 +24,32 @@ export function UserMenuDropdown({ open, onLogout, onNavigate }: UserMenuDropdow
           : "pointer-events-none -translate-y-1.5 scale-[0.97] opacity-0"
       }`}
     >
-      <Link
-        href="/dashboard"
-        role="menuitem"
-        onClick={onNavigate}
-        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--piclick-ink)] transition-colors hover:bg-[var(--piclick-beige-soft)]"
-      >
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--piclick-beige)] text-[var(--piclick-green-deep)]">
-          <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-        </span>
-        {tc("dashboard")}
-      </Link>
-      <Link
-        href="/dashboard/board"
-        role="menuitem"
-        onClick={onNavigate}
-        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--piclick-ink)] transition-colors hover:bg-[var(--piclick-beige-soft)]"
-      >
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--piclick-beige)] text-[var(--piclick-green-deep)]">
-          <MessagesSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-        </span>
-        {tc("community")}
-      </Link>
+      {showAppLinks ? (
+        <>
+          <Link
+            href="/dashboard"
+            role="menuitem"
+            onClick={onNavigate}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--piclick-ink)] transition-colors hover:bg-[var(--piclick-beige-soft)]"
+          >
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--piclick-beige)] text-[var(--piclick-green-deep)]">
+              <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            </span>
+            {tc("dashboard")}
+          </Link>
+          <Link
+            href="/dashboard/board"
+            role="menuitem"
+            onClick={onNavigate}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--piclick-ink)] transition-colors hover:bg-[var(--piclick-beige-soft)]"
+          >
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--piclick-beige)] text-[var(--piclick-green-deep)]">
+              <MessagesSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            </span>
+            {tc("community")}
+          </Link>
+        </>
+      ) : null}
       <Link
         href="/mypage"
         role="menuitem"

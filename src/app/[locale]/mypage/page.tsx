@@ -5,6 +5,7 @@ import { Link } from "@/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { AppShell } from "@/components/site/app-shell";
 import { BoardTab } from "@/components/board/board-tab";
+import { Spinner } from "@/components/ui/spinner";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
 import { Toaster, toast } from "react-hot-toast";
@@ -166,7 +167,7 @@ export default function MyPage() {
               <button
                 type="button"
                 onClick={() => setLoginOpen(true)}
-                className="rounded-lg bg-[var(--piclick-green)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--piclick-green-deep)]"
+                className="pk-btn pk-btn-md pk-btn-primary"
               >
                 {t("goLogin")}
               </button>
@@ -212,9 +213,10 @@ export default function MyPage() {
                     type="button"
                     onClick={() => void handleSaveNickname()}
                     disabled={isSaving || !hasNicknameChanged}
-                    className="rounded-lg bg-[var(--piclick-green)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--piclick-green-deep)] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="pk-btn pk-btn-md pk-btn-primary"
                   >
-                    {isSaving ? t("saving") : tc("save")}
+                    {isSaving ? <Spinner size="sm" label={t("saving")} /> : null}
+                    {tc("save")}
                   </button>
                 </div>
               </div>

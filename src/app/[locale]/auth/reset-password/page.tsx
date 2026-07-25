@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { mapAuthErrorMessage } from "@/lib/auth-errors";
 import { AuthPanelCard } from "@/components/auth/auth-panel";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ResetPasswordPage() {
   const t = useTranslations("auth");
@@ -132,15 +133,16 @@ export default function ResetPasswordPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl bg-slate-800 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
+                className="pk-btn pk-btn-lg pk-btn-primary pk-btn-block"
               >
-                {isLoading ? tc("processing") : t("resetPassword.submit")}
+                {isLoading ? <Spinner size="sm" label={tc("processing")} /> : null}
+                {t("resetPassword.submit")}
               </button>
             </form>
           ) : (
             <Link
               href="/auth/forgot-password"
-              className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="pk-btn pk-btn-lg pk-btn-block border-slate-200 text-slate-700 hover:bg-slate-50"
             >
               {t("resetPassword.retryForgot")}
             </Link>
