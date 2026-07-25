@@ -31,6 +31,9 @@ export function SitePageShell({
           </LocaleLink>
           <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)]">
             <LanguageSwitcher />
+            <LocaleLink href="/dashboard" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("dashboard")}
+            </LocaleLink>
             <LocaleLink href="/contact" className="transition hover:text-[var(--piclick-green-deep)]">
               {t("contact")}
             </LocaleLink>

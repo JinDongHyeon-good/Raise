@@ -1,5 +1,6 @@
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 import type { BoardCommentRow, BoardCommentView, BoardPostRow, BoardPostSummary } from "@/lib/board-types";
+import { parseBoardPostType } from "@/lib/board-types";
 
 export async function requireSessionUser() {
   const supabase = await createSupabaseRouteHandlerClient();
@@ -53,6 +54,7 @@ export async function hydratePostSummaries(
 
   return posts.map((post) => ({
     ...post,
+    post_type: parseBoardPostType(post.post_type),
     author_nickname: nicknameMap.get(post.author_auth_id) ?? "방문자",
     comment_count: commentCount.get(post.id) ?? 0,
     like_count: likeCount.get(post.id) ?? 0,
@@ -70,6 +72,7 @@ export async function hydrateComments(
   );
   return comments.map<BoardCommentView>((comment) => ({
     ...comment,
+    parent_id: comment.parent_id ?? null,
     author_nickname: nicknameMap.get(comment.author_auth_id) ?? "방문자",
   }));
 }

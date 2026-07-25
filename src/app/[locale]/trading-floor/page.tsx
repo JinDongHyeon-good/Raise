@@ -2066,7 +2066,7 @@ export default function TradingFloorPage() {
         )}
 
         {floorTab === "board" && (
-          <div className="relative z-10 isolate pointer-events-auto">
+          <div className="relative z-10 isolate pointer-events-auto rounded-2xl bg-[var(--piclick-beige-soft)] p-4 sm:p-5">
             <BoardTab onNeedLogin={() => setIsAuthModalOpen(true)} />
           </div>
         )}

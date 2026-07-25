@@ -17,7 +17,111 @@
     "close": "閉じる",
     "signup": "登録",
     "save": "保存",
-    "processing": "処理中..."
+    "processing": "処理中...",
+    "community": "コミュニティ",
+    "dashboard": "ダッシュボード"
+  },
+  "dashboard": {
+    "metaTitle": "ダッシュボード | Piclick",
+    "metaDescription": "Piclick ダッシュボードでコミュニティ掲示板や機能を確認しましょう。",
+    "eyebrow": "App home",
+    "title": "ダッシュボード",
+    "subtitle": "コミュニティから予約・レンタルまで、必要な機能をここから開けます。",
+    "soon": "準備中",
+    "openBoard": "掲示板を開く",
+    "openItem": "開く",
+    "items": {
+      "community": {
+        "title": "コミュニティ掲示板",
+        "body": "試合の感想、パートナー募集、コートのヒントを共有し、コメント・いいねでつながります。"
+      },
+      "booking": {
+        "title": "コート予約",
+        "body": "近くのピックルボールコートの空きを確認して予約する機能を準備中です。"
+      },
+      "venue": {
+        "title": "レンタル",
+        "body": "集まり・リーグ・イベント向けの施設レンタル申請を準備しています。"
+      },
+      "ads": {
+        "title": "クラブ・広告",
+        "body": "レッスン・クラブ・用品の露出スペースを準備中です。"
+      },
+      "mypage": {
+        "title": "マイページ",
+        "body": "ニックネームと自分の投稿を管理します。"
+      }
+    }
+  },
+  "board": {
+    "metaTitle": "コミュニティ掲示板 | Piclick",
+    "metaDescription": "ピックルボールの集まりやコートのヒントを共有する Piclick コミュニティ。投稿・返信・いいねでつながりましょう。",
+    "title": "コミュニティ",
+    "subtitle": "試合の感想、パートナー募集、コートの팁を自由にシェアしましょう。",
+    "pageIntro": "一緒にプレーし、一緒に話す場所です。",
+    "myPostsTitle": "自分の投稿",
+    "myPostsSubtitle": "書いた投稿を確認・編集できます。",
+    "write": "書く",
+    "titlePlaceholder": "タイトルを入力",
+    "typeLabel": "投稿タイプ",
+    "filterLabel": "タイプで絞り込み",
+    "filterAll": "すべて",
+    "emptyFiltered": "このタイプの投稿はまだありません。",
+    "types": {
+      "free": "雑談",
+      "meetup": "集まり・パートナー",
+      "review": "レビュー",
+      "tip": "ヒント",
+      "question": "質問"
+    },
+    "editorPlaceholder": "本文を入力してください。画像アップロードも可能です。",
+    "linkPrompt": "リンクURLを入力してください。",
+    "imageUploadFailed": "画像のアップロードに失敗しました。",
+    "toolbar": {
+      "bold": "太字",
+      "italic": "斜体",
+      "underline": "下線",
+      "link": "リンク",
+      "image": "画像"
+    },
+    "cancel": "キャンセル",
+    "save": "保存",
+    "saveEdit": "修正を保存",
+    "publish": "投稿",
+    "edit": "編集",
+    "delete": "削除",
+    "empty": "まだ投稿がありません。最初の投稿を書いてみましょう。",
+    "myPostsEmpty": "まだ投稿がありません。",
+    "loading": "投稿を読み込み中…",
+    "prev": "前へ",
+    "next": "次へ",
+    "backToList": "一覧へ",
+    "like": "いいね",
+    "unlike": "いいね解除",
+    "comments": "コメント",
+    "commentCount": "コメント {count}",
+    "commentPlaceholder": "コメントを入力してください。",
+    "replyPlaceholder": "返信を入力してください。",
+    "submitComment": "コメント投稿",
+    "submitReply": "返信投稿",
+    "reply": "返信",
+    "cancelReply": "返信をやめる",
+    "replyingTo": "{name}さんへの返信",
+    "noComments": "まだコメントがありません。",
+    "confirmDeletePost": "投稿を削除しますか？",
+    "confirmDeleteComment": "コメントを削除しますか？",
+    "errors": {
+      "loadPosts": "投稿を読み込めませんでした。",
+      "loadDetail": "投稿の詳細を取得できませんでした。",
+      "loginRequired": "ログインが必要です。",
+      "sessionCheckFailed": "ログイン状態を確認できませんでした。もう一度お試しください。",
+      "createFailed": "投稿に失敗しました。",
+      "updateFailed": "更新に失敗しました。",
+      "deleteFailed": "削除に失敗しました。",
+      "commentFailed": "コメント投稿に失敗しました。",
+      "commentUpdateFailed": "コメント更新に失敗しました。",
+      "commentDeleteFailed": "コメント削除に失敗しました。"
+    }
   },
   "piclick": {
     "nav": {
@@ -26,7 +130,7 @@
     "hero": {
       "headline": "コート予約からコミュニティまで、ピックルボールをひとつに",
       "sub": "近くのコートを予約し、一緒にプレーする人を見つけ、レンタル・クラブ・広告まで Piclick でつなげましょう。",
-      "ctaPrimary": "機能を見る",
+      "ctaPrimary": "ダッシュボードへ",
       "ctaSecondary": "はじめる"
     },
     "features": {
@@ -202,10 +306,13 @@
     "nicknameLabel": "ニックネーム",
     "userMenu": "ユーザーメニュー",
     "goLogin": "ログイン",
-    "subtitle": "会員情報とニックネームを管理します。",
+    "subtitle": "会員情報と自分の投稿を管理します。",
     "nicknamePlaceholder": "ニックネームを入力してください",
     "saving": "保存中...",
     "backToTarot": "← ホームに戻る",
+    "backToDashboard": "← ダッシュボードへ",
+    "myPosts": "自分の投稿",
+    "goCommunity": "コミュニティへ",
     "disclaimer": "Piclick はピックルボールの予約・コミュニティ・レンタルのためのサービスです。施設利用時は各運営規定もご確認ください。"
   },
   "footer": {

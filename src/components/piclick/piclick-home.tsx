@@ -140,13 +140,16 @@ export default function PiclickHome() {
           </LocaleLink>
           <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)] sm:gap-5">
             <LanguageSwitcher />
+            <LocaleLink href="/dashboard" className="transition hover:text-[var(--piclick-green-deep)]">
+              {tc("dashboard")}
+            </LocaleLink>
             <a href="#features" className="hidden transition hover:text-[var(--piclick-green-deep)] sm:inline">
               {t("nav.features")}
             </a>
             <LocaleLink href="/about" className="hidden transition hover:text-[var(--piclick-green-deep)] sm:inline">
               {tc("about")}
             </LocaleLink>
-            <LocaleLink href="/contact" className="transition hover:text-[var(--piclick-green-deep)]">
+            <LocaleLink href="/contact" className="hidden transition hover:text-[var(--piclick-green-deep)] sm:inline">
               {tc("contact")}
             </LocaleLink>
 
@@ -240,19 +243,18 @@ export default function PiclickHome() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.24, ease: EASE }}
               >
-                <a
-                  href="#features"
+                <LocaleLink
+                  href="/dashboard"
                   className="inline-flex h-11 items-center justify-center rounded bg-[var(--piclick-green)] px-6 text-sm font-semibold text-white transition hover:bg-[var(--piclick-green-deep)]"
                 >
                   {t("hero.ctaPrimary")}
-                </a>
-                <button
-                  type="button"
-                  onClick={() => openAuthModal("signup")}
+                </LocaleLink>
+                <LocaleLink
+                  href="/dashboard"
                   className="inline-flex h-11 items-center justify-center rounded border border-[var(--piclick-green)]/25 bg-transparent px-6 text-sm font-semibold text-[var(--piclick-green-deep)] transition hover:border-[var(--piclick-green)] hover:bg-[var(--piclick-beige)]"
                 >
                   {t("hero.ctaSecondary")}
-                </button>
+                </LocaleLink>
               </motion.div>
             </div>
           </div>
@@ -269,28 +271,41 @@ export default function PiclickHome() {
             </div>
 
             <div className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:gap-x-16">
-              {FEATURE_IDS.map((id, index) => (
-                <motion.article
-                  key={id}
-                  className="border-t border-[var(--piclick-green)]/20 pt-5"
-                  initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.4, delay: index * 0.05, ease: EASE }}
-                >
-                  <div className="flex items-baseline gap-3">
-                    <span className="font-brand-display text-sm font-bold tabular-nums text-[var(--piclick-green)]">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="text-lg font-semibold text-[var(--piclick-ink)] sm:text-xl">
-                      {t(`features.${id}.title`)}
-                    </h3>
-                  </div>
-                  <p className="mt-3 pl-8 text-sm leading-relaxed text-[var(--piclick-ink-muted)] sm:text-[0.95rem] sm:leading-7">
-                    {t(`features.${id}.body`)}
-                  </p>
-                </motion.article>
-              ))}
+              {FEATURE_IDS.map((id, index) => {
+                const inner = (
+                  <>
+                    <div className="flex items-baseline gap-3">
+                      <span className="font-brand-display text-sm font-bold tabular-nums text-[var(--piclick-green)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <h3 className="text-lg font-semibold text-[var(--piclick-ink)] sm:text-xl">
+                        {t(`features.${id}.title`)}
+                      </h3>
+                    </div>
+                    <p className="mt-3 pl-8 text-sm leading-relaxed text-[var(--piclick-ink-muted)] sm:text-[0.95rem] sm:leading-7">
+                      {t(`features.${id}.body`)}
+                    </p>
+                  </>
+                );
+                return (
+                  <motion.article
+                    key={id}
+                    className="border-t border-[var(--piclick-green)]/20 pt-5"
+                    initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.4, delay: index * 0.05, ease: EASE }}
+                  >
+                    {id === "community" ? (
+                      <LocaleLink href="/dashboard/board" className="block transition hover:opacity-90">
+                        {inner}
+                      </LocaleLink>
+                    ) : (
+                      inner
+                    )}
+                  </motion.article>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -305,13 +320,12 @@ export default function PiclickHome() {
                 {t("cta.sub")}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => openAuthModal("signup")}
+            <LocaleLink
+              href="/dashboard"
               className="inline-flex h-11 shrink-0 items-center justify-center rounded bg-[var(--piclick-beige)] px-6 text-sm font-semibold text-[var(--piclick-green-deep)] transition hover:bg-white"
             >
               {t("cta.button")}
-            </button>
+            </LocaleLink>
           </div>
         </section>
 
@@ -323,7 +337,7 @@ export default function PiclickHome() {
       <LoginModal
         open={isLoginModalOpen}
         initialMode={authModalMode}
-        nextPath="/"
+        nextPath="/dashboard"
         onClose={closeAuthModal}
         onAuthenticated={handleAuthenticated}
       />

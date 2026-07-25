@@ -18,7 +18,7 @@ export default function SignupPage() {
     if (!user) return;
 
     const { isNewUser } = await ensureUserProfileClient(supabase, user.id, user);
-    router.replace(isNewUser ? "/?welcome=1" : "/");
+    router.replace(isNewUser ? "/dashboard?welcome=1" : "/dashboard");
     router.refresh();
   };
 

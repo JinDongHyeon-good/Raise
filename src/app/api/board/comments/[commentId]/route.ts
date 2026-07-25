@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hydrateComments, requireSessionUser } from "@/lib/board-server";
-import type { BoardCommentRow } from "@/lib/board-types";
+import { BOARD_COMMENT_SELECT, type BoardCommentRow } from "@/lib/board-types";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ commentId: string }> }) {
   const { commentId } = await params;
@@ -14,11 +14,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const { data, error } = await supabase
       .from("BOARD_COMMENTS")
-      .update({ content: content.slice(0, 1000) })
+      .update({
+        content: content.slice(0, 1000),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", commentId)
       .eq("author_auth_id", user.id)
       .is("deleted_at", null)
-      .select("id, post_id, author_auth_id, content, created_at, updated_at")
+      .select(BOARD_COMMENT_SELECT)
       .maybeSingle<BoardCommentRow>();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

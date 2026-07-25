@@ -17,7 +17,111 @@
     "close": "Close",
     "signup": "Sign up",
     "save": "Save",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "community": "Community",
+    "dashboard": "Dashboard"
+  },
+  "dashboard": {
+    "metaTitle": "Dashboard | Piclick",
+    "metaDescription": "Open the Piclick dashboard to browse the community board and other features.",
+    "eyebrow": "App home",
+    "title": "Dashboard",
+    "subtitle": "Jump into the community board and upcoming pickleball tools from one place.",
+    "soon": "Soon",
+    "openBoard": "Open board",
+    "openItem": "Open",
+    "items": {
+      "community": {
+        "title": "Community board",
+        "body": "Share meetup notes, find partners, and swap court tips with comments and likes."
+      },
+      "booking": {
+        "title": "Court booking",
+        "body": "Find nearby pickleball courts and reserve open slots—coming soon."
+      },
+      "venue": {
+        "title": "Venue rental",
+        "body": "Request facilities for meetups, leagues, and events—coming soon."
+      },
+      "ads": {
+        "title": "Clubs & ads",
+        "body": "Promote lessons, clubs, and gear to players—coming soon."
+      },
+      "mypage": {
+        "title": "My page",
+        "body": "Manage your nickname and posts."
+      }
+    }
+  },
+  "board": {
+    "metaTitle": "Community board | Piclick",
+    "metaDescription": "Share pickleball meetups, court tips, and everyday play on Piclick. Write posts, reply, and like.",
+    "title": "Community",
+    "subtitle": "Share meetup notes, find partners, and swap court tips.",
+    "pageIntro": "A place to play together—and talk about it.",
+    "myPostsTitle": "My posts",
+    "myPostsSubtitle": "Review and edit posts you’ve written.",
+    "write": "Write",
+    "titlePlaceholder": "Title",
+    "typeLabel": "Post type",
+    "filterLabel": "Filter by type",
+    "filterAll": "All",
+    "emptyFiltered": "No posts in this type yet.",
+    "types": {
+      "free": "General",
+      "meetup": "Meetup",
+      "review": "Review",
+      "tip": "Tips",
+      "question": "Question"
+    },
+    "editorPlaceholder": "Write your post. Images are supported.",
+    "linkPrompt": "Enter a link URL.",
+    "imageUploadFailed": "Image upload failed.",
+    "toolbar": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "link": "Link",
+      "image": "Image"
+    },
+    "cancel": "Cancel",
+    "save": "Save",
+    "saveEdit": "Save changes",
+    "publish": "Publish",
+    "edit": "Edit",
+    "delete": "Delete",
+    "empty": "No posts yet. Be the first to write.",
+    "myPostsEmpty": "You haven’t written any posts yet.",
+    "loading": "Loading posts…",
+    "prev": "Prev",
+    "next": "Next",
+    "backToList": "Back to list",
+    "like": "Like",
+    "unlike": "Unlike",
+    "comments": "Comments",
+    "commentCount": "{count} comments",
+    "commentPlaceholder": "Write a comment.",
+    "replyPlaceholder": "Write a reply.",
+    "submitComment": "Post comment",
+    "submitReply": "Post reply",
+    "reply": "Reply",
+    "cancelReply": "Cancel reply",
+    "replyingTo": "Replying to {name}",
+    "noComments": "No comments yet.",
+    "confirmDeletePost": "Delete this post?",
+    "confirmDeleteComment": "Delete this comment?",
+    "errors": {
+      "loadPosts": "Could not load posts.",
+      "loadDetail": "Could not load the post.",
+      "loginRequired": "Please log in.",
+      "sessionCheckFailed": "Could not verify login. Try again.",
+      "createFailed": "Could not create the post.",
+      "updateFailed": "Could not update the post.",
+      "deleteFailed": "Could not delete the post.",
+      "commentFailed": "Could not post the comment.",
+      "commentUpdateFailed": "Could not update the comment.",
+      "commentDeleteFailed": "Could not delete the comment."
+    }
   },
   "piclick": {
     "nav": {
@@ -26,7 +130,7 @@
     "hero": {
       "headline": "Book courts, join meetups, play more pickleball",
       "sub": "Reserve nearby courts, find people to play with, and connect rentals, clubs, and ads—all on Piclick.",
-      "ctaPrimary": "Explore features",
+      "ctaPrimary": "Go to dashboard",
       "ctaSecondary": "Get started"
     },
     "features": {
@@ -202,10 +306,13 @@
     "nicknameLabel": "Nickname",
     "userMenu": "User menu",
     "goLogin": "Log in",
-    "subtitle": "Manage your profile and nickname.",
+    "subtitle": "Manage your profile and posts.",
     "nicknamePlaceholder": "Enter a nickname",
     "saving": "Saving...",
     "backToTarot": "← Back to home",
+    "backToDashboard": "← Back to dashboard",
+    "myPosts": "My posts",
+    "goCommunity": "Go to community",
     "disclaimer": "Piclick is for pickleball booking, meetups, and venue rental. Follow each venue's rules when you play."
   },
   "footer": {

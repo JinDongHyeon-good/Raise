@@ -18,7 +18,7 @@ export default function LoginPage() {
     if (!user) return;
 
     await ensureUserProfileClient(supabase, user.id, user);
-    router.replace("/");
+    router.replace("/dashboard");
     router.refresh();
   };
 

@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume"] as const;
+const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume", "/board", "/dashboard"] as const;
 
 function stripLocalePrefix(pathname: string) {
   const match = pathname.match(/^\/(ko|en|ja)(\/.*)?$/);

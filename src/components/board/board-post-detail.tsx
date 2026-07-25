@@ -1,108 +1,323 @@
 "use client";
 
-import type { BoardCommentView, BoardPostSummary } from "@/lib/board-types";
+import { useMemo, useState } from "react";
+import {
+  buildCommentThreads,
+  type BoardCommentView,
+  type BoardPostSummary,
+} from "@/lib/board-types";
+import { BoardPostTypeBadge } from "@/components/board/board-post-type-badge";
+import { Heart, MessageCircle } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import type { AppLocale } from "@/i18n/routing";
 
 type Props = {
   post: BoardPostSummary;
   comments: BoardCommentView[];
   myAuthId: string | null;
+  commentDraft: string;
+  replyToId: string | null;
   onBack: () => void;
   onEditPost: () => void;
   onDeletePost: () => void;
   onToggleLike: () => void;
-  commentDraft: string;
   onCommentDraftChange: (value: string) => void;
+  onReplyTo: (commentId: string | null) => void;
   onCreateComment: () => void;
-  onUpdateComment: (commentId: string) => void;
+  onUpdateComment: (commentId: string, content: string) => Promise<void> | void;
   onDeleteComment: (commentId: string) => void;
 };
+
+function localeToIntl(locale: AppLocale) {
+  if (locale === "ko") return "ko-KR";
+  if (locale === "ja") return "ja-JP";
+  return "en-US";
+}
+
+function formatDate(value: string, locale: AppLocale) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat(localeToIntl(locale), {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function CommentItem({
+  comment,
+  depth,
+  myAuthId,
+  replyToId,
+  onReplyTo,
+  onUpdateComment,
+  onDeleteComment,
+}: {
+  comment: BoardCommentView;
+  depth: 0 | 1;
+  myAuthId: string | null;
+  replyToId: string | null;
+  onReplyTo: (commentId: string | null) => void;
+  onUpdateComment: (commentId: string, content: string) => Promise<void> | void;
+  onDeleteComment: (commentId: string) => void;
+}) {
+  const t = useTranslations("board");
+  const locale = useLocale() as AppLocale;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDraft, setEditDraft] = useState(comment.content);
+  const [isSaving, setIsSaving] = useState(false);
+  const isMine = myAuthId === comment.author_auth_id;
+  const isReplying = replyToId === comment.id;
+
+  const saveEdit = async () => {
+    const next = editDraft.trim();
+    if (!next) return;
+    setIsSaving(true);
+    try {
+      await onUpdateComment(comment.id, next);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className={`rounded-xl border border-[var(--piclick-line)] bg-[var(--piclick-beige-soft)]/60 p-3.5 sm:p-4 ${
+        depth === 1 ? "ml-4 border-l-2 border-l-[var(--piclick-green)]/30 sm:ml-8" : "bg-white"
+      }`}
+    >
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-[var(--piclick-ink-muted)]">
+          <span className="font-medium text-[var(--piclick-ink)]">{comment.author_nickname}</span>
+          <span className="mx-1.5 text-[var(--piclick-line)]">·</span>
+          {formatDate(comment.created_at, locale)}
+        </p>
+        <div className="flex items-center gap-2">
+          {depth === 0 ? (
+            <button
+              type="button"
+              onClick={() => onReplyTo(isReplying ? null : comment.id)}
+              className="text-xs font-medium text-[var(--piclick-green)] transition hover:text-[var(--piclick-green-deep)]"
+            >
+              {isReplying ? t("cancelReply") : t("reply")}
+            </button>
+          ) : null}
+          {isMine ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditDraft(comment.content);
+                  setIsEditing((prev) => !prev);
+                }}
+                className="text-xs text-[var(--piclick-ink-muted)] hover:text-[var(--piclick-ink)]"
+              >
+                {t("edit")}
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteComment(comment.id)}
+                className="text-xs text-red-600/80 hover:text-red-700"
+              >
+                {t("delete")}
+              </button>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      {isEditing ? (
+        <div className="space-y-2">
+          <textarea
+            value={editDraft}
+            onChange={(event) => setEditDraft(event.target.value)}
+            rows={3}
+            maxLength={1000}
+            className="w-full rounded-lg border border-[var(--piclick-line)] bg-white px-3 py-2 text-sm text-[var(--piclick-ink)] outline-none focus:border-[var(--piclick-green)]/50"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="rounded-lg px-3 py-1.5 text-xs text-[var(--piclick-ink-muted)]"
+            >
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void saveEdit()}
+              className="rounded-lg bg-[var(--piclick-green)] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              {t("save")}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--piclick-ink)]">{comment.content}</p>
+      )}
+    </div>
+  );
+}
 
 export function BoardPostDetail({
   post,
   comments,
   myAuthId,
+  commentDraft,
+  replyToId,
   onBack,
   onEditPost,
   onDeletePost,
   onToggleLike,
-  commentDraft,
   onCommentDraftChange,
+  onReplyTo,
   onCreateComment,
   onUpdateComment,
   onDeleteComment,
 }: Props) {
+  const t = useTranslations("board");
+  const locale = useLocale() as AppLocale;
+  const threads = useMemo(() => buildCommentThreads(comments), [comments]);
+  const replyTarget = replyToId ? comments.find((c) => c.id === replyToId) : null;
+  const isMine = myAuthId === post.author_auth_id;
+
   return (
-    <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-950 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-bold text-slate-100">{post.title}</h3>
-          <p className="mt-1 text-xs text-slate-400">
-            {post.author_nickname} · {new Date(post.created_at).toLocaleString("ko-KR")}
-          </p>
+    <article className="space-y-5">
+      <div className="rounded-2xl border border-[var(--piclick-line)] bg-white p-4 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={onBack}
+              className="mb-3 text-xs font-medium text-[var(--piclick-ink-muted)] transition hover:text-[var(--piclick-green-deep)]"
+            >
+              ← {t("backToList")}
+            </button>
+            <div className="mb-2">
+              <BoardPostTypeBadge type={post.post_type} />
+            </div>
+            <h2 className="text-balance text-xl font-semibold tracking-tight text-[var(--piclick-ink)] sm:text-2xl">
+              {post.title}
+            </h2>
+            <p className="mt-2 text-xs text-[var(--piclick-ink-muted)] sm:text-sm">
+              <span className="font-medium text-[var(--piclick-ink)]">{post.author_nickname}</span>
+              <span className="mx-1.5">·</span>
+              {formatDate(post.created_at, locale)}
+            </p>
+          </div>
+          {isMine ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onEditPost}
+                className="rounded-lg border border-[var(--piclick-line)] px-3 py-1.5 text-xs font-medium text-[var(--piclick-ink)] hover:bg-[var(--piclick-beige-soft)]"
+              >
+                {t("edit")}
+              </button>
+              <button
+                type="button"
+                onClick={onDeletePost}
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+              >
+                {t("delete")}
+              </button>
+            </div>
+          ) : null}
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={onBack} className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300">
-            목록
+
+        <div
+          className="board-prose mt-6 border-t border-[var(--piclick-line)] pt-6 text-sm leading-7 text-[var(--piclick-ink)]"
+          dangerouslySetInnerHTML={{ __html: post.content_html }}
+        />
+
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-[var(--piclick-line)] pt-4">
+          <button
+            type="button"
+            onClick={onToggleLike}
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+              post.liked_by_me
+                ? "border-[var(--piclick-green)]/40 bg-[var(--piclick-green)]/10 text-[var(--piclick-green-deep)]"
+                : "border-[var(--piclick-line)] bg-white text-[var(--piclick-ink)] hover:border-[var(--piclick-green)]/30"
+            }`}
+          >
+            <Heart
+              className={`h-4 w-4 ${post.liked_by_me ? "fill-[var(--piclick-green)] text-[var(--piclick-green)]" : ""}`}
+              strokeWidth={1.75}
+              aria-hidden
+            />
+            {post.liked_by_me ? t("unlike") : t("like")} · {post.like_count}
           </button>
-          {myAuthId === post.author_auth_id && (
-            <>
-              <button type="button" onClick={onEditPost} className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300">
-                수정
+          <span className="inline-flex items-center gap-1.5 text-sm text-[var(--piclick-ink-muted)]">
+            <MessageCircle className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            {t("commentCount", { count: comments.length })}
+          </span>
+        </div>
+      </div>
+
+      <section className="rounded-2xl border border-[var(--piclick-line)] bg-white p-4 sm:p-6">
+        <h3 className="text-sm font-semibold text-[var(--piclick-ink)]">{t("comments")}</h3>
+
+        <div className="mt-4 space-y-2">
+          {replyTarget ? (
+            <p className="text-xs text-[var(--piclick-green)]">
+              {t("replyingTo", { name: replyTarget.author_nickname })}
+              <button type="button" onClick={() => onReplyTo(null)} className="ml-2 underline">
+                {t("cancelReply")}
               </button>
-              <button type="button" onClick={onDeletePost} className="rounded border border-rose-700 px-2 py-1 text-xs text-rose-300">
-                삭제
-              </button>
-            </>
+            </p>
+          ) : null}
+          <textarea
+            value={commentDraft}
+            onChange={(event) => onCommentDraftChange(event.target.value)}
+            rows={3}
+            maxLength={1000}
+            placeholder={replyTarget ? t("replyPlaceholder") : t("commentPlaceholder")}
+            className="w-full rounded-xl border border-[var(--piclick-line)] bg-[var(--piclick-beige-soft)]/50 px-3.5 py-3 text-sm text-[var(--piclick-ink)] outline-none placeholder:text-[var(--piclick-ink-muted)] focus:border-[var(--piclick-green)]/40 focus:bg-white"
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={onCreateComment}
+              className="rounded-lg bg-[var(--piclick-green)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--piclick-green-deep)]"
+            >
+              {replyTarget ? t("submitReply") : t("submitComment")}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {threads.length === 0 ? (
+            <p className="py-6 text-center text-sm text-[var(--piclick-ink-muted)]">{t("noComments")}</p>
+          ) : (
+            threads.map((thread) => (
+              <div key={thread.id} className="space-y-2">
+                <CommentItem
+                  comment={thread}
+                  depth={0}
+                  myAuthId={myAuthId}
+                  replyToId={replyToId}
+                  onReplyTo={onReplyTo}
+                  onUpdateComment={onUpdateComment}
+                  onDeleteComment={onDeleteComment}
+                />
+                {thread.replies.map((reply) => (
+                  <CommentItem
+                    key={reply.id}
+                    comment={reply}
+                    depth={1}
+                    myAuthId={myAuthId}
+                    replyToId={replyToId}
+                    onReplyTo={onReplyTo}
+                    onUpdateComment={onUpdateComment}
+                    onDeleteComment={onDeleteComment}
+                  />
+                ))}
+              </div>
+            ))
           )}
         </div>
-      </div>
-
-      <div className="prose prose-invert max-w-none text-sm text-slate-200" dangerouslySetInnerHTML={{ __html: post.content_html }} />
-
-      <div className="flex items-center justify-between border-t border-slate-800 pt-3">
-        <button type="button" onClick={onToggleLike} className="rounded border border-slate-700 px-3 py-1 text-sm text-slate-200">
-          {post.liked_by_me ? "좋아요 취소" : "좋아요"} · {post.like_count}
-        </button>
-        <span className="text-xs text-slate-400">댓글 {comments.length}</span>
-      </div>
-
-      <div className="space-y-3 border-t border-slate-800 pt-3">
-        <p className="text-sm font-semibold text-slate-200">댓글</p>
-        <textarea
-          value={commentDraft}
-          onChange={(event) => onCommentDraftChange(event.target.value)}
-          rows={3}
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
-          placeholder="댓글을 입력해 주세요."
-        />
-        <div className="flex justify-end">
-          <button type="button" onClick={onCreateComment} className="rounded bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white">
-            댓글 등록
-          </button>
-        </div>
-        <div className="space-y-2">
-          {comments.map((comment) => (
-            <div key={comment.id} className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <p className="text-xs text-slate-400">
-                  {comment.author_nickname} · {new Date(comment.created_at).toLocaleString("ko-KR")}
-                </p>
-                {myAuthId === comment.author_auth_id && (
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => onUpdateComment(comment.id)} className="text-xs text-slate-300">
-                      수정
-                    </button>
-                    <button type="button" onClick={() => onDeleteComment(comment.id)} className="text-xs text-rose-300">
-                      삭제
-                    </button>
-                  </div>
-                )}
-              </div>
-              <p className="text-sm text-slate-100">{comment.content}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }

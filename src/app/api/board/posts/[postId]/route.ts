@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hydrateComments, hydratePostSummaries, requireSessionUser } from "@/lib/board-server";
-import type { BoardCommentRow, BoardPostRow } from "@/lib/board-types";
+import {
+  BOARD_COMMENT_SELECT,
+  BOARD_POST_SELECT,
+  isBoardPostType,
+  parseBoardPostType,
+  type BoardCommentRow,
+  type BoardPostRow,
+} from "@/lib/board-types";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -12,13 +19,13 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ postId
     const [{ data: post, error: postError }, { data: comments, error: commentError }] = await Promise.all([
       supabase
         .from("BOARD_POSTS")
-        .select("id, author_auth_id, title, content_html, created_at, updated_at")
+        .select(BOARD_POST_SELECT)
         .eq("id", postId)
         .is("deleted_at", null)
         .single<BoardPostRow>(),
       supabase
         .from("BOARD_COMMENTS")
-        .select("id, post_id, author_auth_id, content, created_at, updated_at")
+        .select(BOARD_COMMENT_SELECT)
         .eq("post_id", postId)
         .is("deleted_at", null)
         .order("created_at", { ascending: true }),
@@ -40,11 +47,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { supabase, user } = await requireSessionUser();
     if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-    const body = (await request.json()) as { title?: string; content_html?: string };
+    const body = (await request.json()) as { title?: string; content_html?: string; post_type?: string };
     const title = body.title?.trim() ?? "";
     const contentHtml = body.content_html?.trim() ?? "";
-    if (!title || !contentHtml) {
+    const postType = body.post_type ? parseBoardPostType(body.post_type) : null;
+    if (!title || !contentHtml || contentHtml === "<p></p>") {
       return NextResponse.json({ error: "제목과 본문을 입력해 주세요." }, { status: 400 });
+    }
+    if (body.post_type && !isBoardPostType(body.post_type)) {
+      return NextResponse.json({ error: "올바른 게시글 타입을 선택해 주세요." }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -52,11 +63,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .update({
         title: title.slice(0, 120),
         content_html: contentHtml,
+        ...(postType ? { post_type: postType } : {}),
+        updated_at: new Date().toISOString(),
       })
       .eq("id", postId)
       .eq("author_auth_id", user.id)
       .is("deleted_at", null)
-      .select("id, author_auth_id, title, content_html, created_at, updated_at")
+      .select(BOARD_POST_SELECT)
       .maybeSingle<BoardPostRow>();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

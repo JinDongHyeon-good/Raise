@@ -100,6 +100,67 @@ body {
   border-color: var(--piclick-line);
 }
 
+.board-prose p {
+  margin: 0 0 0.85em;
+}
+
+.board-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.board-prose h2,
+.board-prose h3 {
+  margin: 1.1em 0 0.45em;
+  font-weight: 650;
+  color: var(--piclick-ink);
+}
+
+.board-prose a {
+  color: var(--piclick-green);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.board-prose img {
+  margin: 0.75rem 0;
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+
+.board-prose ul,
+.board-prose ol {
+  margin: 0.5em 0 0.85em;
+  padding-left: 1.25rem;
+}
+
+.board-prose li {
+  margin: 0.2em 0;
+}
+
+.board-editor-content .ProseMirror,
+.board-editor-content.ProseMirror {
+  min-height: 220px;
+}
+
+.board-editor-content p.is-editor-empty:first-child::before,
+.board-editor-content p.is-empty:first-child::before {
+  color: var(--piclick-ink-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.board-editor-content img {
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+
+.board-editor-content a {
+  color: var(--piclick-green);
+  text-decoration: underline;
+}
+
 .tarot-home-page {
   background:
     radial-gradient(ellipse 90% 60% at 50% -8%, rgb(248 250 252 / 0.9), transparent 65%),

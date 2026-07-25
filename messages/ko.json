@@ -17,7 +17,111 @@
     "close": "닫기",
     "signup": "가입",
     "save": "저장",
-    "processing": "처리 중..."
+    "processing": "처리 중...",
+    "community": "커뮤니티",
+    "dashboard": "대시보드"
+  },
+  "dashboard": {
+    "metaTitle": "대시보드 | Piclick",
+    "metaDescription": "Piclick 대시보드에서 커뮤니티 게시판과 피클볼 기능을 둘러보세요.",
+    "eyebrow": "App home",
+    "title": "대시보드",
+    "subtitle": "커뮤니티부터 예약·대관까지, 필요한 기능을 여기서 바로 열어 보세요.",
+    "soon": "준비 중",
+    "openBoard": "게시판 열기",
+    "openItem": "바로가기",
+    "items": {
+      "community": {
+        "title": "커뮤니티 게시판",
+        "body": "모임 후기, 파트너 모집, 코트 팁을 나누고 댓글·좋아요로 연결하세요."
+      },
+      "booking": {
+        "title": "코트 예약",
+        "body": "가까운 피클볼 코트의 빈 시간을 확인하고 예약하는 기능이 곧 열립니다."
+      },
+      "venue": {
+        "title": "대관",
+        "body": "모임·리그·이벤트를 위한 시설 대관 신청 흐름을 준비하고 있습니다."
+      },
+      "ads": {
+        "title": "클럽 · 광고",
+        "body": "레슨·클럽·용품 노출을 위한 광고 공간이 곧 추가됩니다."
+      },
+      "mypage": {
+        "title": "마이페이지",
+        "body": "닉네임과 내가 쓴 글을 관리합니다."
+      }
+    }
+  },
+  "board": {
+    "metaTitle": "커뮤니티 게시판 | Piclick",
+    "metaDescription": "피클볼 모임·코트·일상을 나누는 Piclick 커뮤니티. 글을 쓰고 댓글·좋아요로 연결하세요.",
+    "title": "커뮤니티",
+    "subtitle": "모임 후기, 파트너 모집, 코트 팁을 자유롭게 나눠 보세요.",
+    "pageIntro": "함께 치고, 함께 이야기하는 공간입니다.",
+    "myPostsTitle": "내가 쓴 글",
+    "myPostsSubtitle": "작성한 게시글을 확인하고 수정할 수 있습니다.",
+    "write": "글쓰기",
+    "titlePlaceholder": "제목을 입력해 주세요",
+    "typeLabel": "게시글 유형",
+    "filterLabel": "유형 필터",
+    "filterAll": "전체",
+    "emptyFiltered": "이 유형의 게시글이 없습니다.",
+    "types": {
+      "free": "자유",
+      "meetup": "모임·파트너",
+      "review": "후기",
+      "tip": "팁·정보",
+      "question": "질문"
+    },
+    "editorPlaceholder": "내용을 입력해 주세요. 이미지 업로드도 가능합니다.",
+    "linkPrompt": "링크 URL을 입력해 주세요.",
+    "imageUploadFailed": "이미지 업로드에 실패했습니다.",
+    "toolbar": {
+      "bold": "굵게",
+      "italic": "기울임",
+      "underline": "밑줄",
+      "link": "링크",
+      "image": "이미지"
+    },
+    "cancel": "취소",
+    "save": "저장",
+    "saveEdit": "수정 저장",
+    "publish": "등록",
+    "edit": "수정",
+    "delete": "삭제",
+    "empty": "아직 게시글이 없습니다. 첫 글을 남겨 보세요.",
+    "myPostsEmpty": "작성한 게시글이 없습니다.",
+    "loading": "게시글을 불러오는 중…",
+    "prev": "이전",
+    "next": "다음",
+    "backToList": "목록",
+    "like": "좋아요",
+    "unlike": "좋아요 취소",
+    "comments": "댓글",
+    "commentCount": "댓글 {count}",
+    "commentPlaceholder": "댓글을 입력해 주세요.",
+    "replyPlaceholder": "답글을 입력해 주세요.",
+    "submitComment": "댓글 등록",
+    "submitReply": "답글 등록",
+    "reply": "답글",
+    "cancelReply": "답글 취소",
+    "replyingTo": "{name}님에게 답글",
+    "noComments": "아직 댓글이 없습니다.",
+    "confirmDeletePost": "게시글을 삭제할까요?",
+    "confirmDeleteComment": "댓글을 삭제할까요?",
+    "errors": {
+      "loadPosts": "게시글을 불러오지 못했습니다.",
+      "loadDetail": "게시글 상세 조회에 실패했습니다.",
+      "loginRequired": "로그인이 필요합니다.",
+      "sessionCheckFailed": "로그인 상태를 확인하지 못했습니다. 다시 시도해 주세요.",
+      "createFailed": "작성에 실패했습니다.",
+      "updateFailed": "수정에 실패했습니다.",
+      "deleteFailed": "삭제에 실패했습니다.",
+      "commentFailed": "댓글 작성에 실패했습니다.",
+      "commentUpdateFailed": "댓글 수정에 실패했습니다.",
+      "commentDeleteFailed": "댓글 삭제에 실패했습니다."
+    }
   },
   "piclick": {
     "nav": {
@@ -26,7 +130,7 @@
     "hero": {
       "headline": "코트 예약부터 모임까지, 피클볼을 한곳에서",
       "sub": "가까운 코트를 예약하고, 함께 칠 사람을 만나고, 대관·클럽·광고까지 Piclick에서 이어 보세요.",
-      "ctaPrimary": "기능 살펴보기",
+      "ctaPrimary": "대시보드 가기",
       "ctaSecondary": "시작하기"
     },
     "features": {
@@ -193,10 +297,13 @@
     "nicknameLabel": "닉네임",
     "userMenu": "사용자 메뉴",
     "goLogin": "로그인",
-    "subtitle": "회원 정보 및 닉네임을 관리합니다.",
+    "subtitle": "회원 정보와 내가 쓴 글을 관리합니다.",
     "nicknamePlaceholder": "닉네임을 입력해 주세요",
     "saving": "저장 중...",
     "backToTarot": "← 홈으로 돌아가기",
+    "backToDashboard": "← 대시보드로",
+    "myPosts": "내가 쓴 글",
+    "goCommunity": "커뮤니티 바로가기",
     "disclaimer": "Piclick은 피클볼 예약·모임·대관을 위한 서비스입니다. 코트·시설 이용 시 각 운영 규정을 함께 확인해 주세요."
   },
   "footer": {

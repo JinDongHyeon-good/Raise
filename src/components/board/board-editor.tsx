@@ -6,6 +6,7 @@ import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import { useTranslations } from "next-intl";
 
 type BoardEditorProps = {
   value: string;
@@ -14,6 +15,8 @@ type BoardEditorProps = {
 };
 
 export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) {
+  const t = useTranslations("board");
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -25,14 +28,13 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
         openOnClick: false,
       }),
       Placeholder.configure({
-        placeholder: "게시글 내용을 입력해 주세요. 이미지 업로드도 가능합니다.",
+        placeholder: t("editorPlaceholder"),
       }),
     ],
     content: value,
     editorProps: {
       attributes: {
-        class:
-          "min-h-[220px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-slate-100 focus:outline-none",
+        class: "board-editor-content min-h-[220px] px-4 py-3 text-sm leading-7 text-[var(--piclick-ink)] focus:outline-none",
       },
     },
     onUpdate({ editor: current }) {
@@ -44,7 +46,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
   const handleInsertLink = () => {
     if (!editor) return;
     const previous = editor.getAttributes("link").href as string | undefined;
-    const href = window.prompt("링크 URL을 입력해 주세요.", previous ?? "https://");
+    const href = window.prompt(t("linkPrompt"), previous ?? "https://");
     if (!href) return;
     editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
   };
@@ -69,7 +71,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
       }
       const data = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !data.url) {
-        alert(data.error ?? "이미지 업로드에 실패했습니다.");
+        alert(data.error ?? t("imageUploadFailed"));
         return;
       }
       editor.chain().focus().setImage({ src: data.url, alt: "board-image" }).run();
@@ -79,35 +81,34 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
 
   if (!editor) return null;
 
+  const toolClass = (active: boolean) =>
+    `rounded px-2.5 py-1.5 text-xs font-medium transition ${
+      active
+        ? "bg-[var(--piclick-green)] text-white"
+        : "bg-white text-[var(--piclick-ink-muted)] hover:bg-[var(--piclick-beige)] hover:text-[var(--piclick-ink)]"
+    }`;
+
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 p-2">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`rounded px-2 py-1 text-xs ${editor.isActive("bold") ? "bg-sky-500 text-white" : "bg-slate-800 text-slate-200"}`}
-        >
-          Bold
+    <div className="overflow-hidden rounded-xl border border-[var(--piclick-line)] bg-white">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--piclick-line)] bg-[var(--piclick-beige-soft)] p-2">
+        <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={toolClass(editor.isActive("bold"))}>
+          {t("toolbar.bold")}
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`rounded px-2 py-1 text-xs ${editor.isActive("italic") ? "bg-sky-500 text-white" : "bg-slate-800 text-slate-200"}`}
-        >
-          Italic
+        <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={toolClass(editor.isActive("italic"))}>
+          {t("toolbar.italic")}
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`rounded px-2 py-1 text-xs ${editor.isActive("underline") ? "bg-sky-500 text-white" : "bg-slate-800 text-slate-200"}`}
+          className={toolClass(editor.isActive("underline"))}
         >
-          Underline
+          {t("toolbar.underline")}
         </button>
-        <button type="button" onClick={handleInsertLink} className="rounded bg-slate-800 px-2 py-1 text-xs text-slate-200">
-          Link
+        <button type="button" onClick={handleInsertLink} className={toolClass(false)}>
+          {t("toolbar.link")}
         </button>
-        <button type="button" onClick={handleImageUpload} className="rounded bg-slate-800 px-2 py-1 text-xs text-slate-200">
-          Image
+        <button type="button" onClick={() => void handleImageUpload()} className={toolClass(false)}>
+          {t("toolbar.image")}
         </button>
       </div>
       <EditorContent editor={editor} />
