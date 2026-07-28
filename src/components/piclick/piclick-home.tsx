@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Link as LocaleLink } from "@/navigation";
+import { Link as LocaleLink, useRouter } from "@/navigation";
 import { SiteFooter } from "@/components/site/site-footer";
 import { HomeSeoContent } from "@/components/seo/home-seo-content";
 import { LoginModal } from "@/components/auth/login-modal";
@@ -23,6 +23,7 @@ export default function PiclickHome() {
   const brandName = getLocalizedBrandName(locale);
   const tagline = getLocalizedTagline(locale);
   const reduceMotion = useReducedMotion();
+  const router = useRouter();
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthMode>("login");
@@ -41,6 +42,19 @@ export default function PiclickHome() {
   const closeAuthModal = useCallback(() => {
     setIsLoginModalOpen(false);
   }, []);
+
+  // 로그인해야 쓸 수 있는 기능 진입: 로그인 상태면 이동, 아니면 로그인 모달을 연다.
+  const goToApp = useCallback(
+    (path: string) => {
+      if (isLoggedIn) {
+        router.push(path);
+        return;
+      }
+      setLoginNextPath(path);
+      openAuthModal("login");
+    },
+    [isLoggedIn, openAuthModal, router],
+  );
 
   const syncSession = useCallback(async () => {
     const supabase = getSupabaseBrowserClientSafe();
@@ -247,12 +261,13 @@ export default function PiclickHome() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.24, ease: EASE }}
               >
-                <LocaleLink
-                  href="/dashboard"
+                <button
+                  type="button"
+                  onClick={() => goToApp("/dashboard")}
                   className="pk-btn pk-btn-lg pk-btn-primary"
                 >
                   {t("hero.ctaPrimary")}
-                </LocaleLink>
+                </button>
               </motion.div>
             </div>
           </div>
@@ -295,9 +310,13 @@ export default function PiclickHome() {
                     transition={{ duration: 0.4, delay: index * 0.05, ease: EASE }}
                   >
                     {id === "community" ? (
-                      <LocaleLink href="/dashboard/board" className="block transition hover:opacity-90">
+                      <button
+                        type="button"
+                        onClick={() => goToApp("/dashboard/board")}
+                        className="block w-full text-left transition hover:opacity-90"
+                      >
                         {inner}
-                      </LocaleLink>
+                      </button>
                     ) : (
                       inner
                     )}
@@ -318,12 +337,13 @@ export default function PiclickHome() {
                 {t("cta.sub")}
               </p>
             </div>
-            <LocaleLink
-              href="/dashboard"
+            <button
+              type="button"
+              onClick={() => goToApp("/dashboard")}
               className="pk-btn pk-btn-lg pk-btn-invert shrink-0"
             >
               {t("cta.button")}
-            </LocaleLink>
+            </button>
           </div>
         </section>
 

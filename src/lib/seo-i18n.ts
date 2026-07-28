@@ -23,201 +23,201 @@ export type SeoLocaleCopy = {
 export const SEO_COPY: Record<AppLocale, SeoLocaleCopy> = {
   ko: {
     siteName: SERVICE_NAME,
-    homeTitle: "피클볼 예약·모임·대관 | Piclick 피클릭",
+    homeTitle: "오늘의 운세·사주팔자·궁합 | 사주네 Sajune",
     homeDescription:
-      "Piclick에서 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고까지. 가까운 코트를 찾고 함께 칠 사람을 만나보세요.",
-    ogAlt: "Piclick — 피클볼 예약·모임·대관",
+      "사주네에서 생년월일시로 보는 오늘의 운세, 사주팔자, 궁합까지. 정통 명리로 쉽게 풀어보는 무료 사주 서비스입니다.",
+    ogAlt: "사주네 — 오늘의 운세·사주팔자·궁합",
     schemaLanguage: "ko-KR",
     featureList: [
-      "피클볼 코트 예약",
-      "피클볼 모임·커뮤니티",
-      "코트·시설 대관",
-      "클럽·레슨·광고 노출",
-      "초보부터 클럽까지 매칭",
-      "실시간 일정·참가 관리",
+      "오늘의 운세",
+      "사주팔자 풀이",
+      "궁합 사주",
+      "신년운세·토정비결",
+      "만세력·일진",
+      "생년월일 기반 운세 해석",
     ],
     faq: [
       {
-        question: "Piclick은 어떤 서비스인가요?",
+        question: "사주네는 어떤 서비스인가요?",
         answer:
-          "Piclick(피클릭)은 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 한곳에서 연결하는 피클볼 플랫폼입니다.",
+          "사주네(Sajune)는 생년월일시로 보는 오늘의 운세, 사주팔자, 궁합을 정통 명리로 쉽게 풀어주는 무료 사주 서비스입니다.",
       },
       {
-        question: "코트 예약은 어떻게 하나요?",
+        question: "사주는 어떻게 보나요?",
         answer:
-          "원하는 지역·시간대를 고른 뒤 빈 코트를 확인하고 예약할 수 있습니다. 대관이 필요한 모임·리그도 같은 흐름으로 신청할 수 있어요.",
+          "태어난 연·월·일·시를 입력하면 만세력을 기준으로 사주팔자를 세우고, 오행과 십성을 바탕으로 오늘의 운세와 흐름을 풀어 드립니다.",
       },
       {
-        question: "모임 커뮤니티는 무엇인가요?",
+        question: "궁합 사주도 볼 수 있나요?",
         answer:
-          "레벨·지역·시간에 맞는 피클볼 모임을 만들고 참가할 수 있는 커뮤니티입니다. 초보 오픈 게임부터 클럽 매치까지 연결합니다.",
+          "네. 두 사람의 생년월일시를 넣으면 서로의 기운이 어떻게 어울리는지, 연애·결혼 궁합의 강점과 주의할 점을 함께 확인할 수 있습니다.",
       },
       {
-        question: "광고·클럽 홍보는 가능한가요?",
+        question: "이용은 무료인가요?",
         answer:
-          "네. 클럽, 레슨, 용품, 코트 시설 운영자는 Piclick 광고·노출 영역으로 피클볼 플레이어에게 서비스를 알릴 수 있습니다.",
+          "오늘의 운세, 사주팔자, 궁합 등 핵심 기능은 무료로 이용할 수 있습니다. 사주·운세 결과는 참고용으로 즐겨 주세요.",
       },
     ],
-    homeSeoHeading: "피클볼 예약·모임·대관 — Piclick",
+    homeSeoHeading: "오늘의 운세·사주팔자·궁합 — 사주네",
     homeSeoBody:
-      "Piclick은 피클볼을 더 쉽게 치고, 모이고, 대관할 수 있게 돕는 서비스입니다. 코트 예약부터 커뮤니티 모임, 시설 대관, 클럽·광고까지 피클볼에 필요한 흐름을 한곳에서 이어 보세요.",
+      "사주네는 생년월일시만 있으면 오늘의 운세부터 사주팔자, 궁합까지 정통 명리로 쉽게 풀어 주는 서비스입니다. 어렵게 느껴지던 사주를 누구나 편하게 확인할 수 있도록 정리했습니다.",
     homeSeoSections: [
       {
-        heading: "피클볼 코트 예약",
-        body: "가까운 피클볼 코트의 빈 시간을 확인하고 예약하세요. 실내·야외 코트, 단발 예약부터 정기 슬롯까지 찾기 쉽게 정리합니다.",
+        heading: "오늘의 운세",
+        body: "생년월일로 오늘 하루의 총운, 재물운, 애정운, 건강운 흐름을 확인하세요. 매일 달라지는 일진을 쉽게 읽어 드립니다.",
       },
       {
-        heading: "모임 커뮤니티",
-        body: "혼자 가기 부담스러울 때도 레벨·지역에 맞는 오픈 게임과 클럽 모임을 찾아 참가할 수 있습니다.",
+        heading: "사주팔자 풀이",
+        body: "태어난 연·월·일·시로 세운 사주팔자를 오행과 십성 관점에서 풀어, 타고난 기질과 삶의 흐름을 살펴봅니다.",
       },
       {
-        heading: "대관·시설",
-        body: "모임·리그·이벤트를 위한 코트·시설 대관을 신청하고, 운영자와 일정을 맞출 수 있습니다.",
+        heading: "궁합 사주",
+        body: "두 사람의 사주를 견주어 연애·결혼 궁합의 조화와 보완점을 확인할 수 있습니다.",
       },
       {
-        heading: "클럽·광고",
-        body: "레슨, 클럽, 용품, 코트 사업자는 Piclick에서 피클볼 플레이어에게 자연스럽게 노출될 수 있습니다.",
+        heading: "신년운세·토정비결",
+        body: "한 해의 큰 흐름과 달별 운세를 신년운세·토정비결로 미리 살펴 계획을 세워 보세요.",
       },
     ],
     homeSeoTopicsHeading: "주요 기능",
-    topicsMetaTitle: "피클볼 예약·모임 | Piclick",
+    topicsMetaTitle: "오늘의 운세·사주팔자 | 사주네",
     topicsMetaDescription:
-      "피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고 등 Piclick의 주요 기능을 모아 둔 페이지입니다.",
-    guidesMetaTitle: "피클볼 가이드 | Piclick",
+      "오늘의 운세, 사주팔자, 궁합, 신년운세 등 사주네의 주요 기능을 모아 둔 페이지입니다.",
+    guidesMetaTitle: "사주·운세 가이드 | 사주네",
     guidesMetaDescription:
-      "피클볼 초보 가이드, 코트 예약 팁, 모임 참여 방법, 대관·클럽 이용 안내를 모았습니다.",
+      "사주 보는 법, 오행과 십성 이해, 궁합 보는 법, 신년운세·토정비결 활용법을 쉽게 정리했습니다.",
   },
   en: {
     siteName: SERVICE_NAME_EN,
-    homeTitle: "Pickleball Booking, Meetups & Courts | Piclick",
+    homeTitle: "Daily Fortune, Saju & Compatibility | Sajune",
     homeDescription:
-      "Book pickleball courts, join meetups, rent venues, and grow your club on Piclick—reserve, play, and host in one place.",
-    ogAlt: "Piclick — pickleball booking, meetups & courts",
+      "Read your daily fortune, Saju (Four Pillars of Destiny), and compatibility from your birth date and time on Sajune—traditional Korean fortune telling made simple.",
+    ogAlt: "Sajune — daily fortune, Saju & compatibility",
     schemaLanguage: "en",
     featureList: [
-      "Pickleball court booking",
-      "Meetup community",
-      "Venue & court rental",
-      "Club & lesson discovery",
-      "Ads for pickleball businesses",
-      "Schedule & RSVP tools",
+      "Daily fortune",
+      "Saju (Four Pillars) reading",
+      "Compatibility reading",
+      "New year fortune",
+      "Birth chart & elements",
+      "Easy destiny interpretation",
     ],
     faq: [
       {
-        question: "What is Piclick?",
+        question: "What is Sajune?",
         answer:
-          "Piclick is a pickleball platform for court booking, meetups, venue rental, and club or business ads—so you can reserve, play, and host in one place.",
+          "Sajune is a free Korean fortune-telling service that reads your daily fortune, Saju (Four Pillars of Destiny), and compatibility from your birth date and time.",
       },
       {
-        question: "How do I book a court?",
+        question: "How does a Saju reading work?",
         answer:
-          "Pick a location and time, check open courts, and reserve. Group rentals for meetups and leagues follow the same flow.",
+          "Enter your birth year, month, day, and hour. Sajune builds your Four Pillars chart and interprets it through the Five Elements and Ten Gods to reveal your nature and life flow.",
       },
       {
-        question: "What is the meetup community?",
+        question: "Can I check compatibility?",
         answer:
-          "Find or create open games and club sessions by level, area, and schedule—from beginner-friendly play to competitive matches.",
+          "Yes. Enter two people's birth details to see how their energies align, including the strengths and cautions of love and marriage compatibility.",
       },
       {
-        question: "Can clubs advertise?",
+        question: "Is it free?",
         answer:
-          "Yes. Clubs, coaches, gear shops, and venue operators can reach pickleball players through Piclick placements.",
+          "Core features like daily fortune, Saju, and compatibility are free. Please enjoy the results as guidance and reference.",
       },
     ],
-    homeSeoHeading: "Pickleball booking, meetups & courts — Piclick",
+    homeSeoHeading: "Daily fortune, Saju & compatibility — Sajune",
     homeSeoBody:
-      "Piclick helps you book courts, join meetups, rent venues, and promote clubs—everything you need to play more pickleball, in one place.",
+      "With just your birth date and time, Sajune reads your daily fortune, Saju (Four Pillars of Destiny), and compatibility—traditional Korean fortune telling made simple for everyone.",
     homeSeoSections: [
       {
-        heading: "Court booking",
-        body: "Find nearby indoor and outdoor courts and reserve open slots—single sessions or recurring times.",
+        heading: "Daily fortune",
+        body: "See today's overall, wealth, love, and health flow from your birth date—an easy read on your changing daily luck.",
       },
       {
-        heading: "Meetup community",
-        body: "Join open games and club meetups matched to your level, area, and schedule.",
+        heading: "Saju reading",
+        body: "Your Four Pillars chart, interpreted through the Five Elements and Ten Gods to explore your innate nature and life flow.",
       },
       {
-        heading: "Venue rental",
-        body: "Request courts and facilities for groups, leagues, and events, then align schedules with operators.",
+        heading: "Compatibility",
+        body: "Compare two charts to see the harmony and balance of love and marriage compatibility.",
       },
       {
-        heading: "Clubs & ads",
-        body: "Lessons, clubs, gear, and venues can reach players naturally on Piclick.",
+        heading: "New year fortune",
+        body: "Preview the year's big flow and month-by-month fortune to plan ahead.",
       },
     ],
     homeSeoTopicsHeading: "Core features",
-    topicsMetaTitle: "Pickleball booking & meetups | Piclick",
+    topicsMetaTitle: "Daily fortune & Saju | Sajune",
     topicsMetaDescription:
-      "Explore Piclick features: pickleball court booking, meetup community, venue rental, and club ads.",
-    guidesMetaTitle: "Pickleball guides | Piclick",
+      "Explore Sajune features: daily fortune, Saju reading, compatibility, and new year fortune.",
+    guidesMetaTitle: "Saju & fortune guides | Sajune",
     guidesMetaDescription:
-      "Beginner tips, court booking advice, how to join meetups, and venue or club guides on Piclick.",
+      "How to read Saju, understand the Five Elements and Ten Gods, check compatibility, and use new year fortune.",
   },
   ja: {
     siteName: SERVICE_NAME_JA,
-    homeTitle: "ピックルボール予約・コミュニティ・コート | Piclick",
+    homeTitle: "今日の運勢・四柱推命・相性 | サジュネ Sajune",
     homeDescription:
-      "Piclickでピックルボールのコート予約、コミュニティ、レンタル、クラブ・広告まで。近くのコートを見つけて一緒にプレーしましょう。",
-    ogAlt: "Piclick — ピックルボール予約・コミュニティ・コート",
+      "サジュネでは生年月日時から今日の運勢、四柱推命、相性まで。伝統的な韓国占いをわかりやすく読み解く無料占いサービスです。",
+    ogAlt: "サジュネ — 今日の運勢・四柱推命・相性",
     schemaLanguage: "ja",
     featureList: [
-      "ピックルボールコート予約",
-      "ミートアップコミュニティ",
-      "コート・施設レンタル",
-      "クラブ・レッスン発見",
-      "広告・露出",
-      "スケジュール・参加管理",
+      "今日の運勢",
+      "四柱推命の鑑定",
+      "相性占い",
+      "新年の運勢",
+      "命式・五行",
+      "わかりやすい運勢解説",
     ],
     faq: [
       {
-        question: "Piclickとは何ですか？",
+        question: "サジュネとは何ですか？",
         answer:
-          "Piclickはピックルボールのコート予約、コミュニティ、レンタル、クラブ・広告をつなぐプラットフォームです。",
+          "サジュネは生年月日時から今日の運勢、四柱推命、相性を読み解く無料の韓国占いサービスです。",
       },
       {
-        question: "コート予約の方法は？",
+        question: "占いはどう使いますか？",
         answer:
-          "エリアと時間を選び、空きコートを確認して予約できます。集まりやリーグ向けのレンタルも同じ流れで申請できます。",
+          "生まれた年・月・日・時を入力すると命式を作成し、五行と十神をもとに運勢の流れを読み解きます。",
       },
       {
-        question: "コミュニティ機能とは？",
+        question: "相性も見られますか？",
         answer:
-          "レベル・地域・時間に合うオープンゲームやクラブの集まりを作り、参加できるコミュニティです。",
+          "はい。二人の生年月日時を入力すると、恋愛・結婚の相性の強みと注意点を確認できます。",
       },
       {
-        question: "広告は出せますか？",
+        question: "無料ですか？",
         answer:
-          "はい。クラブ、レッスン、用品、コート運営者はPiclickの広告枠でプレイヤーにリーチできます。",
+          "今日の運勢、四柱推命、相性などの主要機能は無料でご利用いただけます。結果は参考としてお楽しみください。",
       },
     ],
-    homeSeoHeading: "ピックルボール予約・コミュニティ・コート — Piclick",
+    homeSeoHeading: "今日の運勢・四柱推命・相性 — サジュネ",
     homeSeoBody:
-      "Piclickはコート予約からコミュニティ、レンタル、クラブ・広告まで、ピックルボールに必要な流れをひとつにつなぎます。",
+      "サジュネは生年月日時さえあれば、今日の運勢から四柱推命、相性まで伝統的な韓国占いをわかりやすく読み解きます。",
     homeSeoSections: [
       {
-        heading: "コート予約",
-        body: "近くのインドア・アウトドアコートの空きを確認して予約。単発から定期枠まで探しやすく整理します。",
+        heading: "今日の運勢",
+        body: "生年月日から今日の総合運、金運、恋愛運、健康運の流れを確認できます。",
       },
       {
-        heading: "コミュニティ",
-        body: "レベルや地域に合うオープンゲーム・クラブ集まりを見つけて参加できます。",
+        heading: "四柱推命",
+        body: "生まれた年・月・日・時から作る命式を五行と十神の視点で読み解きます。",
       },
       {
-        heading: "レンタル",
-        body: "集まり・リーグ・イベント向けのコート・施設レンタルを申請し、運営者と日程を合わせられます。",
+        heading: "相性占い",
+        body: "二人の命式を照らし合わせ、恋愛・結婚の相性の調和と補い合いを確認できます。",
       },
       {
-        heading: "クラブ・広告",
-        body: "レッスン、クラブ、用品、コートはPiclickでプレイヤーに自然に届きます。",
+        heading: "新年の運勢",
+        body: "一年の大きな流れと月ごとの運勢を先取りして計画を立てましょう。",
       },
     ],
     homeSeoTopicsHeading: "主な機能",
-    topicsMetaTitle: "ピックルボール予約・コミュニティ | Piclick",
+    topicsMetaTitle: "今日の運勢・四柱推命 | サジュネ",
     topicsMetaDescription:
-      "ピックルボールのコート予約、コミュニティ、レンタル、クラブ・広告などPiclickの主な機能ページです。",
-    guidesMetaTitle: "ピックルボールガイド | Piclick",
+      "今日の運勢、四柱推命、相性、新年の運勢などサジュネの主な機能ページです。",
+    guidesMetaTitle: "四柱推命・運勢ガイド | サジュネ",
     guidesMetaDescription:
-      "初心者ガイド、コート予約のコツ、コミュニティ参加方法、レンタル・クラブ案内をまとめました。",
+      "四柱推命の見方、五行と十神の理解、相性の見方、新年の運勢の活用法をまとめました。",
   },
 };
 

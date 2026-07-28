@@ -1,6 +1,10 @@
-# Piclick
+# 사주네 (Sajune)
 
-피클볼 코트 예약 · 모임 커뮤니티 · 대관 · 클럽/광고 플랫폼.
+오늘의 운세 · 사주팔자 · 궁합 사주 — 생년월일시로 보는 정통 사주 서비스.
+
+- 생년월일시(양력·음력)로 사주팔자(천간·지지·오행·십성)를 정확히 계산 (`src/lib/saju`)
+- 계산된 명식을 Gemini로 해석: 오늘의 운세 / 사주팔자 풀이 / 궁합 (`/api/ai/saju`)
+- 기능은 로그인 후 이용 (`/dashboard/today`, `/dashboard/saju`, `/dashboard/gunghap`)
 
 ## Getting Started
 

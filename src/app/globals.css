@@ -1,16 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4efe6;
-  --foreground: #1a2e1f;
-  --piclick-green: #2f6b4f;
-  --piclick-green-deep: #1a3d2e;
-  --piclick-green-soft: #3f8a62;
-  --piclick-beige: #ebe3d4;
-  --piclick-beige-soft: #f4efe6;
-  --piclick-ink: #1a2e1f;
-  --piclick-ink-muted: #5a6f60;
-  --piclick-line: rgb(47 107 79 / 0.14);
+  --background: #f7f2e9;
+  --foreground: #2a2340;
+  /* 사주네 팔레트: 남보라 밤하늘 + 금빛 포인트 + 한지 크림 */
+  --piclick-green: #5a4a8f;
+  --piclick-green-deep: #2a2150;
+  --piclick-green-soft: #7a68b0;
+  --piclick-gold: #c79a3e;
+  --piclick-beige: #efe6d6;
+  --piclick-beige-soft: #f7f2e9;
+  --piclick-ink: #2a2340;
+  --piclick-ink-muted: #6a6280;
+  --piclick-line: rgb(90 74 143 / 0.16);
 }
 
 @theme inline {
@@ -26,8 +28,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #f4efe6;
-    --foreground: #1a2e1f;
+    --background: #f7f2e9;
+    --foreground: #2a2340;
   }
 }
 
@@ -85,21 +87,21 @@ body {
 
 .piclick-hero-bg {
   background:
-    radial-gradient(ellipse 90% 70% at 0% 0%, rgb(47 107 79 / 0.14), transparent 55%),
-    radial-gradient(ellipse 70% 55% at 100% 10%, rgb(235 227 212 / 0.95), transparent 50%),
-    linear-gradient(180deg, #ebe3d4 0%, #f4efe6 48%, #e8f0ea 100%);
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgb(90 74 143 / 0.16), transparent 55%),
+    radial-gradient(ellipse 70% 55% at 100% 10%, rgb(199 154 62 / 0.20), transparent 50%),
+    linear-gradient(180deg, #efe6d6 0%, #f7f2e9 48%, #ece6f4 100%);
 }
 
-.pickleball-hero-bg {
+.saju-hero-bg {
   background:
-    linear-gradient(90deg, rgb(47 107 79 / 0.07) 1px, transparent 1px),
-    linear-gradient(rgb(47 107 79 / 0.07) 1px, transparent 1px),
-    radial-gradient(ellipse 80% 60% at 85% 20%, rgb(63 138 98 / 0.18), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 10% 80%, rgb(47 107 79 / 0.1), transparent 50%),
-    linear-gradient(165deg, #ebe3d4 0%, #f4efe6 42%, #e4efe8 100%);
+    radial-gradient(circle at 18% 22%, rgb(199 154 62 / 0.16) 0 1.4px, transparent 1.6px),
+    radial-gradient(circle at 72% 64%, rgb(90 74 143 / 0.14) 0 1.4px, transparent 1.6px),
+    radial-gradient(ellipse 80% 60% at 85% 20%, rgb(122 104 176 / 0.20), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 80%, rgb(90 74 143 / 0.12), transparent 50%),
+    linear-gradient(165deg, #efe6d6 0%, #f7f2e9 42%, #ece6f4 100%);
   background-size:
-    48px 48px,
-    48px 48px,
+    54px 54px,
+    54px 54px,
     auto,
     auto,
     auto;
@@ -107,7 +109,7 @@ body {
 
 
 .piclick-login-modal-backdrop {
-  background: rgb(26 46 31 / 0.32);
+  background: rgb(42 33 80 / 0.34);
   backdrop-filter: blur(6px);
 }
 

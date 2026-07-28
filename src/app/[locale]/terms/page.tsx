@@ -18,18 +18,18 @@ export default function TermsPage() {
         <section className="mt-8 space-y-3 leading-7">
           <h2 className="text-xl font-semibold text-slate-800">1. 목적</h2>
           <p>
-            본 약관은 {SERVICE_NAME}가 제공하는 피클볼 예약·모임 커뮤니티·대관·광고 및 관련 콘텐츠 서비스의 이용 조건,
-            권리·의무 및 책임사항을 규정함을 목적으로 합니다.
+            본 약관은 {SERVICE_NAME}가 제공하는 오늘의 운세·사주팔자·궁합 등 사주 풀이 및 커뮤니티·광고 관련 콘텐츠
+            서비스의 이용 조건, 권리·의무 및 책임사항을 규정함을 목적으로 합니다.
           </p>
         </section>
 
         <section className="mt-8 space-y-3 leading-7">
           <h2 className="text-xl font-semibold text-slate-800">2. 서비스 성격 (중요)</h2>
           <p>
-            본 서비스는 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고 연결을 위한 플랫폼입니다. 코트·시설의 실제
-            이용 조건, 요금, 안전 수칙은 각 운영자의 규정을 따르며, {SERVICE_NAME}는 시설 운영자·이용자 간 거래의
-            당사자가 아닐 수 있습니다. 이용자는 예약·참가·대관 정보를 정확히 확인하고, 현장 안전에 대한 최종 책임을
-            집니다.
+            본 서비스는 사주·운세 콘텐츠를 제공하는 플랫폼입니다. 오늘의 운세, 사주팔자, 궁합 등 모든 풀이 결과는
+            전통 명리와 AI 해석에 기반한 참고용 정보이며, 어떠한 결과도 미래를 확정적으로 보장하지 않습니다. 진로·건강·
+            재정·결혼 등 중요한 결정은 이용자 본인이 신중히 판단해야 하며, {SERVICE_NAME}는 결과 이용에 따른 결정과
+            책임의 당사자가 아닙니다.
           </p>
           <ul className="list-disc space-y-1 pl-5">
             <li>코트·시설의 운영 상태·가용성을 항상 보장하지 않습니다.</li>

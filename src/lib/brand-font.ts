@@ -1,8 +1,8 @@
-import { Outfit } from "next/font/google";
+import { Jua } from "next/font/google";
 
-/** Piclick 로고·브랜드 타이틀용 (모던 스포츠 디스플레이) */
-export const brandDisplayFont = Outfit({
-  weight: ["500", "600", "700", "800"],
+/** 사주네 로고·브랜드 타이틀용 (둥글둥글하고 친근한 한글 디스플레이) */
+export const brandDisplayFont = Jua({
+  weight: ["400"],
   subsets: ["latin"],
   display: "swap",
   variable: "--font-brand-display",

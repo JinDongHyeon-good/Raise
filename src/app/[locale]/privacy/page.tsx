@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold text-slate-800">2. 이용 목적</h2>
           <ul className="list-disc space-y-1 pl-5">
             <li>회원 식별 및 로그인 제공</li>
-            <li>피클볼 예약·모임·대관·커뮤니티 기능 제공 및 기록 관리</li>
+            <li>오늘의 운세·사주팔자·궁합 등 사주 풀이 기능 제공 및 기록 관리</li>
             <li>부정 이용 방지, 서비스 품질 개선, 문의 대응</li>
             <li>법령 준수 및 분쟁 대응</li>
             <li>서비스 내 광고 게재·측정(Google AdSense 등) 및 관련 통계 분석</li>

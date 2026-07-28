@@ -5,17 +5,17 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link as LocaleLink } from "@/navigation";
 import { SitePageShell } from "@/components/site/site-page-shell";
 import { getLocalizedBrandName } from "@/lib/brand";
-import { PICKLEBALL_FAQ } from "@/lib/pickleball-seo";
+import { SAJU_FAQ } from "@/lib/saju-seo";
 import type { AppLocale } from "@/i18n/routing";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-const BASICS = ["paddle", "ball", "court"] as const;
-const REASONS = ["easy", "social", "active"] as const;
-const AUDIENCE = ["beginner", "friends", "families"] as const;
+const BASICS = ["pillars", "elements", "tenGods"] as const;
+const REASONS = ["understand", "timing", "mind"] as const;
+const AUDIENCE = ["first", "couple", "decision"] as const;
 
-export function PickleballIntro() {
-  const t = useTranslations("pickleball");
+export function SajuIntro() {
+  const t = useTranslations("saju");
   const tc = useTranslations("common");
   const locale = useLocale() as AppLocale;
   const brandName = getLocalizedBrandName(locale);
@@ -25,7 +25,7 @@ export function PickleballIntro() {
     <SitePageShell>
       <div className="piclick-home">
         <section className="relative isolate overflow-hidden border-b border-[var(--piclick-line)]">
-          <div className="pickleball-hero-bg absolute inset-0 -z-10" aria-hidden />
+          <div className="saju-hero-bg absolute inset-0 -z-10" aria-hidden />
           <div className="piclick-container flex min-h-[min(78dvh,680px)] flex-col justify-center py-16 sm:py-24">
             <motion.p
               className="font-brand-display text-[clamp(2.75rem,8vw,5.5rem)] font-extrabold leading-[0.95] tracking-tight text-[var(--piclick-green-deep)]"
@@ -140,7 +140,7 @@ export function PickleballIntro() {
               {t("play.heading")}
             </h2>
             <ol className="mt-10 max-w-2xl space-y-6">
-              {(["serve", "rally", "score"] as const).map((id, index) => (
+              {(["input", "chart", "read"] as const).map((id, index) => (
                 <li key={id} className="flex gap-4">
                   <span className="font-brand-display mt-0.5 text-sm font-bold tabular-nums text-[var(--piclick-green)]">
                     {String(index + 1).padStart(2, "0")}
@@ -173,21 +173,21 @@ export function PickleballIntro() {
         </section>
 
         <section
-          id="pickleball-faq"
+          id="saju-faq"
           className="scroll-mt-16 border-b border-[var(--piclick-line)]"
-          aria-labelledby="pickleball-faq-heading"
+          aria-labelledby="saju-faq-heading"
         >
           <div className="piclick-container py-16 sm:py-20">
             <p className="text-sm font-medium text-[var(--piclick-green)]">FAQ</p>
             <h2
-              id="pickleball-faq-heading"
+              id="saju-faq-heading"
               className="mt-3 max-w-2xl text-balance text-2xl font-semibold tracking-tight text-[var(--piclick-ink)] sm:text-3xl"
             >
               {t("faq.heading")}
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--piclick-ink-muted)]">{t("faq.sub")}</p>
             <dl className="mt-10 max-w-3xl">
-              {PICKLEBALL_FAQ.map((item) => (
+              {SAJU_FAQ.map((item) => (
                 <div key={item.question} className="border-t border-[var(--piclick-green)]/15 py-5">
                   <dt className="text-base font-semibold text-[var(--piclick-ink)]">{item.question}</dt>
                   <dd className="mt-2 text-sm leading-7 text-[var(--piclick-ink-muted)] sm:text-[0.95rem]">

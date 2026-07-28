@@ -22,9 +22,9 @@ export function TarotServiceInfoContent() {
             운영 안내
           </h2>
           <p className="max-w-3xl text-sm leading-7 text-[var(--piclick-ink-muted)] sm:text-base">
-            {SERVICE_NAME}는 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 연결하는 웹 서비스입니다. 브랜드명
-            Piclick은 &quot;Pickleball + Click&quot;으로, 피클볼을 더 쉽게 예약하고 참여한다는 의미로 사용합니다. 서비스
-            개선, 개인정보, 광고·제휴 관련 문의는 아래 연락처로 접수합니다.
+            {SERVICE_NAME}는 생년월일시로 보는 오늘의 운세, 사주팔자, 궁합을 정통 명리로 쉽게 풀어주는 무료 사주
+            서비스입니다. 브랜드명 사주네(Sajune)는 &quot;사주 + 네&quot;로, 누구나 편하게 자기 사주를 확인한다는 의미로
+            사용합니다. 사주·운세 결과는 참고용이며, 서비스 개선·개인정보·광고·제휴 관련 문의는 아래 연락처로 접수합니다.
           </p>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-7 text-[var(--piclick-ink-muted)] sm:text-base">
             <li>
@@ -60,25 +60,25 @@ export function TarotServiceInfoContent() {
             href="/#features"
             className="rounded-md border border-[var(--piclick-green)]/20 bg-white px-3 py-1.5 text-[var(--piclick-ink)] hover:border-[var(--piclick-green)]/40"
           >
-            코트 예약
+            오늘의 운세
           </a>
           <a
             href="/#features"
             className="rounded-md border border-[var(--piclick-green)]/20 bg-white px-3 py-1.5 text-[var(--piclick-ink)] hover:border-[var(--piclick-green)]/40"
           >
-            모임 커뮤니티
+            사주팔자
           </a>
           <a
             href="/#features"
             className="rounded-md border border-[var(--piclick-green)]/20 bg-white px-3 py-1.5 text-[var(--piclick-ink)] hover:border-[var(--piclick-green)]/40"
           >
-            대관
+            궁합 사주
           </a>
           <a
             href="/#features"
             className="rounded-md border border-[var(--piclick-green)]/20 bg-white px-3 py-1.5 text-[var(--piclick-ink)] hover:border-[var(--piclick-green)]/40"
           >
-            클럽 · 광고
+            신년운세
           </a>
         </div>
 

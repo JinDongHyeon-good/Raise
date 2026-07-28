@@ -20,38 +20,32 @@
     "processing": "Processing...",
     "community": "Community",
     "dashboard": "Dashboard",
-    "pickleball": "About pickleball"
+    "saju": "About Saju"
   },
   "dashboard": {
-    "metaTitle": "Dashboard | Piclick",
-    "metaDescription": "Open the Piclick dashboard to browse the community board and other features.",
-    "eyebrow": "App home",
-    "title": "Dashboard",
-    "subtitle": "Jump into the community board and upcoming pickleball tools from one place.",
-    "soon": "Soon",
-    "openBoard": "Open board",
-    "openItem": "Open",
-    "openPickleball": "Read intro",
+    "metaTitle": "Dashboard | Sajune",
+    "metaDescription": "Check your daily fortune, Saju, and compatibility on the Sajune dashboard.",
+    "eyebrow": "Sajune",
+    "title": "What would you like to see?",
+    "subtitle": "From today's fortune to your Saju and compatibility—pick one to begin.",
+    "soon": "Coming soon",
+    "open": "Start",
     "items": {
-      "pickleball": {
-        "title": "About pickleball",
-        "body": "What it is, how to play, and why it’s catching on—explained simply."
+      "today": {
+        "title": "Daily fortune",
+        "body": "See today's overall, wealth, love, and health flow from your birth date."
+      },
+      "saju": {
+        "title": "Saju reading",
+        "body": "Read your Four Pillars through the Five Elements and Ten Gods—nature, wealth, career, and relationships."
+      },
+      "gunghap": {
+        "title": "Compatibility",
+        "body": "Compare two charts for love and marriage compatibility with an overall score."
       },
       "community": {
-        "title": "Community board",
-        "body": "Share meetup notes, find partners, and swap court tips with comments and likes."
-      },
-      "booking": {
-        "title": "Court booking",
-        "body": "Find nearby pickleball courts and reserve open slots—coming soon."
-      },
-      "venue": {
-        "title": "Venue rental",
-        "body": "Request facilities for meetups, leagues, and events—coming soon."
-      },
-      "ads": {
-        "title": "Clubs & ads",
-        "body": "Promote lessons, clubs, and gear to players—coming soon."
+        "title": "Fortune community",
+        "body": "Share worries and fortune stories and see what others have experienced."
       },
       "mypage": {
         "title": "My page",
@@ -59,107 +53,9 @@
       }
     }
   },
-  "pickleball": {
-    "metaTitle": "What is pickleball? | Piclick",
-    "metaDescription": "Learn what pickleball is, how to play, and why it’s growing so fast—explained simply on Piclick.",
-    "hero": {
-      "headline": "Pickleball: rallies you can join on day one",
-      "sub": "A smaller court than tennis, a slower ball than badminton. An easy sport for almost anyone to share.",
-      "ctaPrimary": "Go to dashboard",
-      "ctaSecondary": "Learn more"
-    },
-    "what": {
-      "eyebrow": "What is pickleball",
-      "heading": "A net sport with paddles and a plastic ball",
-      "body": "Pickleball is played on a badminton-sized court with solid paddles and a perforated plastic ball. The rules are simple and the ball moves relatively slowly, so first-timers can keep a rally going quickly."
-    },
-    "why": {
-      "eyebrow": "Why play",
-      "heading": "Why people fall for pickleball",
-      "sub": "It’s easy to learn, fun with others, and light enough to fit into a busy week.",
-      "items": {
-        "easy": {
-          "title": "Easy to learn",
-          "body": "Know the serve and a few basics, and you’re in a game. There’s no steep tennis-style learning curve."
-        },
-        "social": {
-          "title": "Built for groups",
-          "body": "Doubles is the norm, so conversation and teamwork come naturally—great for clubs and meetups."
-        },
-        "active": {
-          "title": "Gentle but active",
-          "body": "The court is compact, yet you still move. Intensity scales with your partners and pace."
-        }
-      }
-    },
-    "basics": {
-      "eyebrow": "The basics",
-      "heading": "Just a few things to know",
-      "sub": "Understand the gear and court, and you can start your first game.",
-      "items": {
-        "paddle": {
-          "title": "Paddle",
-          "body": "A solid wood or composite paddle—no strings. Stable feel and easy control for beginners."
-        },
-        "ball": {
-          "title": "Ball",
-          "body": "A plastic ball with holes. Air resistance keeps speed down and rallies longer."
-        },
-        "court": {
-          "title": "Court",
-          "body": "About the size of a badminton court with a center net. Play indoors or outdoors."
-        }
-      }
-    },
-    "play": {
-      "eyebrow": "How it works",
-      "heading": "How a game usually flows",
-      "steps": {
-        "serve": {
-          "title": "Underhand serve",
-          "body": "Serve upward from below, diagonally into the opposite court. Most games start as doubles."
-        },
-        "rally": {
-          "title": "Rallies and the kitchen",
-          "body": "Near the net is the non-volley zone (kitchen)—you can only hit after a bounce there. It cuts down on smash chaos and adds strategy."
-        },
-        "score": {
-          "title": "Scoring",
-          "body": "Games often go to 11 (win by 2). Local groups tweak details—check once before your first match."
-        }
-      }
-    },
-    "who": {
-      "eyebrow": "Who it's for",
-      "heading": "A good fit if you…",
-      "items": {
-        "beginner": {
-          "title": "Are starting a new sport",
-          "body": "The skill barrier is low—it doesn’t feel like “only experts belong here.”"
-        },
-        "friends": {
-          "title": "Want meetups with friends",
-          "body": "Four players is the default, so plans are easy and the rally is the fun—not just the score."
-        },
-        "families": {
-          "title": "Want something for families",
-          "body": "Different ages can share the same court without feeling left out."
-        }
-      }
-    },
-    "faq": {
-      "heading": "Pickleball FAQ",
-      "sub": "From rules and gear to court booking and venue rental—answers to the most common questions."
-    },
-    "cta": {
-      "heading": "Connect beyond the court",
-      "sub": "Browse the Piclick community, and get ready for booking and venue tools coming next.",
-      "dashboard": "Open dashboard"
-    }
-  },
   "board": {
-    "metaTitle": "Community board | Piclick",
-    "metaDescription": "Share pickleball meetups, court tips, and everyday play on Piclick. Write posts, reply, and like.",
+    "metaTitle": "Fortune community | Sajune",
+    "metaDescription": "Share Saju, fortune, and worries on the Sajune community. Post, reply, and like.",
     "title": "Community",
     "subtitle": "Share meetup notes, find partners, and swap court tips.",
     "pageIntro": "A place to play together—and talk about it.",
@@ -232,36 +128,36 @@
       "features": "Features"
     },
     "hero": {
-      "headline": "Book courts, join meetups, play more pickleball",
-      "sub": "Reserve nearby courts, find people to play with, and connect rentals, clubs, and ads—all on Piclick.",
-      "ctaPrimary": "Go to dashboard",
+      "headline": "Your Saju and today's fortune, from your birth date",
+      "sub": "Daily fortune, Saju, and compatibility—read simply through traditional Korean astrology. Check yours now on Sajune.",
+      "ctaPrimary": "See my Saju",
       "ctaSecondary": "Get started"
     },
     "features": {
-      "eyebrow": "What you can do",
-      "heading": "Book · Meet · Rent · Promote",
-      "sub": "Built for players, organizers, and venue operators who want more pickleball with less friction.",
+      "eyebrow": "What you can read",
+      "heading": "Daily fortune · Saju · Compatibility",
+      "sub": "With just your birth date and time, read today's fortune, your Saju, and compatibility between two people.",
       "booking": {
-        "title": "Court booking",
-        "body": "Check open indoor and outdoor courts and reserve—from one-off sessions to recurring slots."
+        "title": "Daily fortune",
+        "body": "See today's overall, wealth, love, and health flow from your birth date—an easy read on your changing daily luck."
       },
       "community": {
-        "title": "Meetup community",
-        "body": "Create or join open games and club sessions by level, area, and schedule."
+        "title": "Fortune community",
+        "body": "Share worries and fortune stories, and see what others have experienced in the community."
       },
       "venue": {
-        "title": "Venue rental",
-        "body": "Request courts and facilities for groups, leagues, and events, then align schedules with operators."
+        "title": "Compatibility",
+        "body": "Compare two charts to see the harmony and balance of love and marriage compatibility."
       },
       "ads": {
-        "title": "Clubs & ads",
-        "body": "Lessons, clubs, gear, and venues can reach pickleball players naturally on Piclick."
+        "title": "Saju & new year fortune",
+        "body": "From your Four Pillars reading to the year's flow with new year fortune."
       }
     },
     "cta": {
-      "heading": "Your next rally starts on Piclick",
-      "sub": "Booking and meetups come first—rentals and ads follow. Create an account to get ready.",
-      "button": "Start free"
+      "heading": "Curious about your Saju?",
+      "sub": "Enter your birth date and time to see your daily fortune and reading right away.",
+      "button": "Read for free"
     }
   },
   "tarot": {
@@ -388,14 +284,14 @@
     }
   },
   "pages": {
-    "topicsTitle": "Pickleball booking & meetups",
-    "topicsDescription": "Explore Piclick features: court booking, meetup community, venue rental, and club ads.",
-    "guidesTitle": "Pickleball guides",
-    "guidesDescription": "Beginner tips, court booking advice, how to join meetups, and venue or club guides.",
+    "topicsTitle": "Daily fortune & Saju",
+    "topicsDescription": "Explore Sajune features: daily fortune, Saju, and compatibility.",
+    "guidesTitle": "Saju & fortune guides",
+    "guidesDescription": "How to read Saju, the Five Elements and Ten Gods, compatibility, and new year fortune.",
     "guidesBack": "← All guides",
-    "topicCta": "Explore {heading} on Piclick.",
+    "topicCta": "Explore {heading} on Sajune.",
     "topicStart": "Start {heading}",
-    "disclaimer": "Piclick helps you book, meet, and rent for pickleball. Always follow each venue's rules and safety guidelines."
+    "disclaimer": "Sajune fortune content is for reference only. Make important decisions with care."
   },
   "mypage": {
     "title": "My page",
@@ -417,23 +313,185 @@
     "backToDashboard": "← Back to dashboard",
     "myPosts": "My posts",
     "goCommunity": "Go to community",
-    "disclaimer": "Piclick is for pickleball booking, meetups, and venue rental. Follow each venue's rules when you play."
+    "disclaimer": "Sajune fortune content is for reference only. Make important decisions with care."
   },
   "footer": {
     "siteNav": "Site links",
     "legalNav": "Legal",
-    "tagline": "Pickleball · Reserve · Play · Host",
+    "tagline": "Daily Fortune · Saju · Compatibility",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
-    "disclaimer": "© {year} {name}. Court and facility use follows each operator's rules and safety guidelines. See the Privacy Policy for cookies and Google AdSense."
+    "disclaimer": "© {year} {name}. Fortune and Saju content is for reference only; please make important decisions with care. See the Privacy Policy for cookies and Google AdSense."
   },
   "seo": {
-    "homeTitle": "Pickleball Booking, Meetups & Courts | Piclick",
-    "homeDescription": "Book pickleball courts, join meetups, rent venues, and grow your club on Piclick—reserve, play, and host in one place.",
-    "ogAlt": "Piclick — pickleball booking, meetups & courts",
-    "topicsMetaTitle": "Pickleball booking & meetups | Piclick",
-    "topicsMetaDescription": "Explore Piclick features: pickleball court booking, meetup community, venue rental, and club ads.",
-    "guidesMetaTitle": "Pickleball guides | Piclick",
-    "guidesMetaDescription": "Beginner tips, court booking advice, how to join meetups, and venue or club guides on Piclick."
+    "homeTitle": "Daily Fortune, Saju & Compatibility | Sajune",
+    "homeDescription": "Read your daily fortune, Saju (Four Pillars of Destiny), and compatibility from your birth date and time on Sajune—traditional Korean fortune telling made simple.",
+    "ogAlt": "Sajune — daily fortune, Saju & compatibility",
+    "topicsMetaTitle": "Daily fortune & Saju | Sajune",
+    "topicsMetaDescription": "Explore Sajune features: daily fortune, Saju reading, compatibility, and new year fortune.",
+    "guidesMetaTitle": "Saju & fortune guides | Sajune",
+    "guidesMetaDescription": "How to read Saju, understand the Five Elements and Ten Gods, check compatibility, and use new year fortune."
+  },
+  "saju": {
+    "metaTitle": "What is Saju? How to read your fortune | Sajune",
+    "metaDescription": "Learn what Saju is, how it's read, and the basics of the Five Elements and Ten Gods on Sajune.",
+    "hero": {
+      "headline": "Saju, an easy map of your destiny—even for beginners",
+      "sub": "The eight characters in your birth year, month, day, and hour reveal who you are.",
+      "ctaPrimary": "See my Saju",
+      "ctaSecondary": "Learn more"
+    },
+    "what": {
+      "eyebrow": "What is Saju",
+      "heading": "Eight characters from your birth date and time",
+      "body": "Saju (the Four Pillars of Destiny) expresses your birth year, month, day, and hour as eight characters. Reading the balance of the Five Elements within them reveals your nature, life flow, and even today's fortune."
+    },
+    "why": {
+      "eyebrow": "Why Saju",
+      "heading": "Why read your Saju",
+      "sub": "To understand yourself, gauge timing, and steady your mind.",
+      "items": {
+        "understand": {
+          "title": "Understand yourself",
+          "body": "Knowing your nature, strengths, and weaknesses makes it easier to find your direction."
+        },
+        "timing": {
+          "title": "Gauge the timing",
+          "body": "Preview the flow and timing of key matters like wealth, love, and career."
+        },
+        "mind": {
+          "title": "Steady your mind",
+          "body": "Prepare your day with today's fortune and know what to watch for."
+        }
+      }
+    },
+    "basics": {
+      "eyebrow": "The basics",
+      "heading": "What makes up a Saju",
+      "sub": "A few concepts make readings much easier.",
+      "items": {
+        "pillars": {
+          "title": "Four Pillars",
+          "body": "Four pillars (year, month, day, hour) each carry two characters, forming the eight of the chart."
+        },
+        "elements": {
+          "title": "Five Elements",
+          "body": "Wood, Fire, Earth, Metal, and Water—their balance shapes character and fortune."
+        },
+        "tenGods": {
+          "title": "Ten Gods",
+          "body": "Relationships from your Day Master that read luck in wealth, relationships, and status."
+        }
+      }
+    },
+    "play": {
+      "eyebrow": "How it works",
+      "heading": "How a reading works",
+      "steps": {
+        "input": {
+          "title": "Enter birth details",
+          "body": "Enter your birth year, month, day, and hour (time if possible)."
+        },
+        "chart": {
+          "title": "Build the chart",
+          "body": "The Four Pillars are set from the traditional calendar (manseryeok)."
+        },
+        "read": {
+          "title": "Interpretation",
+          "body": "The Five Elements and Ten Gods are read for daily fortune, nature, and compatibility."
+        }
+      }
+    },
+    "who": {
+      "eyebrow": "Who it's for",
+      "heading": "Who it suits",
+      "items": {
+        "first": {
+          "title": "New to Saju",
+          "body": "Core ideas explained simply, without hard jargon—easy even for first-timers."
+        },
+        "couple": {
+          "title": "Curious about compatibility",
+          "body": "Great when you want to know how two people harmonize before love or marriage."
+        },
+        "decision": {
+          "title": "Facing a decision",
+          "body": "Helpful when weighing a job change, move, or important choice."
+        }
+      }
+    },
+    "faq": {
+      "heading": "Saju FAQ",
+      "sub": "From the basics to daily fortune and compatibility—the most common questions."
+    },
+    "cta": {
+      "heading": "Now check your Saju",
+      "sub": "Explore your daily fortune and reading on Sajune, and check compatibility too.",
+      "dashboard": "See my Saju"
+    }
+  },
+  "sajuApp": {
+    "daily": {
+      "metaTitle": "Daily fortune | Sajune",
+      "title": "Daily fortune",
+      "subtitle": "Enter your birth date and time to read today's fortune from your Saju.",
+      "cta": "See today's fortune"
+    },
+    "natal": {
+      "metaTitle": "Saju reading | Sajune",
+      "title": "Saju reading",
+      "subtitle": "Build your Four Pillars and read your nature, wealth, career, and relationships.",
+      "cta": "See my Saju reading"
+    },
+    "compatibility": {
+      "metaTitle": "Compatibility | Sajune",
+      "title": "Compatibility",
+      "subtitle": "Compare two charts for love and marriage compatibility with an overall score.",
+      "cta": "See compatibility"
+    },
+    "form": {
+      "name": "Name (optional)",
+      "namePlaceholder": "Name or nickname",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "unknown": "Prefer not to say",
+      "calendar": "Calendar",
+      "solar": "Solar",
+      "lunar": "Lunar",
+      "leapMonth": "Leap month",
+      "birthDate": "Birth date",
+      "yearUnit": "Year",
+      "monthUnit": "Month",
+      "dayUnit": "Day",
+      "birthTime": "Birth time",
+      "hourUnit": "Hour",
+      "minuteUnit": "Min",
+      "timeUnknown": "Birth time unknown",
+      "personA": "Person 1",
+      "personB": "Person 2"
+    },
+    "result": {
+      "chartTitle": "Saju chart",
+      "dayMaster": "Day Master",
+      "zodiac": "Zodiac",
+      "elements": "Five Elements",
+      "readingTitle": "Reading",
+      "regenerate": "Read again",
+      "loading": "Reading your Saju...",
+      "loadingSub": "Building your chart and reviewing the elements."
+    },
+    "pillars": {
+      "year": "Year",
+      "month": "Month",
+      "day": "Day",
+      "hour": "Hour",
+      "hourUnknown": "Hour unknown"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again in a moment.",
+      "network": "Network error. Please try again."
+    },
+    "disclaimer": "Fortune results are for reference only. Make important decisions with care."
   }
 }

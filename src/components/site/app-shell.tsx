@@ -14,7 +14,7 @@ type AuthMode = "login" | "signup";
 
 type AppShellProps = {
   children: React.ReactNode;
-  active?: "dashboard" | "board" | "mypage" | "pickleball";
+  active?: "dashboard" | "board" | "mypage" | "saju";
   nextPath?: string;
   showFooter?: boolean;
   loginOpen?: boolean;
@@ -113,8 +113,8 @@ export function AppShell({
       ? "board"
       : pathname.startsWith("/mypage")
         ? "mypage"
-        : pathname.startsWith("/pickleball")
-          ? "pickleball"
+        : pathname.startsWith("/saju")
+          ? "saju"
           : pathname.startsWith("/dashboard")
             ? "dashboard"
             : undefined);
@@ -139,8 +139,8 @@ export function AppShell({
             <LocaleLink href="/dashboard/board" className={navClass("board")}>
               {tc("community")}
             </LocaleLink>
-            <LocaleLink href="/pickleball" className={navClass("pickleball")}>
-              {tc("pickleball")}
+            <LocaleLink href="/saju" className={navClass("saju")}>
+              {tc("saju")}
             </LocaleLink>
           </nav>
 

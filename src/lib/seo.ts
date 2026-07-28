@@ -62,12 +62,12 @@ function buildOpenGraph(
 }
 
 /** 구글 검색 제목·스니펫용 (홈·기본) — locale별 값은 getSeoCopy 참고 */
-export const SEO_HOME_TITLE = "피클볼 예약·모임·대관 | Piclick 피클릭";
+export const SEO_HOME_TITLE = "오늘의 운세·사주팔자·궁합 | 사주네 Sajune";
 
 export const SEO_HOME_DESCRIPTION =
-  "Piclick에서 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고까지. 가까운 코트를 찾고 함께 칠 사람을 만나보세요.";
+  "사주네에서 생년월일시로 보는 오늘의 운세, 사주팔자, 궁합까지. 정통 명리로 쉽게 풀어보는 무료 사주 서비스입니다.";
 
-const OG_IMAGE_PATH = "/ogImage.png";
+const OG_IMAGE_PATH = "/api/og";
 
 export function getOgImageUrl() {
   return new URL(OG_IMAGE_PATH, getSiteUrl()).toString();
@@ -110,14 +110,11 @@ export function buildRootMetadata(locale: AppLocale = defaultLocale): Metadata {
       images: [OG_IMAGE_PATH],
     },
     icons: {
-      icon: [
-        { url: "/favicon.ico", sizes: "32x32" },
-        { url: "/favicon.png", sizes: "1024x1024", type: "image/png" },
-      ],
-      shortcut: "/favicon.ico",
-      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+      icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+      shortcut: "/icon.svg",
+      apple: [{ url: "/icon.svg" }],
     },
-    category: "sports",
+    category: "lifestyle",
     other: {
       "application-name": SERVICE_NAME_EN,
       "google-adsense-account": GOOGLE_ADSENSE_CLIENT,
@@ -346,7 +343,7 @@ export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[]
       "@id": `${homeUrl}#website`,
       url: homeUrl,
       name: copy.siteName,
-      alternateName: [SERVICE_NAME_EN, SERVICE_NAME, "피클릭", "Piclick Pickleball"],
+      alternateName: [SERVICE_NAME_EN, SERVICE_NAME, "사주네", "오늘의 운세", "Sajune Saju"],
       description: copy.homeDescription,
       inLanguage: copy.schemaLanguage,
     },
@@ -357,7 +354,7 @@ export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[]
       name: copy.siteName,
       alternateName: SERVICE_NAME_EN,
       url: homeUrl,
-      applicationCategory: "SportsApplication",
+      applicationCategory: "LifestyleApplication",
       operatingSystem: "Web",
       browserRequirements: "Requires JavaScript",
       description: copy.homeDescription,
@@ -399,35 +396,35 @@ export function getHomeJsonLd(locale: AppLocale = defaultLocale): JsonLdObject[]
 
 /** 서비스 소개·FAQ 페이지용 문구 (한국어 기본; 홈 하단은 getSeoCopy 사용) */
 export const HOME_SEO_INTRO = {
-  heading: "피클볼 예약·모임·대관 — Piclick",
-  body: `Piclick은 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 한곳에서 연결하는 서비스입니다. ${SERVICE_TAGLINE}. 가까운 코트를 찾고, 함께 칠 사람을 만나고, 시설을 대관해 보세요.`,
+  heading: "오늘의 운세·사주팔자·궁합 — 사주네",
+  body: `사주네는 생년월일시로 보는 오늘의 운세, 사주팔자, 궁합을 정통 명리로 쉽게 풀어주는 무료 사주 서비스입니다. ${SERVICE_TAGLINE}. 어렵게 느껴지던 사주를 누구나 편하게 확인해 보세요.`,
 };
 
 export const HOME_SEO_FAQ: Array<{ question: string; answer: string }> = [
   {
-    question: "Piclick은 어떤 서비스인가요?",
+    question: "사주네는 어떤 서비스인가요?",
     answer:
-      "Piclick(피클릭)은 피클볼 코트 예약, 모임 커뮤니티, 대관, 클럽·광고를 연결하는 피클볼 플랫폼입니다.",
+      "사주네(Sajune)는 생년월일시로 보는 오늘의 운세, 사주팔자, 궁합을 정통 명리로 쉽게 풀어주는 무료 사주 서비스입니다.",
   },
   {
-    question: "코트 예약은 어떻게 하나요?",
+    question: "사주는 어떻게 보나요?",
     answer:
-      "지역과 시간을 고른 뒤 빈 코트를 확인하고 예약합니다. 모임·리그를 위한 대관도 같은 흐름으로 신청할 수 있습니다.",
+      "태어난 연·월·일·시를 입력하면 만세력을 기준으로 사주팔자를 세우고, 오행과 십성을 바탕으로 오늘의 운세와 삶의 흐름을 풀어 드립니다.",
   },
   {
-    question: "모임 커뮤니티는 무엇인가요?",
+    question: "오늘의 운세는 매일 달라지나요?",
     answer:
-      "레벨·지역·시간에 맞는 오픈 게임과 클럽 모임을 만들고 참가할 수 있는 커뮤니티입니다.",
+      "네. 그날의 일진과 사주의 관계에 따라 총운·재물운·애정운·건강운의 흐름을 매일 새롭게 확인할 수 있습니다.",
   },
   {
-    question: "대관은 누가 이용하나요?",
+    question: "궁합 사주는 누가 이용하나요?",
     answer:
-      "정기 모임, 리그, 이벤트 등 코트가 필요한 개인·클럽·운영자가 시설 대관을 신청하고 일정을 맞출 수 있습니다.",
+      "연애·결혼을 앞둔 분, 서로의 성향과 조화를 알고 싶은 분이 두 사람의 생년월일시로 궁합의 강점과 주의할 점을 확인할 수 있습니다.",
   },
   {
-    question: "광고·클럽 홍보는 가능한가요?",
+    question: "이용은 무료인가요?",
     answer:
-      "네. 클럽, 레슨, 용품, 코트 시설 운영자는 Piclick 광고·노출로 피클볼 플레이어에게 서비스를 알릴 수 있습니다. 쿠키·광고 안내는 개인정보처리방침을 참고해 주세요.",
+      "오늘의 운세, 사주팔자, 궁합 등 핵심 기능은 무료로 제공됩니다. 결과는 참고용으로 즐겨 주시고, 쿠키·광고 안내는 개인정보처리방침을 참고해 주세요.",
   },
   {
     question: "문의는 어디로 하면 되나요?",

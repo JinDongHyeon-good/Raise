@@ -32,8 +32,8 @@ export function SitePageShell({
             <LocaleLink href="/dashboard/board" className="transition hover:text-[var(--piclick-green-deep)]">
               {t("community")}
             </LocaleLink>
-            <LocaleLink href="/pickleball" className="transition hover:text-[var(--piclick-green-deep)]">
-              {t("pickleball")}
+            <LocaleLink href="/saju" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("saju")}
             </LocaleLink>
           </nav>
         </div>
