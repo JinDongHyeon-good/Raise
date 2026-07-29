@@ -3,6 +3,7 @@
 import { Link as LocaleLink, usePathname } from "@/navigation";
 import { SiteFooter } from "@/components/site/site-footer";
 import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
+import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { LoginModal } from "@/components/auth/login-modal";
 import { getLocalizedBrandName } from "@/lib/brand";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
@@ -14,7 +15,7 @@ type AuthMode = "login" | "signup";
 
 type AppShellProps = {
   children: React.ReactNode;
-  active?: "dashboard" | "board" | "mypage" | "saju";
+  active?: "dashboard" | "board" | "mypage" | "saju" | "today" | "natal" | "gunghap";
   nextPath?: string;
   showFooter?: boolean;
   loginOpen?: boolean;
@@ -111,13 +112,19 @@ export function AppShell({
     active ??
     (pathname.startsWith("/dashboard/board") || pathname === "/board"
       ? "board"
-      : pathname.startsWith("/mypage")
-        ? "mypage"
-        : pathname.startsWith("/saju")
-          ? "saju"
-          : pathname.startsWith("/dashboard")
-            ? "dashboard"
-            : undefined);
+      : pathname.startsWith("/dashboard/today")
+        ? "today"
+        : pathname.startsWith("/dashboard/saju")
+          ? "natal"
+          : pathname.startsWith("/dashboard/gunghap")
+            ? "gunghap"
+            : pathname.startsWith("/mypage")
+              ? "mypage"
+              : pathname.startsWith("/saju")
+                ? "saju"
+                : pathname.startsWith("/dashboard")
+                  ? "dashboard"
+                  : undefined);
 
   const navClass = (key: string) =>
     `transition hover:text-[var(--piclick-green-deep)] ${
@@ -135,16 +142,23 @@ export function AppShell({
             {brandName}
           </LocaleLink>
 
-          <nav className="flex items-center justify-center gap-4 text-sm text-[var(--piclick-ink-muted)] sm:gap-7">
+          <nav className="flex items-center justify-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:gap-6">
+            <LocaleLink href="/dashboard/today" className={navClass("today")}>
+              {tc("navToday")}
+            </LocaleLink>
+            <LocaleLink href="/dashboard/saju" className={navClass("natal")}>
+              {tc("navSaju")}
+            </LocaleLink>
+            <LocaleLink href="/dashboard/gunghap" className={navClass("gunghap")}>
+              {tc("navGunghap")}
+            </LocaleLink>
             <LocaleLink href="/dashboard/board" className={navClass("board")}>
               {tc("community")}
             </LocaleLink>
-            <LocaleLink href="/saju" className={navClass("saju")}>
-              {tc("saju")}
-            </LocaleLink>
           </nav>
 
-          <div className="flex items-center justify-self-end">
+          <div className="flex items-center gap-2 justify-self-end">
+            <LanguageSwitcher />
             <div ref={userMenuRef} className="relative">
               {isLoggedIn ? (
                 <button

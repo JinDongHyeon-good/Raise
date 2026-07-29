@@ -20,7 +20,10 @@
     "processing": "처리 중...",
     "community": "커뮤니티",
     "dashboard": "대시보드",
-    "saju": "사주 소개"
+    "saju": "사주 소개",
+    "navToday": "오늘의 운세",
+    "navSaju": "사주팔자",
+    "navGunghap": "궁합 사주"
   },
   "dashboard": {
     "metaTitle": "대시보드 | 사주네",

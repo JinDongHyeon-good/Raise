@@ -20,7 +20,10 @@
     "processing": "Processing...",
     "community": "Community",
     "dashboard": "Dashboard",
-    "saju": "About Saju"
+    "saju": "About Saju",
+    "navToday": "Daily fortune",
+    "navSaju": "Saju",
+    "navGunghap": "Compatibility"
   },
   "dashboard": {
     "metaTitle": "Dashboard | Sajune",

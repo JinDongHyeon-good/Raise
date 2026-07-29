@@ -14,6 +14,7 @@ import {
   isRetryableGeminiError,
   parseRetryAfterSeconds,
 } from "@/lib/gemini-fetch";
+import { getGeminiModelChain, MAX_MODEL_ATTEMPTS, modelForAttempt } from "@/lib/gemini-models";
 import {
   SlidingRateLimiter,
   acquireInFlightLock,
@@ -28,12 +29,10 @@ const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const IP_RATE_LIMIT_MAX = 20;
 const IN_FLIGHT_TTL_MS = 110 * 1000;
 
-const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || "gemini-2.0-flash";
-const FALLBACK_GEMINI_MODEL = process.env.GEMINI_FALLBACK_MODEL?.trim() || "gemini-2.0-flash";
 const GEMINI_HTTP_TIMEOUT_MS = 42_000;
-const GEMINI_TOTAL_BUDGET_MS = 75_000;
+const GEMINI_TOTAL_BUDGET_MS = 100_000;
 const MAX_OUTPUT_TOKENS = 4096;
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS = MAX_MODEL_ATTEMPTS;
 
 const ipRateLimiter = new SlidingRateLimiter(IP_RATE_LIMIT_MAX, IP_RATE_LIMIT_WINDOW_MS);
 
@@ -166,6 +165,7 @@ function stripEndMarker(text: string) {
 async function generateReading(apiKey: string, prompt: string) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + GEMINI_TOTAL_BUDGET_MS;
+  const modelChain = getGeminiModelChain();
   let accumulated = "";
   let lastError = "AI 해석 요청에 실패했습니다.";
 
@@ -174,7 +174,7 @@ async function generateReading(apiKey: string, prompt: string) {
     if (elapsed > GEMINI_TOTAL_BUDGET_MS) break;
     const remaining = GEMINI_TOTAL_BUDGET_MS - elapsed;
     const timeoutMs = Math.max(12_000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remaining - 2000));
-    const model = attempt >= 3 ? FALLBACK_GEMINI_MODEL : DEFAULT_GEMINI_MODEL;
+    const model = modelForAttempt(modelChain, attempt);
 
     const attemptPrompt =
       attempt > 1 && accumulated
@@ -209,7 +209,15 @@ async function generateReading(apiKey: string, prompt: string) {
             retryAfter: retryAfter ?? 10,
           };
         }
-        if (result.retryable && attempt < MAX_ATTEMPTS) continue;
+        // 모델 오류는 종류를 가리지 않고 남은 시도만큼 재시도한다.
+        // (모델 은퇴 404처럼 재시도 불가로 분류되는 오류도 폴백 모델에서는 성공할 수 있다)
+        console.warn("[saju] gemini error", {
+          attempt,
+          model,
+          status: result.response.status,
+          error: result.error,
+        });
+        if (attempt < MAX_ATTEMPTS) continue;
         return {
           ok: false as const,
           error: lastError,
@@ -242,7 +250,11 @@ async function generateReading(apiKey: string, prompt: string) {
   }
 
   if (accumulated.trim().length >= 200) {
-    return { ok: true as const, reading: stripEndMarker(accumulated), model: FALLBACK_GEMINI_MODEL };
+    return {
+      ok: true as const,
+      reading: stripEndMarker(accumulated),
+      model: modelForAttempt(modelChain, MAX_ATTEMPTS),
+    };
   }
 
   return {

@@ -1,6 +1,7 @@
 "use client";
 
 import { SiteFooter } from "@/components/site/site-footer";
+import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { Link as LocaleLink } from "@/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import type { AppLocale } from "@/i18n/routing";
@@ -28,13 +29,20 @@ export function SitePageShell({
           >
             {brandName}
           </LocaleLink>
-          <nav className="flex items-center gap-4 text-sm text-[var(--piclick-ink-muted)] sm:gap-7">
+          <nav className="flex items-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:gap-6">
+            <LocaleLink href="/dashboard/today" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("navToday")}
+            </LocaleLink>
+            <LocaleLink href="/dashboard/saju" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("navSaju")}
+            </LocaleLink>
+            <LocaleLink href="/dashboard/gunghap" className="transition hover:text-[var(--piclick-green-deep)]">
+              {t("navGunghap")}
+            </LocaleLink>
             <LocaleLink href="/dashboard/board" className="transition hover:text-[var(--piclick-green-deep)]">
               {t("community")}
             </LocaleLink>
-            <LocaleLink href="/saju" className="transition hover:text-[var(--piclick-green-deep)]">
-              {t("saju")}
-            </LocaleLink>
+            <LanguageSwitcher />
           </nav>
         </div>
         {title ? (

@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { HomeSeoContent } from "@/components/seo/home-seo-content";
 import { LoginModal } from "@/components/auth/login-modal";
 import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
+import { LanguageSwitcher } from "@/components/site/language-switcher";
 import type { AuthMode } from "@/components/auth/auth-panel";
 import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName, getLocalizedTagline } from "@/lib/brand";
@@ -171,7 +172,9 @@ export default function PiclickHome() {
           >
             {brandName}
           </LocaleLink>
-          <div ref={userMenuRef} className="relative">
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <div ref={userMenuRef} className="relative">
             {isLoggedIn ? (
               <button
                 type="button"
@@ -209,6 +212,7 @@ export default function PiclickHome() {
               onNavigate={() => setIsUserMenuOpen(false)}
               showAppLinks={false}
             />
+            </div>
           </div>
         </div>
       </header>

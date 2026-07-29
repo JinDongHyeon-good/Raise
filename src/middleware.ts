@@ -8,14 +8,21 @@ const intlMiddleware = createIntlMiddleware(routing);
 const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume", "/board", "/dashboard"] as const;
 const AUTH_REQUIRED_PREFIXES = ["/mypage", "/dashboard"] as const;
 
+/**
+ * 기본 로케일(ko)은 접두사 없이 서빙하므로 `/ko/...` 는 `/...` 로 정규화한다.
+ * `/en`·`/ja` 는 실제로 서빙되는 경로이므로 건드리지 않는다.
+ */
 function stripLegacyLocalePrefix(pathname: string) {
-  const match = pathname.match(/^\/(ko|en|ja)(\/.*)?$/);
+  const match = pathname.match(/^\/ko(\/.*)?$/);
   if (!match) return null;
-  return match[2] || "/";
+  return match[1] || "/";
 }
 
+/** 경로 규칙 매칭용: 로케일 접두사(ko/en/ja)를 제거한 경로 */
 function barePathname(pathname: string) {
-  return stripLegacyLocalePrefix(pathname) ?? pathname;
+  const match = pathname.match(/^\/(ko|en|ja)(\/.*)?$/);
+  if (match) return match[2] || "/";
+  return pathname;
 }
 
 function needsSessionRefresh(pathname: string) {
@@ -116,11 +123,13 @@ async function refreshSupabaseSession(
   } = await supabase.auth.getUser();
 
   if (options?.requireAuth && !user) {
+    // 로그인 유도는 현재 로케일 홈으로 보낸다 (/en/dashboard → /en?login=1&next=/en/dashboard)
+    const localePrefix = request.nextUrl.pathname.match(/^\/(en|ja)(?=\/|$)/)?.[0] ?? "";
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/";
+    loginUrl.pathname = localePrefix || "/";
     loginUrl.search = "";
     loginUrl.searchParams.set("login", "1");
-    loginUrl.searchParams.set("next", bare);
+    loginUrl.searchParams.set("next", `${localePrefix}${bare === "/" ? "" : bare}` || "/");
     const redirectResponse = NextResponse.redirect(loginUrl);
     copyCookies(sessionResponse, redirectResponse);
     redirectResponse.headers.set(

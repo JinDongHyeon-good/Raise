@@ -16,9 +16,11 @@ export function SiteFooter({ maxWidthClassName = "piclick-container" }: { maxWid
   const primaryLinks = useMemo(
     () => [
       { href: "/" as const, label: tc("home") },
-      { href: "/saju" as const, label: tc("saju") },
-      { href: "/dashboard" as const, label: tc("dashboard") },
+      { href: "/dashboard/today" as const, label: tc("navToday") },
+      { href: "/dashboard/saju" as const, label: tc("navSaju") },
+      { href: "/dashboard/gunghap" as const, label: tc("navGunghap") },
       { href: "/dashboard/board" as const, label: tc("community") },
+      { href: "/saju" as const, label: tc("saju") },
       { href: "/about" as const, label: tc("about") },
       { href: "/contact" as const, label: tc("contact") },
     ],

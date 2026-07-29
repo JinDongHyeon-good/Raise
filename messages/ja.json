@@ -20,7 +20,10 @@
     "processing": "処理中...",
     "community": "コミュニティ",
     "dashboard": "ダッシュボード",
-    "saju": "四柱推命とは"
+    "saju": "四柱推命とは",
+    "navToday": "今日の運勢",
+    "navSaju": "四柱推命",
+    "navGunghap": "相性占い"
   },
   "dashboard": {
     "metaTitle": "ダッシュボード | サジュネ",

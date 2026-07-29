@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GOOGLE_ADSENSE_CLIENT } from "@/lib/brand";
 import { brandDisplayFont } from "@/lib/brand-font";
+import { defaultLocale } from "@/i18n/routing";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,8 +27,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // lang은 [locale] 레이아웃의 래퍼에서 로케일별로 지정한다.
+  // (여기서 getLocale()을 쓰면 모든 페이지가 동적 렌더링으로 바뀌어 SSG가 깨진다)
   return (
     <html
+      lang={defaultLocale}
       className={`${geistSans.variable} ${geistMono.variable} ${brandDisplayFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >

@@ -95,8 +95,12 @@ export function SajuFeature({ kind }: { kind: Kind }) {
     }
   };
 
+  const navKey = kind === "daily" ? "today" : kind === "natal" ? "natal" : "gunghap";
+  const appPath =
+    kind === "daily" ? "/dashboard/today" : kind === "natal" ? "/dashboard/saju" : "/dashboard/gunghap";
+
   return (
-    <AppShell active="dashboard" nextPath={`/dashboard`}>
+    <AppShell active={navKey} nextPath={appPath}>
       <div className="piclick-container py-8 sm:py-10">
         <div className="mx-auto max-w-2xl">
           <div className="text-center">

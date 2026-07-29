@@ -1,6 +1,13 @@
 import type { AppLocale } from "@/i18n/routing";
-import { openGraphLocales } from "@/i18n/routing";
+import { defaultLocale, locales, openGraphLocales } from "@/i18n/routing";
 import { SERVICE_NAME, SERVICE_NAME_EN, SERVICE_NAME_JA } from "@/lib/brand";
+
+/** 지역까지 명시해 국가 타겟팅을 정확히 한다 */
+export const hreflangCodes: Record<AppLocale, string> = {
+  ko: "ko-KR",
+  en: "en",
+  ja: "ja-JP",
+};
 
 export type SeoLocaleCopy = {
   siteName: string;
@@ -225,14 +232,24 @@ export function getSeoCopy(locale: AppLocale) {
   return SEO_COPY[locale] ?? SEO_COPY.ko;
 }
 
-export function localizedSeoPath(path: string, _locale?: AppLocale) {
+/**
+ * 로케일별 실제 URL 경로.
+ * 기본 로케일(ko)은 접두사 없이, en/ja는 `/en`·`/ja` 접두사를 붙인다 (localePrefix: "as-needed").
+ */
+export function localizedSeoPath(path: string, locale: AppLocale = defaultLocale) {
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  return normalized;
+  if (locale === defaultLocale) return normalized;
+  return normalized === "/" ? `/${locale}` : `/${locale}${normalized}`;
 }
 
-export function buildLanguageAlternates(path: string) {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return { ko: normalized };
+/** hreflang 대체 링크 (x-default는 기본 로케일로) */
+export function buildLanguageAlternates(path: string): Record<string, string> {
+  const alternates: Record<string, string> = {};
+  for (const locale of locales) {
+    alternates[hreflangCodes[locale]] = localizedSeoPath(path, locale);
+  }
+  alternates["x-default"] = localizedSeoPath(path, defaultLocale);
+  return alternates;
 }
 
 export function getOpenGraphLocale(locale: AppLocale) {

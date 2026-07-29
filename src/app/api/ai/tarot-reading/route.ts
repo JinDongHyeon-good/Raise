@@ -18,6 +18,7 @@ import {
   isRetryableGeminiError,
   parseRetryAfterSeconds,
 } from "@/lib/gemini-fetch";
+import { getGeminiModelChain, modelForAttempt } from "@/lib/gemini-models";
 import {
   SlidingRateLimiter,
   acquireInFlightLock,
@@ -32,8 +33,11 @@ const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const IP_RATE_LIMIT_MAX = 30;
 const IN_FLIGHT_TTL_MS = 110 * 1000;
 
-const DEFAULT_GEMINI_MODEL = process.env.GEMINI_TAROT_MODEL?.trim() || "gemini-3.1-pro-preview";
-const FALLBACK_GEMINI_MODEL = process.env.GEMINI_TAROT_FALLBACK_MODEL?.trim() || "gemini-2.0-flash";
+const TAROT_MODEL_CHAIN = getGeminiModelChain({
+  modelEnv: process.env.GEMINI_TAROT_MODEL,
+  fallbackEnv: process.env.GEMINI_TAROT_FALLBACK_MODEL,
+});
+const FALLBACK_GEMINI_MODEL = TAROT_MODEL_CHAIN[TAROT_MODEL_CHAIN.length - 1];
 const GEMINI_HTTP_TIMEOUT_MS = 42_000;
 const GEMINI_TOTAL_BUDGET_MS = 70_000;
 const MAX_OUTPUT_TOKENS = 6144;
@@ -163,7 +167,7 @@ function mergeReadingChunks(previous: string, chunk: string) {
 }
 
 function pickModelForAttempt(attempt: number) {
-  return attempt >= 2 ? FALLBACK_GEMINI_MODEL : DEFAULT_GEMINI_MODEL;
+  return modelForAttempt(TAROT_MODEL_CHAIN, attempt);
 }
 
 async function generateFullReading(apiKey: string, body: TarotRequestBody) {

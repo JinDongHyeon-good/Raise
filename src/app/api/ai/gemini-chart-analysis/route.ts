@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LATEST_GEMINI_MODEL } from "@/lib/gemini-models";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -8,7 +9,7 @@ const RATE_LIMIT_MAX_REQUESTS = 8;
 const CACHE_TTL_MS = 30 * 1000;
 const GEMINI_HTTP_TIMEOUT_MS = 60000;
 const GEMINI_TOTAL_BUDGET_MS = 90000;
-const DEFAULT_GEMINI_MODEL = "gemini-3.1-pro-preview";
+const DEFAULT_GEMINI_MODEL = LATEST_GEMINI_MODEL;
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
 const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();
@@ -471,7 +472,7 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .filter(isValidModelName);
     if (candidateModels.length === 0) {
-      candidateModels.push("gemini-3.1-pro-preview");
+      candidateModels.push(LATEST_GEMINI_MODEL);
     }
     console.log("[gemini-analysis] model candidates", candidateModels);
 

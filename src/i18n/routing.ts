@@ -1,16 +1,17 @@
 import { defineRouting } from "next-intl/routing";
 
-/** URL에 노출되는 로케일 — 한국어만 */
-export const locales = ["ko"] as const;
+/** URL에 노출되는 로케일. 기본(ko)은 접두사 없이, en/ja는 /en · /ja 접두사로 서빙한다. */
+export const locales = ["ko", "en", "ja"] as const;
 export type RoutedLocale = (typeof locales)[number];
 
-/** 메시지/콘텐츠 키 호환용 (실제 서빙은 ko만) */
-export type AppLocale = "ko" | "en" | "ja";
+export type AppLocale = RoutedLocale;
 
 export const defaultLocale: RoutedLocale = "ko";
 
 export const localeLabels: Record<RoutedLocale, string> = {
   ko: "한국어",
+  en: "English",
+  ja: "日本語",
 };
 
 export const openGraphLocales: Record<AppLocale, string> = {
@@ -28,7 +29,9 @@ export const htmlLang: Record<AppLocale, string> = {
 export const routing = defineRouting({
   locales: [...locales],
   defaultLocale,
-  localePrefix: "never",
+  // ko는 기존 URL(/saju 등) 그대로, en/ja만 접두사를 붙여 기존 색인을 보존한다.
+  localePrefix: "as-needed",
+  localeDetection: false,
 });
 
 export function isAppLocale(value: string | null | undefined): value is AppLocale {

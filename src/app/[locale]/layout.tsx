@@ -31,7 +31,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const lang = htmlLang[(locale as RoutedLocale) ?? "ko"] ?? "ko";
 
   return (
-    <NextIntlClientProvider locale="ko" messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       <div lang={lang} className="contents">
         {children}
       </div>
