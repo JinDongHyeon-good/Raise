@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { ChevronDown } from "lucide-react";
 
 export type BirthValue = {
   name: string;
@@ -29,13 +30,40 @@ export const emptyBirthValue: BirthValue = {
   minute: "0",
 };
 
-const selectClass =
-  "w-full rounded-lg border border-[var(--piclick-line)] bg-white px-3 py-2.5 text-sm text-[var(--piclick-ink)] outline-none transition focus:border-[var(--piclick-green)] focus:ring-2 focus:ring-[var(--piclick-green)]/15";
+const inputClass =
+  "w-full rounded-xl border border-[var(--piclick-line)] bg-white px-3.5 py-2.5 text-sm font-medium text-[var(--piclick-ink)] outline-none transition hover:border-[var(--piclick-green)]/40 focus:border-[var(--piclick-green)] focus:ring-2 focus:ring-[var(--piclick-green)]/15";
+
+const selectClass = `${inputClass} appearance-none cursor-pointer pr-9`;
 
 function range(start: number, end: number) {
   const arr: number[] = [];
   for (let i = start; i <= end; i += 1) arr.push(i);
   return arr;
+}
+
+function Select({
+  value,
+  onChange,
+  className = "",
+  children,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`relative ${className}`}>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className={selectClass}>
+        {children}
+      </select>
+      <ChevronDown
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--piclick-ink-muted)]"
+        strokeWidth={1.75}
+        aria-hidden
+      />
+    </div>
+  );
 }
 
 export function SajuBirthForm({
@@ -53,6 +81,7 @@ export function SajuBirthForm({
   const months = useMemo(() => range(1, 12), []);
   const days = useMemo(() => range(1, 31), []);
   const hours = useMemo(() => range(0, 23), []);
+  const minutes = useMemo(() => range(0, 59), []);
 
   return (
     <div className="space-y-4">
@@ -66,20 +95,16 @@ export function SajuBirthForm({
             maxLength={40}
             placeholder={t("namePlaceholder")}
             onChange={(e) => set("name", e.target.value)}
-            className={selectClass}
+            className={inputClass}
           />
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-[var(--piclick-ink-muted)]">{t("gender")}</span>
-          <select
-            value={value.gender}
-            onChange={(e) => set("gender", e.target.value as BirthValue["gender"])}
-            className={selectClass}
-          >
+          <Select value={value.gender} onChange={(v) => set("gender", v as BirthValue["gender"])}>
             <option value="unknown">{t("unknown")}</option>
             <option value="male">{t("male")}</option>
             <option value="female">{t("female")}</option>
-          </select>
+          </Select>
         </label>
       </div>
 
@@ -119,30 +144,30 @@ export function SajuBirthForm({
       <div>
         <span className="mb-1.5 block text-xs font-medium text-[var(--piclick-ink-muted)]">{t("birthDate")}</span>
         <div className="grid grid-cols-3 gap-2">
-          <select value={value.year} onChange={(e) => set("year", e.target.value)} className={selectClass}>
+          <Select value={value.year} onChange={(v) => set("year", v)}>
             <option value="">{t("yearUnit")}</option>
             {years.map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>
             ))}
-          </select>
-          <select value={value.month} onChange={(e) => set("month", e.target.value)} className={selectClass}>
+          </Select>
+          <Select value={value.month} onChange={(v) => set("month", v)}>
             <option value="">{t("monthUnit")}</option>
             {months.map((m) => (
               <option key={m} value={m}>
                 {m}
               </option>
             ))}
-          </select>
-          <select value={value.day} onChange={(e) => set("day", e.target.value)} className={selectClass}>
+          </Select>
+          <Select value={value.day} onChange={(v) => set("day", v)}>
             <option value="">{t("dayUnit")}</option>
             {days.map((d) => (
               <option key={d} value={d}>
                 {d}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -162,7 +187,7 @@ export function SajuBirthForm({
         </div>
         {value.timeKnown ? (
           <div className="grid grid-cols-2 gap-2">
-            <select value={value.hour} onChange={(e) => set("hour", e.target.value)} className={selectClass}>
+            <Select value={value.hour} onChange={(v) => set("hour", v)}>
               <option value="">{t("hourUnit")}</option>
               {hours.map((h) => (
                 <option key={h} value={h}>
@@ -170,15 +195,15 @@ export function SajuBirthForm({
                   {t("hourUnit")}
                 </option>
               ))}
-            </select>
-            <select value={value.minute} onChange={(e) => set("minute", e.target.value)} className={selectClass}>
-              {[0, 10, 20, 30, 40, 50].map((m) => (
+            </Select>
+            <Select value={value.minute} onChange={(v) => set("minute", v)}>
+              {minutes.map((m) => (
                 <option key={m} value={m}>
                   {String(m).padStart(2, "0")}
                   {t("minuteUnit")}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         ) : null}
       </div>

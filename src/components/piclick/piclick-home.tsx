@@ -191,7 +191,7 @@ export default function PiclickHome() {
                 {userAvatarUrl ? (
                   <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-beige)] text-[10px] font-semibold leading-none text-[var(--piclick-green-deep)]">
+                  <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-green-deep)] text-[10px] font-semibold leading-none text-white">
                     ME
                   </span>
                 )}

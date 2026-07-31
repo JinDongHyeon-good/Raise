@@ -10,6 +10,7 @@ import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 import type { AppLocale } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Menu } from "lucide-react";
 
 type AuthMode = "login" | "signup";
 
@@ -39,6 +40,7 @@ export function AppShell({
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [internalLoginOpen, setInternalLoginOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthMode>("login");
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -131,34 +133,44 @@ export function AppShell({
       resolvedActive === key ? "font-medium text-[var(--piclick-green-deep)]" : ""
     }`;
 
+  const navItems = [
+    { key: "today", href: "/dashboard/today" as const, label: tc("navToday") },
+    { key: "natal", href: "/dashboard/saju" as const, label: tc("navSaju") },
+    { key: "gunghap", href: "/dashboard/gunghap" as const, label: tc("navGunghap") },
+    { key: "board", href: "/dashboard/board" as const, label: tc("community") },
+  ];
+
   return (
     <div className="piclick-home flex min-h-dvh flex-col">
       <header className="sticky top-0 z-20 border-b border-[var(--piclick-line)] bg-[var(--piclick-beige)]/90 backdrop-blur-md">
         <div className="piclick-container grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-3 sm:h-16">
           <LocaleLink
             href="/dashboard"
-            className="font-brand-display justify-self-start text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
+            className="font-brand-display min-w-0 justify-self-start truncate whitespace-nowrap text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
           >
             {brandName}
           </LocaleLink>
 
-          <nav className="flex items-center justify-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:gap-6">
-            <LocaleLink href="/dashboard/today" className={navClass("today")}>
-              {tc("navToday")}
-            </LocaleLink>
-            <LocaleLink href="/dashboard/saju" className={navClass("natal")}>
-              {tc("navSaju")}
-            </LocaleLink>
-            <LocaleLink href="/dashboard/gunghap" className={navClass("gunghap")}>
-              {tc("navGunghap")}
-            </LocaleLink>
-            <LocaleLink href="/dashboard/board" className={navClass("board")}>
-              {tc("community")}
-            </LocaleLink>
+          <nav className="hidden min-w-0 items-center justify-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:flex sm:gap-6">
+            {navItems.map((item) => (
+              <LocaleLink key={item.key} href={item.href} className={navClass(item.key)}>
+                {item.label}
+              </LocaleLink>
+            ))}
           </nav>
 
           <div className="flex items-center gap-2 justify-self-end">
             <LanguageSwitcher />
+            <button
+              type="button"
+              aria-label={tc("userMenu")}
+              aria-expanded={isMobileMenuOpen}
+              aria-haspopup="dialog"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--piclick-line)] bg-white text-[var(--piclick-ink-muted)] transition hover:border-[var(--piclick-green)]/30 hover:text-[var(--piclick-green-deep)] sm:hidden"
+            >
+              <Menu className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            </button>
             <div ref={userMenuRef} className="relative">
               {isLoggedIn ? (
                 <button
@@ -176,7 +188,7 @@ export function AppShell({
                   {userAvatarUrl ? (
                     <img src={userAvatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-beige)] text-[10px] font-semibold leading-none text-[var(--piclick-green-deep)]">
+                    <span className="inline-flex h-full w-full items-center justify-center bg-[var(--piclick-green-deep)] text-[10px] font-semibold leading-none text-white">
                       ME
                     </span>
                   )}
@@ -200,6 +212,43 @@ export function AppShell({
           </div>
         </div>
       </header>
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={tc("userMenu")}
+        className={`fixed inset-0 z-30 sm:hidden ${isMobileMenuOpen ? "" : "pointer-events-none"}`}
+      >
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
+            isMobileMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          className={`absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-[var(--piclick-line)] bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-16px_40px_-12px_rgba(15,23,42,0.25)] transition-transform duration-200 ease-out ${
+            isMobileMenuOpen ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--piclick-line)]" aria-hidden />
+          <nav className="flex flex-col divide-y divide-[var(--piclick-line)]">
+            {navItems.map((item) => (
+              <LocaleLink
+                key={item.key}
+                href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`py-3.5 text-base ${
+                  resolvedActive === item.key
+                    ? "font-semibold text-[var(--piclick-green-deep)]"
+                    : "font-medium text-[var(--piclick-ink)]"
+                }`}
+              >
+                {item.label}
+              </LocaleLink>
+            ))}
+          </nav>
+        </div>
+      </div>
 
       <main className="flex-1">{children}</main>
 

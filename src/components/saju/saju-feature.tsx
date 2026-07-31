@@ -104,11 +104,7 @@ export function SajuFeature({ kind }: { kind: Kind }) {
       <div className="piclick-container py-8 sm:py-10">
         <div className="mx-auto max-w-2xl">
           <div className="text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--piclick-beige)] px-3 py-1 text-xs font-medium text-[var(--piclick-green-deep)]">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              사주네
-            </span>
-            <h1 className="mt-3 font-brand-display text-3xl font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-4xl">
+            <h1 className="font-brand-display text-3xl font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-4xl">
               {t(`${kind}.title`)}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-[var(--piclick-ink-muted)] sm:text-base">

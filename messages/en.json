@@ -28,7 +28,6 @@
   "dashboard": {
     "metaTitle": "Dashboard | Sajune",
     "metaDescription": "Check your daily fortune, Saju, and compatibility on the Sajune dashboard.",
-    "eyebrow": "Sajune",
     "title": "What would you like to see?",
     "subtitle": "From today's fortune to your Saju and compatibility—pick one to begin.",
     "soon": "Coming soon",
@@ -47,36 +46,21 @@
         "body": "Compare two charts for love and marriage compatibility with an overall score."
       },
       "community": {
-        "title": "Fortune community",
+        "title": "Community",
         "body": "Share worries and fortune stories and see what others have experienced."
-      },
-      "mypage": {
-        "title": "My page",
-        "body": "Manage your nickname and posts."
       }
     }
   },
   "board": {
-    "metaTitle": "Fortune community | Sajune",
+    "metaTitle": "Community | Sajune",
     "metaDescription": "Share Saju, fortune, and worries on the Sajune community. Post, reply, and like.",
     "title": "Community",
-    "subtitle": "Share meetup notes, find partners, and swap court tips.",
-    "pageIntro": "A place to play together—and talk about it.",
+    "subtitle": "Share your Saju and fortune stories freely.",
+    "pageIntro": "A place to write and talk about anything freely.",
     "myPostsTitle": "My posts",
     "myPostsSubtitle": "Review and edit posts you’ve written.",
     "write": "Write",
     "titlePlaceholder": "Title",
-    "typeLabel": "Post type",
-    "filterLabel": "Filter by type",
-    "filterAll": "All",
-    "emptyFiltered": "No posts in this type yet.",
-    "types": {
-      "free": "General",
-      "meetup": "Meetup",
-      "review": "Review",
-      "tip": "Tips",
-      "question": "Question"
-    },
     "editorPlaceholder": "Write your post. Images are supported.",
     "linkPrompt": "Enter a link URL.",
     "imageUploadFailed": "Image upload failed.",
@@ -145,7 +129,7 @@
         "body": "See today's overall, wealth, love, and health flow from your birth date—an easy read on your changing daily luck."
       },
       "community": {
-        "title": "Fortune community",
+        "title": "Community",
         "body": "Share worries and fortune stories, and see what others have experienced in the community."
       },
       "venue": {

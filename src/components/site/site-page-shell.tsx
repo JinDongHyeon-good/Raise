@@ -22,14 +22,14 @@ export function SitePageShell({
   return (
     <div className="flex min-h-dvh flex-col bg-[var(--piclick-beige-soft)] text-[var(--piclick-ink)]">
       <header className="border-b border-[var(--piclick-line)] bg-[var(--piclick-beige)]/90 backdrop-blur-sm">
-        <div className="piclick-container flex h-14 items-center justify-between sm:h-16">
+        <div className="piclick-container flex h-14 items-center justify-between gap-3 sm:h-16">
           <LocaleLink
             href="/dashboard"
-            className="font-brand-display text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] hover:text-[var(--piclick-green)] sm:text-2xl"
+            className="font-brand-display min-w-0 shrink-0 truncate whitespace-nowrap text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] hover:text-[var(--piclick-green)] sm:text-2xl"
           >
             {brandName}
           </LocaleLink>
-          <nav className="flex items-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:gap-6">
+          <nav className="flex min-w-0 items-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:gap-6">
             <LocaleLink href="/dashboard/today" className="transition hover:text-[var(--piclick-green-deep)]">
               {t("navToday")}
             </LocaleLink>
@@ -42,8 +42,8 @@ export function SitePageShell({
             <LocaleLink href="/dashboard/board" className="transition hover:text-[var(--piclick-green-deep)]">
               {t("community")}
             </LocaleLink>
-            <LanguageSwitcher />
           </nav>
+          <LanguageSwitcher />
         </div>
         {title ? (
           <div className="piclick-container pb-3">

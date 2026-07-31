@@ -1,7 +1,6 @@
 "use client";
 
 import type { BoardPostSummary } from "@/lib/board-types";
-import { BoardPostTypeBadge } from "@/components/board/board-post-type-badge";
 import { Heart, MessageCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AppLocale } from "@/i18n/routing";
@@ -60,9 +59,6 @@ export function BoardPostList({ posts, onSelect, emptyMessage }: Props) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1.5">
-                    <BoardPostTypeBadge type={post.post_type} />
-                  </div>
                   <h3 className="truncate text-base font-semibold tracking-tight text-[var(--piclick-ink)] group-hover:text-[var(--piclick-green-deep)]">
                     {post.title}
                   </h3>

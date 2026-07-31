@@ -1,12 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  buildCommentThreads,
-  type BoardCommentView,
-  type BoardPostSummary,
-} from "@/lib/board-types";
-import { BoardPostTypeBadge } from "@/components/board/board-post-type-badge";
+import { buildCommentThreads, type BoardCommentView, type BoardPostSummary } from "@/lib/board-types";
 import { Spinner } from "@/components/ui/spinner";
 import { Heart, MessageCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -196,9 +191,6 @@ export function BoardPostDetail({
             >
               ← {t("backToList")}
             </button>
-            <div className="mb-2">
-              <BoardPostTypeBadge type={post.post_type} />
-            </div>
             <h2 className="text-balance text-xl font-semibold tracking-tight text-[var(--piclick-ink)] sm:text-2xl">
               {post.title}
             </h2>

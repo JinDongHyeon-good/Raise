@@ -3,12 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
-import {
-  BOARD_POST_TYPES,
-  type BoardCommentView,
-  type BoardPostSummary,
-  type BoardPostType,
-} from "@/lib/board-types";
+import type { BoardCommentView, BoardPostSummary } from "@/lib/board-types";
 import { BoardEditor } from "@/components/board/board-editor";
 import { BoardPostList } from "@/components/board/board-post-list";
 import { BoardPostDetail } from "@/components/board/board-post-detail";
@@ -28,12 +23,10 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [typeFilter, setTypeFilter] = useState<BoardPostType | "all">("all");
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<BoardPostSummary | null>(null);
   const [comments, setComments] = useState<BoardCommentView[]>([]);
   const [title, setTitle] = useState("");
-  const [postType, setPostType] = useState<BoardPostType>("free");
   const [contentHtml, setContentHtml] = useState("");
   const [commentDraft, setCommentDraft] = useState("");
   const [replyToId, setReplyToId] = useState<string | null>(null);
@@ -47,7 +40,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total]);
 
   const loadPosts = useCallback(
-    async (targetPage: number, nextTypeFilter: BoardPostType | "all" = typeFilter) => {
+    async (targetPage: number) => {
       setIsPostsLoading(true);
       setError(null);
       try {
@@ -56,7 +49,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
           limit: String(pageSize),
         });
         if (authorFilter) params.set("author", authorFilter);
-        if (nextTypeFilter !== "all") params.set("type", nextTypeFilter);
         const res = await fetch(`/api/board/posts?${params}`, { cache: "no-store" });
         const data = (await res.json()) as { items?: BoardPostSummary[]; total?: number; error?: string };
         if (!res.ok) throw new Error(data.error ?? t("errors.loadPosts"));
@@ -69,7 +61,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
         setIsPostsLoading(false);
       }
     },
-    [authorFilter, t, typeFilter],
+    [authorFilter, t],
   );
 
   const loadPostDetail = async (postId: string) => {
@@ -127,13 +119,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
     };
   }, []);
 
-  const handleTypeFilterChange = (next: BoardPostType | "all") => {
-    setTypeFilter(next);
-    setSelectedPost(null);
-    setSelectedPostId(null);
-    void loadPosts(1, next);
-  };
-
   const handleCreatePost = async () => {
     if (isSubmitting) return;
     const uid = await requireAuthOrOpen();
@@ -143,7 +128,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
       const res = await fetch("/api/board/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content_html: contentHtml, post_type: postType }),
+        body: JSON.stringify({ title, content_html: contentHtml }),
       });
       const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
       if (!res.ok || !data.item) {
@@ -152,7 +137,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
       }
       setIsWriting(false);
       setTitle("");
-      setPostType("free");
       setContentHtml("");
       await loadPosts(1);
       await loadPostDetail(data.item.id);
@@ -170,7 +154,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
       const res = await fetch(`/api/board/posts/${selectedPostId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content_html: contentHtml, post_type: postType }),
+        body: JSON.stringify({ title, content_html: contentHtml }),
       });
       const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
       if (!res.ok || !data.item) {
@@ -180,7 +164,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
       setIsEditing(false);
       setSelectedPost(data.item);
       setTitle("");
-      setPostType("free");
       setContentHtml("");
       await loadPosts(page);
     } finally {
@@ -265,13 +248,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
 
   const isListBusy = isPostsLoading || isDetailLoading;
 
-  const filterChipClass = (active: boolean) =>
-    `rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-      active
-        ? "bg-[var(--piclick-green)] text-white"
-        : "border border-[var(--piclick-line)] bg-white text-[var(--piclick-ink-muted)] hover:border-[var(--piclick-green)]/30 hover:text-[var(--piclick-ink)]"
-    }`;
-
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -289,7 +265,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
             onClick={async () => {
               setError(null);
               setTitle("");
-              setPostType("free");
               setContentHtml("");
               setIsWriting(true);
               const uid = await requireAuthOrOpen();
@@ -304,49 +279,12 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
         ) : null}
       </div>
 
-      {!isWriting && !isEditing && !selectedPost ? (
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("filterLabel")}>
-          <button type="button" role="tab" aria-selected={typeFilter === "all"} onClick={() => handleTypeFilterChange("all")} className={filterChipClass(typeFilter === "all")}>
-            {t("filterAll")}
-          </button>
-          {BOARD_POST_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              role="tab"
-              aria-selected={typeFilter === type}
-              onClick={() => handleTypeFilterChange(type)}
-              className={filterChipClass(typeFilter === type)}
-            >
-              {t(`types.${type}`)}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
       {error ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</p>
       ) : null}
 
       {(isWriting || isEditing) && (
         <div className="space-y-3 rounded-2xl border border-[var(--piclick-line)] bg-white p-4 sm:p-5">
-          <div>
-            <label htmlFor="board-post-type" className="mb-1.5 block text-xs font-medium text-[var(--piclick-ink-muted)]">
-              {t("typeLabel")}
-            </label>
-            <select
-              id="board-post-type"
-              value={postType}
-              onChange={(event) => setPostType(event.target.value as BoardPostType)}
-              className="w-full rounded-xl border border-[var(--piclick-line)] bg-[var(--piclick-beige-soft)]/40 px-3.5 py-3 text-sm font-medium text-[var(--piclick-ink)] outline-none focus:border-[var(--piclick-green)]/40 focus:bg-white sm:max-w-xs"
-            >
-              {BOARD_POST_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {t(`types.${type}`)}
-                </option>
-              ))}
-            </select>
-          </div>
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
@@ -395,7 +333,6 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
           onEditPost={() => {
             setIsEditing(true);
             setTitle(selectedPost.title);
-            setPostType(selectedPost.post_type);
             setContentHtml(selectedPost.content_html);
           }}
           onDeletePost={() => void handleDeletePost()}
@@ -412,11 +349,7 @@ export function BoardTab({ onNeedLogin, authorFilter = null, hideWriteButton = f
             <LoadingBlock label={t("loading")} />
           ) : (
             <div className={`relative transition-opacity ${isListBusy ? "opacity-50" : ""}`}>
-              <BoardPostList
-                posts={posts}
-                onSelect={(id) => void loadPostDetail(id)}
-                emptyMessage={typeFilter === "all" ? emptyMessage : t("emptyFiltered")}
-              />
+              <BoardPostList posts={posts} onSelect={(id) => void loadPostDetail(id)} emptyMessage={emptyMessage} />
               {isListBusy ? (
                 <div className="absolute inset-0 flex items-start justify-center pt-10">
                   <Spinner size="lg" className="text-[var(--piclick-green)]" label={t("loading")} />
