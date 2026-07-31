@@ -44,19 +44,6 @@ export default function PiclickHome() {
     setIsLoginModalOpen(false);
   }, []);
 
-  // 로그인해야 쓸 수 있는 기능 진입: 로그인 상태면 이동, 아니면 로그인 모달을 연다.
-  const goToApp = useCallback(
-    (path: string) => {
-      if (isLoggedIn) {
-        router.push(path);
-        return;
-      }
-      setLoginNextPath(path);
-      openAuthModal("login");
-    },
-    [isLoggedIn, openAuthModal, router],
-  );
-
   const syncSession = useCallback(async () => {
     const supabase = getSupabaseBrowserClientSafe();
     if (!supabase) {
@@ -267,7 +254,7 @@ export default function PiclickHome() {
               >
                 <button
                   type="button"
-                  onClick={() => goToApp("/dashboard")}
+                  onClick={() => router.push("/dashboard")}
                   className="pk-btn pk-btn-lg pk-btn-primary"
                 >
                   {t("hero.ctaPrimary")}
@@ -316,7 +303,7 @@ export default function PiclickHome() {
                     {id === "community" ? (
                       <button
                         type="button"
-                        onClick={() => goToApp("/dashboard/board")}
+                        onClick={() => router.push("/dashboard/board")}
                         className="block w-full text-left transition hover:opacity-90"
                       >
                         {inner}
@@ -343,7 +330,7 @@ export default function PiclickHome() {
             </div>
             <button
               type="button"
-              onClick={() => goToApp("/dashboard")}
+              onClick={() => router.push("/dashboard")}
               className="pk-btn pk-btn-lg pk-btn-invert shrink-0"
             >
               {t("cta.button")}

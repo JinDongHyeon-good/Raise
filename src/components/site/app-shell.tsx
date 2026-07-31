@@ -1,6 +1,6 @@
 "use client";
 
-import { Link as LocaleLink, usePathname } from "@/navigation";
+import { Link as LocaleLink, usePathname, useRouter } from "@/navigation";
 import { SiteFooter } from "@/components/site/site-footer";
 import { UserMenuDropdown } from "@/components/site/user-menu-dropdown";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
@@ -22,6 +22,8 @@ type AppShellProps = {
   loginOpen?: boolean;
   onLoginOpenChange?: (open: boolean) => void;
   onNeedLoginReady?: (openLogin: (mode?: AuthMode) => void) => void;
+  /** 로그인 필요한 경로로 이동을 시도할 때 쓸 함수를 부모에게 넘겨준다. 로그인 상태면 바로 이동하고, 아니면 그 자리에서 로그인 모달을 띄운다. */
+  onRequireAuthReady?: (requireAuth: (path: string) => void) => void;
 };
 
 export function AppShell({
@@ -32,17 +34,20 @@ export function AppShell({
   loginOpen,
   onLoginOpenChange,
   onNeedLoginReady,
+  onRequireAuthReady,
 }: AppShellProps) {
   const locale = useLocale() as AppLocale;
   const brandName = getLocalizedBrandName(locale);
   const tc = useTranslations("common");
   const pathname = usePathname();
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [internalLoginOpen, setInternalLoginOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthMode>("login");
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const isLoginControlled = typeof loginOpen === "boolean";
@@ -65,6 +70,19 @@ export function AppShell({
       setLoginOpen(true, mode);
     },
     [setLoginOpen],
+  );
+
+  /** 로그인 상태면 바로 이동, 아니면 그 자리에서 로그인 모달을 띄우고 로그인 후 이어서 이동한다. */
+  const requireAuth = useCallback(
+    (path: string) => {
+      if (isLoggedIn) {
+        router.push(path);
+        return;
+      }
+      setPendingPath(path);
+      openLogin("login");
+    },
+    [isLoggedIn, openLogin, router],
   );
 
   const syncSession = useCallback(async () => {
@@ -91,6 +109,10 @@ export function AppShell({
   useEffect(() => {
     onNeedLoginReady?.(openLogin);
   }, [onNeedLoginReady, openLogin]);
+
+  useEffect(() => {
+    onRequireAuthReady?.(requireAuth);
+  }, [onRequireAuthReady, requireAuth]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -134,10 +156,10 @@ export function AppShell({
     }`;
 
   const navItems = [
-    { key: "today", href: "/dashboard/today" as const, label: tc("navToday") },
-    { key: "natal", href: "/dashboard/saju" as const, label: tc("navSaju") },
-    { key: "gunghap", href: "/dashboard/gunghap" as const, label: tc("navGunghap") },
-    { key: "board", href: "/dashboard/board" as const, label: tc("community") },
+    { key: "today", href: "/dashboard/today" as const, label: tc("navToday"), authRequired: true },
+    { key: "natal", href: "/dashboard/saju" as const, label: tc("navSaju"), authRequired: true },
+    { key: "gunghap", href: "/dashboard/gunghap" as const, label: tc("navGunghap"), authRequired: true },
+    { key: "board", href: "/dashboard/board" as const, label: tc("community"), authRequired: false },
   ];
 
   return (
@@ -146,20 +168,31 @@ export function AppShell({
         <div className="piclick-container grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-3 sm:h-16">
           <LocaleLink
             href="/dashboard"
-            className="font-brand-display min-w-0 justify-self-start truncate whitespace-nowrap text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
+            className="font-brand-display col-start-1 min-w-0 justify-self-start truncate whitespace-nowrap text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
           >
             {brandName}
           </LocaleLink>
 
-          <nav className="hidden min-w-0 items-center justify-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:flex sm:gap-6">
-            {navItems.map((item) => (
-              <LocaleLink key={item.key} href={item.href} className={navClass(item.key)}>
-                {item.label}
-              </LocaleLink>
-            ))}
+          <nav className="col-start-2 hidden min-w-0 items-center justify-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:flex sm:gap-6">
+            {navItems.map((item) =>
+              item.authRequired ? (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => requireAuth(item.href)}
+                  className={navClass(item.key)}
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <LocaleLink key={item.key} href={item.href} className={navClass(item.key)}>
+                  {item.label}
+                </LocaleLink>
+              ),
+            )}
           </nav>
 
-          <div className="flex items-center gap-2 justify-self-end">
+          <div className="col-start-3 flex items-center gap-2 justify-self-end">
             <LanguageSwitcher />
             <button
               type="button"
@@ -232,20 +265,35 @@ export function AppShell({
         >
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--piclick-line)]" aria-hidden />
           <nav className="flex flex-col divide-y divide-[var(--piclick-line)]">
-            {navItems.map((item) => (
-              <LocaleLink
-                key={item.key}
-                href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`py-3.5 text-base ${
-                  resolvedActive === item.key
-                    ? "font-semibold text-[var(--piclick-green-deep)]"
-                    : "font-medium text-[var(--piclick-ink)]"
-                }`}
-              >
-                {item.label}
-              </LocaleLink>
-            ))}
+            {navItems.map((item) => {
+              const itemClass = `py-3.5 text-left text-base ${
+                resolvedActive === item.key
+                  ? "font-semibold text-[var(--piclick-green-deep)]"
+                  : "font-medium text-[var(--piclick-ink)]"
+              }`;
+              return item.authRequired ? (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    requireAuth(item.href);
+                  }}
+                  className={itemClass}
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <LocaleLink
+                  key={item.key}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={itemClass}
+                >
+                  {item.label}
+                </LocaleLink>
+              );
+            })}
           </nav>
         </div>
       </div>
@@ -262,6 +310,10 @@ export function AppShell({
         onAuthenticated={async () => {
           await syncSession();
           setLoginOpen(false);
+          if (pendingPath) {
+            router.push(pendingPath);
+            setPendingPath(null);
+          }
         }}
       />
     </div>

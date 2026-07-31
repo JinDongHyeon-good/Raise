@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 
@@ -33,7 +33,7 @@ export const emptyBirthValue: BirthValue = {
 const inputClass =
   "w-full rounded-xl border border-[var(--piclick-line)] bg-white px-3.5 py-2.5 text-sm font-medium text-[var(--piclick-ink)] outline-none transition hover:border-[var(--piclick-green)]/40 focus:border-[var(--piclick-green)] focus:ring-2 focus:ring-[var(--piclick-green)]/15";
 
-const selectClass = `${inputClass} appearance-none cursor-pointer pr-9`;
+const selectClass = `${inputClass} flex cursor-pointer items-center justify-between gap-2 pr-9 text-left`;
 
 function range(start: number, end: number) {
   const arr: number[] = [];
@@ -41,27 +41,99 @@ function range(start: number, end: number) {
   return arr;
 }
 
+type SelectOption = { value: string; label: string };
+
 function Select({
   value,
   onChange,
+  options,
+  placeholder,
   className = "",
-  children,
 }: {
   value: string;
   onChange: (value: string) => void;
+  options: SelectOption[];
+  placeholder?: string;
   className?: string;
-  children: React.ReactNode;
 }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const onOutsideClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onOutsideClick);
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("mousedown", onOutsideClick);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    listRef.current.querySelector('[data-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  }, [open]);
+
   return (
-    <div className={`relative ${className}`}>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className={selectClass}>
-        {children}
-      </select>
+    <div ref={rootRef} className={`relative ${className}`}>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={selectClass}
+      >
+        <span className={selected ? "" : "text-[var(--piclick-ink-muted)]"}>
+          {selected ? selected.label : placeholder}
+        </span>
+      </button>
       <ChevronDown
-        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--piclick-ink-muted)]"
+        className={`pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--piclick-ink-muted)] transition-transform ${
+          open ? "rotate-180" : ""
+        }`}
         strokeWidth={1.75}
         aria-hidden
       />
+      {open ? (
+        <ul
+          ref={listRef}
+          role="listbox"
+          className="absolute left-0 top-full z-20 mt-1.5 max-h-56 w-full min-w-[5rem] overflow-y-auto rounded-xl border border-[var(--piclick-line)] bg-white p-1 shadow-lg shadow-black/10"
+        >
+          {options.map((o) => {
+            const isSelected = o.value === value;
+            return (
+              <li key={o.value}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  data-selected={isSelected}
+                  onClick={() => {
+                    onChange(o.value);
+                    setOpen(false);
+                  }}
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                    isSelected
+                      ? "bg-[var(--piclick-green)]/10 font-semibold text-[var(--piclick-green-deep)]"
+                      : "text-[var(--piclick-ink)] hover:bg-[var(--piclick-beige)]"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -83,6 +155,26 @@ export function SajuBirthForm({
   const hours = useMemo(() => range(0, 23), []);
   const minutes = useMemo(() => range(0, 59), []);
 
+  const genderOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: "unknown", label: t("unknown") },
+      { value: "male", label: t("male") },
+      { value: "female", label: t("female") },
+    ],
+    [t],
+  );
+  const yearOptions = useMemo<SelectOption[]>(() => years.map((y) => ({ value: String(y), label: String(y) })), [years]);
+  const monthOptions = useMemo<SelectOption[]>(() => months.map((m) => ({ value: String(m), label: String(m) })), [months]);
+  const dayOptions = useMemo<SelectOption[]>(() => days.map((d) => ({ value: String(d), label: String(d) })), [days]);
+  const hourOptions = useMemo<SelectOption[]>(
+    () => hours.map((h) => ({ value: String(h), label: `${String(h).padStart(2, "0")}${t("hourUnit")}` })),
+    [hours, t],
+  );
+  const minuteOptions = useMemo<SelectOption[]>(
+    () => minutes.map((m) => ({ value: String(m), label: `${String(m).padStart(2, "0")}${t("minuteUnit")}` })),
+    [minutes, t],
+  );
+
   return (
     <div className="space-y-4">
       {/* 이름 + 성별 */}
@@ -100,11 +192,11 @@ export function SajuBirthForm({
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-[var(--piclick-ink-muted)]">{t("gender")}</span>
-          <Select value={value.gender} onChange={(v) => set("gender", v as BirthValue["gender"])}>
-            <option value="unknown">{t("unknown")}</option>
-            <option value="male">{t("male")}</option>
-            <option value="female">{t("female")}</option>
-          </Select>
+          <Select
+            value={value.gender}
+            onChange={(v) => set("gender", v as BirthValue["gender"])}
+            options={genderOptions}
+          />
         </label>
       </div>
 
@@ -144,30 +236,9 @@ export function SajuBirthForm({
       <div>
         <span className="mb-1.5 block text-xs font-medium text-[var(--piclick-ink-muted)]">{t("birthDate")}</span>
         <div className="grid grid-cols-3 gap-2">
-          <Select value={value.year} onChange={(v) => set("year", v)}>
-            <option value="">{t("yearUnit")}</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </Select>
-          <Select value={value.month} onChange={(v) => set("month", v)}>
-            <option value="">{t("monthUnit")}</option>
-            {months.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </Select>
-          <Select value={value.day} onChange={(v) => set("day", v)}>
-            <option value="">{t("dayUnit")}</option>
-            {days.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </Select>
+          <Select value={value.year} onChange={(v) => set("year", v)} options={yearOptions} placeholder={t("yearUnit")} />
+          <Select value={value.month} onChange={(v) => set("month", v)} options={monthOptions} placeholder={t("monthUnit")} />
+          <Select value={value.day} onChange={(v) => set("day", v)} options={dayOptions} placeholder={t("dayUnit")} />
         </div>
       </div>
 
@@ -187,23 +258,8 @@ export function SajuBirthForm({
         </div>
         {value.timeKnown ? (
           <div className="grid grid-cols-2 gap-2">
-            <Select value={value.hour} onChange={(v) => set("hour", v)}>
-              <option value="">{t("hourUnit")}</option>
-              {hours.map((h) => (
-                <option key={h} value={h}>
-                  {String(h).padStart(2, "0")}
-                  {t("hourUnit")}
-                </option>
-              ))}
-            </Select>
-            <Select value={value.minute} onChange={(v) => set("minute", v)}>
-              {minutes.map((m) => (
-                <option key={m} value={m}>
-                  {String(m).padStart(2, "0")}
-                  {t("minuteUnit")}
-                </option>
-              ))}
-            </Select>
+            <Select value={value.hour} onChange={(v) => set("hour", v)} options={hourOptions} placeholder={t("hourUnit")} />
+            <Select value={value.minute} onChange={(v) => set("minute", v)} options={minuteOptions} />
           </div>
         ) : null}
       </div>

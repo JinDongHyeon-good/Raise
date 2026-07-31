@@ -7,6 +7,11 @@ const intlMiddleware = createIntlMiddleware(routing);
 
 const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume", "/board", "/dashboard"] as const;
 const AUTH_REQUIRED_PREFIXES = ["/mypage", "/dashboard"] as const;
+/**
+ * 대시보드 진입과 커뮤니티(게시판) 열람은 로그인 없이 허용하고,
+ * 그 아래 개인화 기능(today/saju/gunghap 등)에서만 로그인을 요구한다.
+ */
+const PUBLIC_EXACT_PATHS = ["/dashboard", "/dashboard/board"] as const;
 
 /**
  * 기본 로케일(ko)은 접두사 없이 서빙하므로 `/ko/...` 는 `/...` 로 정규화한다.
@@ -34,6 +39,7 @@ function needsSessionRefresh(pathname: string) {
 
 function requiresAuth(pathname: string) {
   const bare = barePathname(pathname);
+  if ((PUBLIC_EXACT_PATHS as readonly string[]).includes(bare)) return false;
   return AUTH_REQUIRED_PREFIXES.some(
     (prefix) => bare === prefix || bare.startsWith(`${prefix}/`),
   );
