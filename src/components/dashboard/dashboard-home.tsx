@@ -52,10 +52,10 @@ export function DashboardHome() {
                       aria-hidden
                     />
                   </div>
-                  <h2 className="mt-4 text-lg font-semibold text-[var(--piclick-ink)] transition group-hover:text-[var(--piclick-green-deep)]">
+                  <h2 className="mt-4 min-h-[1.75rem] text-lg font-semibold text-[var(--piclick-ink)] transition group-hover:text-[var(--piclick-green-deep)]">
                     {t(`items.${feature.id}.title`)}
                   </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--piclick-ink-muted)]">
+                  <p className="mt-2 line-clamp-3 min-h-[3.9375rem] text-sm leading-relaxed text-[var(--piclick-ink-muted)]">
                     {t(`items.${feature.id}.body`)}
                   </p>
                   <p className="mt-4 text-sm font-semibold text-[var(--piclick-green)] transition group-hover:text-[var(--piclick-green-deep)]">

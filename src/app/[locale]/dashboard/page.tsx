@@ -5,7 +5,7 @@ import { DashboardHome } from "@/components/dashboard/dashboard-home";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("dashboard");
   return {
-    title: t("metaTitle"),
+    title: { absolute: t("metaTitle") },
     description: t("metaDescription"),
     alternates: {
       canonical: "/dashboard",

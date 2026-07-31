@@ -9,7 +9,7 @@ const BOARD_PATH = "/dashboard/board";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("board");
   return {
-    title: t("metaTitle"),
+    title: { absolute: t("metaTitle") },
     description: t("metaDescription"),
     alternates: {
       canonical: BOARD_PATH,

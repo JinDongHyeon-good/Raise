@@ -49,13 +49,52 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
     setOpen(false);
   };
 
+  const renderOption = (code: AppLocale, variant: "dropdown" | "sheet") => {
+    const isActive = code === locale;
+    return (
+      <li key={code}>
+        <button
+          type="button"
+          role={variant === "dropdown" ? "option" : undefined}
+          aria-selected={variant === "dropdown" ? isActive : undefined}
+          onClick={() => selectLocale(code)}
+          className={`flex w-full items-center gap-2.5 rounded-xl text-left transition-colors duration-150 ${
+            variant === "dropdown" ? "px-2.5 py-2" : "px-3 py-3.5"
+          } ${
+            isActive
+              ? "bg-[var(--piclick-beige-soft)] text-[var(--piclick-green-deep)]"
+              : "text-[var(--piclick-ink)] hover:bg-[var(--piclick-beige)]/70"
+          }`}
+        >
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold tracking-wide ${
+              isActive
+                ? "bg-white text-[var(--piclick-green)] shadow-sm ring-1 ring-[var(--piclick-green)]/20"
+                : "bg-[var(--piclick-beige)] text-[var(--piclick-ink-muted)]"
+            }`}
+          >
+            {localeMeta[code].code}
+          </span>
+          <span className={`flex-1 ${variant === "sheet" ? "text-base" : "text-sm"} ${isActive ? "font-semibold" : "font-medium"}`}>
+            {localeLabels[code]}
+          </span>
+          {isActive ? (
+            <Check className="h-4 w-4 shrink-0 text-[var(--piclick-green)]" strokeWidth={2.25} aria-hidden />
+          ) : (
+            <span className="h-4 w-4 shrink-0" aria-hidden />
+          )}
+        </button>
+      </li>
+    );
+  };
+
   return (
     <div ref={rootRef} className={`relative flex h-10 w-10 shrink-0 items-center justify-center ${className}`}>
       <button
         type="button"
         aria-label={t("language")}
         aria-expanded={open}
-        aria-haspopup="listbox"
+        aria-haspopup="dialog"
         onClick={() => setOpen((prev) => !prev)}
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border p-0 leading-none transition-all duration-200 ${
           open
@@ -66,10 +105,11 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         <Globe className="h-4 w-4" strokeWidth={1.75} aria-hidden />
       </button>
 
+      {/* 데스크톱: 드롭다운 */}
       <div
         role="listbox"
         aria-label={t("language")}
-        className={`absolute right-0 top-[calc(100%+10px)] z-50 min-w-[176px] origin-top-right overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.18)] backdrop-blur-md transition-all duration-200 ease-out ${
+        className={`absolute right-0 top-[calc(100%+10px)] z-50 hidden min-w-[176px] origin-top-right overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.18)] backdrop-blur-md transition-all duration-200 ease-out sm:block ${
           open
             ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
             : "pointer-events-none -translate-y-1.5 scale-[0.97] opacity-0"
@@ -78,44 +118,33 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
           {t("language")}
         </p>
-        <ul className="space-y-0.5">
-          {locales.map((code) => {
-            const isActive = code === locale;
-            return (
-              <li key={code}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={isActive}
-                  onClick={() => selectLocale(code)}
-                  className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors duration-150 ${
-                    isActive
-                      ? "bg-[var(--piclick-beige-soft)] text-[var(--piclick-green-deep)]"
-                      : "text-[var(--piclick-ink)] hover:bg-[var(--piclick-beige)]/70"
-                  }`}
-                >
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold tracking-wide ${
-                      isActive
-                        ? "bg-white text-[var(--piclick-green)] shadow-sm ring-1 ring-[var(--piclick-green)]/20"
-                        : "bg-[var(--piclick-beige)] text-[var(--piclick-ink-muted)]"
-                    }`}
-                  >
-                    {localeMeta[code].code}
-                  </span>
-                  <span className={`flex-1 text-sm ${isActive ? "font-semibold" : "font-medium"}`}>
-                    {localeLabels[code]}
-                  </span>
-                  {isActive ? (
-                    <Check className="h-4 w-4 shrink-0 text-[var(--piclick-green)]" strokeWidth={2.25} aria-hidden />
-                  ) : (
-                    <span className="h-4 w-4 shrink-0" aria-hidden />
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <ul className="space-y-0.5">{locales.map((code) => renderOption(code, "dropdown"))}</ul>
+      </div>
+
+      {/* 모바일: 바텀시트 */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("language")}
+        className={`fixed inset-0 z-50 sm:hidden ${open ? "" : "pointer-events-none"}`}
+      >
+        <div
+          onClick={() => setOpen(false)}
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
+            open ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          className={`absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-[var(--piclick-line)] bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-16px_40px_-12px_rgba(15,23,42,0.25)] transition-transform duration-200 ease-out ${
+            open ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--piclick-line)]" aria-hidden />
+          <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+            {t("language")}
+          </p>
+          <ul className="divide-y divide-[var(--piclick-line)]">{locales.map((code) => renderOption(code, "sheet"))}</ul>
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { SajuFeature } from "@/components/saju/saju-feature";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("sajuApp");
   return {
-    title: t("natal.metaTitle"),
+    title: { absolute: t("natal.metaTitle") },
     description: t("natal.subtitle"),
     alternates: { canonical: "/dashboard/saju", languages: { ko: "/dashboard/saju" } },
     robots: { index: false, follow: false },
