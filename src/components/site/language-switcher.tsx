@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Globe } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/navigation";
@@ -18,13 +19,20 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target)) return;
+      if (sheetRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -121,31 +129,40 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         <ul className="space-y-0.5">{locales.map((code) => renderOption(code, "dropdown"))}</ul>
       </div>
 
-      {/* 모바일: 바텀시트 */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("language")}
-        className={`fixed inset-0 z-50 sm:hidden ${open ? "" : "pointer-events-none"}`}
-      >
-        <div
-          onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
-            open ? "opacity-100" : "opacity-0"
-          }`}
-        />
-        <div
-          className={`absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-[var(--piclick-line)] bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-16px_40px_-12px_rgba(15,23,42,0.25)] transition-transform duration-200 ease-out ${
-            open ? "translate-y-0" : "translate-y-full"
-          }`}
-        >
-          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--piclick-line)]" aria-hidden />
-          <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-            {t("language")}
-          </p>
-          <ul className="divide-y divide-[var(--piclick-line)]">{locales.map((code) => renderOption(code, "sheet"))}</ul>
-        </div>
-      </div>
+      {/* 모바일: 바텀시트 (헤더의 backdrop-blur가 fixed 자식의 containing block이 되어버리는 걸
+          피하려고 document.body에 포탈로 렌더링한다) */}
+      {mounted
+        ? createPortal(
+            <div
+              ref={sheetRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("language")}
+              className={`fixed inset-0 z-50 sm:hidden ${open ? "" : "pointer-events-none"}`}
+            >
+              <div
+                onClick={() => setOpen(false)}
+                className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
+                  open ? "opacity-100" : "opacity-0"
+                }`}
+              />
+              <div
+                className={`absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-[var(--piclick-line)] bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-16px_40px_-12px_rgba(15,23,42,0.25)] transition-transform duration-200 ease-out ${
+                  open ? "translate-y-0" : "translate-y-full"
+                }`}
+              >
+                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--piclick-line)]" aria-hidden />
+                <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  {t("language")}
+                </p>
+                <ul className="divide-y divide-[var(--piclick-line)]">
+                  {locales.map((code) => renderOption(code, "sheet"))}
+                </ul>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

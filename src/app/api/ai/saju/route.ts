@@ -10,9 +10,10 @@ import {
   type ReadingKind,
 } from "@/lib/saju/prompt";
 import {
-  callGeminiGenerateContent,
   isRetryableGeminiError,
+  openGeminiGenerateContentStream,
   parseRetryAfterSeconds,
+  readGeminiTextDeltas,
 } from "@/lib/gemini-fetch";
 import { getGeminiModelChain, MAX_MODEL_ATTEMPTS, modelForAttempt } from "@/lib/gemini-models";
 import {
@@ -158,111 +159,168 @@ function todayInKst(): string {
   return kst.toISOString().slice(0, 10);
 }
 
-function stripEndMarker(text: string) {
-  return text.replace(/\n?\[END\]\s*$/g, "").replace(/\[END\]/g, "").trim();
-}
+type OpenStreamFailure = {
+  ok: false;
+  error: string;
+  code: "quota_exceeded" | "gemini_error" | "timeout";
+  status: number;
+  retryAfter?: number;
+};
 
-async function generateReading(apiKey: string, prompt: string) {
-  const startedAt = Date.now();
-  const deadlineAt = startedAt + GEMINI_TOTAL_BUDGET_MS;
+/**
+ * 모델 체인을 순서대로 시도해 SSE 연결이 열리는 첫 모델을 찾는다.
+ * 이 시점까지는 클라이언트에 아직 응답을 시작하지 않았으므로(첫 바이트 미전송),
+ * 실패 시 지금까지처럼 평범한 JSON 에러 응답으로 되돌아갈 수 있다.
+ */
+async function openFirstAvailableStream(
+  apiKey: string,
+  prompt: string,
+  deadlineAt: number,
+): Promise<{ ok: true; model: string; body: ReadableStream<Uint8Array> } | OpenStreamFailure> {
   const modelChain = getGeminiModelChain();
-  let accumulated = "";
   let lastError = "AI 해석 요청에 실패했습니다.";
+  let lastStatus = 502;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    const elapsed = Date.now() - startedAt;
-    if (elapsed > GEMINI_TOTAL_BUDGET_MS) break;
-    const remaining = GEMINI_TOTAL_BUDGET_MS - elapsed;
-    const timeoutMs = Math.max(12_000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remaining - 2000));
+    const remaining = deadlineAt - Date.now();
+    if (remaining < 12_000) break;
     const model = modelForAttempt(modelChain, attempt);
+    const timeoutMs = Math.max(12_000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remaining - 2000));
 
-    const attemptPrompt =
-      attempt > 1 && accumulated
-        ? `${prompt}\n\n지금까지 작성된 내용입니다. 잘린 부분부터 이어서 끝까지 완성하세요(반복 금지):\n"""\n${accumulated.slice(-1500)}\n"""`
-        : prompt;
+    const opened = await openGeminiGenerateContentStream({
+      apiKey,
+      model,
+      prompt,
+      timeoutMs,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      temperature: 0.7,
+    });
 
-    try {
-      const result = await callGeminiGenerateContent({
-        apiKey,
-        model,
-        prompt: attemptPrompt,
-        timeoutMs,
-        maxOutputTokens: MAX_OUTPUT_TOKENS,
-        temperature: 0.7,
-        maxHttpRetries: 2,
-        deadlineAt,
-      });
+    if (opened.ok) return { ok: true, model, body: opened.body };
 
-      if (!result.ok) {
-        lastError = result.error;
-        const retryAfter = parseRetryAfterSeconds(result.error);
-        const quotaLike =
-          result.response.status === 429 ||
-          result.error.toLowerCase().includes("quota") ||
-          result.error.toLowerCase().includes("resource_exhausted");
-        if (quotaLike) {
-          return {
-            ok: false as const,
-            error: `AI 사용량이 일시적으로 많습니다. ${retryAfter ?? 10}초 후 다시 시도해 주세요.`,
-            code: "quota_exceeded" as const,
-            status: 429,
-            retryAfter: retryAfter ?? 10,
-          };
-        }
-        // 모델 오류는 종류를 가리지 않고 남은 시도만큼 재시도한다.
-        // (모델 은퇴 404처럼 재시도 불가로 분류되는 오류도 폴백 모델에서는 성공할 수 있다)
-        console.warn("[saju] gemini error", {
-          attempt,
-          model,
-          status: result.response.status,
-          error: result.error,
-        });
-        if (attempt < MAX_ATTEMPTS) continue;
-        return {
-          ok: false as const,
-          error: lastError,
-          code: "gemini_error" as const,
-          status: isRetryableGeminiError(result.response.status, result.error) ? 504 : 502,
-        };
-      }
-
-      if (result.text) {
-        accumulated = accumulated
-          ? `${accumulated}${result.text.startsWith(accumulated.slice(-30)) ? "" : "\n"}${result.text}`.trim()
-          : result.text.trim();
-      }
-
-      const truncated = result.finishReason === "MAX_TOKENS";
-      if (accumulated.length >= 400 && !truncated) {
-        return { ok: true as const, reading: stripEndMarker(accumulated), model };
-      }
-      if (!truncated && accumulated.length >= 200) {
-        return { ok: true as const, reading: stripEndMarker(accumulated), model };
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        lastError = "AI 응답 시간이 초과되었습니다.";
-        if (attempt < MAX_ATTEMPTS) continue;
-        return { ok: false as const, error: lastError, code: "timeout" as const, status: 504 };
-      }
-      throw error;
+    lastError = opened.error;
+    lastStatus = opened.status;
+    const retryAfter = parseRetryAfterSeconds(opened.error);
+    const quotaLike =
+      opened.status === 429 ||
+      opened.error.toLowerCase().includes("quota") ||
+      opened.error.toLowerCase().includes("resource_exhausted");
+    if (quotaLike) {
+      return {
+        ok: false,
+        error: `AI 사용량이 일시적으로 많습니다. ${retryAfter ?? 10}초 후 다시 시도해 주세요.`,
+        code: "quota_exceeded",
+        status: 429,
+        retryAfter: retryAfter ?? 10,
+      };
     }
-  }
-
-  if (accumulated.trim().length >= 200) {
-    return {
-      ok: true as const,
-      reading: stripEndMarker(accumulated),
-      model: modelForAttempt(modelChain, MAX_ATTEMPTS),
-    };
+    // 모델 오류는 종류를 가리지 않고 남은 모델로 폴백한다 (모델 은퇴 404 등도 다른 모델에선 성공 가능).
+    console.warn("[saju] gemini stream open error", { attempt, model, status: opened.status, error: opened.error });
   }
 
   return {
-    ok: false as const,
-    error: lastError || "AI 해석이 완성되지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    code: "incomplete" as const,
-    status: 504,
+    ok: false,
+    error: lastError,
+    code: isRetryableGeminiError(lastStatus, lastError) ? "timeout" : "gemini_error",
+    status: isRetryableGeminiError(lastStatus, lastError) ? 504 : 502,
   };
+}
+
+const TEXT_ENCODER = new TextEncoder();
+/** 스트림 맨 끝에서만 나타나는 [END] 마커가 화면에 잠깐 비치지 않도록, 꼬리 일부를 항상 붙들고 있다가 마지막에 정리해서 내보낸다. */
+const END_MARKER_HOLDBACK = 12;
+
+function stripEndMarker(text: string) {
+  return text.replace(/\n?\[END\]\s*$/g, "").replace(/\[END\]/g, "");
+}
+
+/**
+ * 첫 모델 스트림이 이미 열린 상태에서 시작해, 응답이 짧거나(MAX_TOKENS로 잘림) 부족하면
+ * 같은 모델로 이어쓰기 요청을 추가로 열어가며 하나의 outgoing 스트림으로 계속 이어 붙인다.
+ * 이 단계부터는 이미 클라이언트로 바이트가 나가고 있으므로, 실패해도 지금까지 받은 내용으로 마무리한다.
+ */
+function buildReadingStream(
+  apiKey: string,
+  originalPrompt: string,
+  firstModel: string,
+  firstBody: ReadableStream<Uint8Array>,
+  deadlineAt: number,
+  meta: Record<string, unknown>,
+  onDone: () => void,
+): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        await streamReadingBody(apiKey, originalPrompt, firstModel, firstBody, deadlineAt, meta, controller);
+      } finally {
+        onDone();
+      }
+      controller.close();
+    },
+  });
+}
+
+async function streamReadingBody(
+  apiKey: string,
+  originalPrompt: string,
+  firstModel: string,
+  firstBody: ReadableStream<Uint8Array>,
+  deadlineAt: number,
+  meta: Record<string, unknown>,
+  controller: ReadableStreamDefaultController<Uint8Array>,
+) {
+  controller.enqueue(TEXT_ENCODER.encode(`${JSON.stringify(meta)}\n`));
+
+  let accumulated = "";
+  let holdback = "";
+  let body: ReadableStream<Uint8Array> | null = firstBody;
+  let rounds = 0;
+
+  const flush = (text: string) => {
+    if (!text) return;
+    holdback += text;
+    if (holdback.length <= END_MARKER_HOLDBACK) return;
+    const releasable = holdback.slice(0, holdback.length - END_MARKER_HOLDBACK);
+    holdback = holdback.slice(holdback.length - END_MARKER_HOLDBACK);
+    if (releasable) controller.enqueue(TEXT_ENCODER.encode(releasable));
+  };
+
+  while (body && rounds < MAX_ATTEMPTS + 2) {
+    rounds += 1;
+    let truncated = false;
+    try {
+      for await (const chunk of readGeminiTextDeltas(body)) {
+        if (chunk.text) {
+          accumulated += chunk.text;
+          flush(chunk.text);
+        }
+        if (chunk.finishReason === "MAX_TOKENS") truncated = true;
+      }
+    } catch (error) {
+      console.error("[saju] stream relay error", error);
+      break;
+    }
+
+    if (accumulated.trim().length >= 200 && !truncated) break;
+
+    const remaining = deadlineAt - Date.now();
+    if (remaining < 12_000) break;
+
+    const continuationPrompt = `${originalPrompt}\n\n지금까지 작성된 내용입니다. 잘린 부분부터 이어서 끝까지 완성하세요(반복 금지):\n"""\n${accumulated.slice(-1500)}\n"""`;
+    const timeoutMs = Math.max(12_000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remaining - 2000));
+    const next = await openGeminiGenerateContentStream({
+      apiKey,
+      model: firstModel,
+      prompt: continuationPrompt,
+      timeoutMs,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      temperature: 0.7,
+    });
+    body = next.ok ? next.body : null;
+  }
+
+  const tail = stripEndMarker(holdback);
+  if (tail) controller.enqueue(TEXT_ENCODER.encode(tail));
 }
 
 /** 명식에서 UI로 내보낼 안전한 요약 */
@@ -383,22 +441,39 @@ export async function POST(request: NextRequest) {
     }
     inFlightToken = token;
 
-    const result = await generateReading(apiKey, prompt);
+    const deadlineAt = Date.now() + GEMINI_TOTAL_BUDGET_MS;
+    const opened = await openFirstAvailableStream(apiKey, prompt, deadlineAt);
 
-    if (!result.ok) {
+    if (!opened.ok) {
       const headers: Record<string, string> = {
         ...rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt),
       };
-      if (result.code === "quota_exceeded" && result.retryAfter) {
-        headers["Retry-After"] = String(result.retryAfter);
+      if (opened.code === "quota_exceeded" && opened.retryAfter) {
+        headers["Retry-After"] = String(opened.retryAfter);
       }
-      return NextResponse.json({ error: result.error, code: result.code }, { status: result.status ?? 502, headers });
+      return NextResponse.json({ error: opened.error, code: opened.code }, { status: opened.status, headers });
     }
 
-    return NextResponse.json(
-      { kind, reading: result.reading, model: result.model, ...(chartsPayload as object) },
-      { headers: rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt) },
-    );
+    // 이 시점부터 응답 스트리밍이 실제로 시작된다. in-flight 락은 스트림이 끝날 때(성공/실패 무관) 풀어야
+    // 하므로, 아래 finally에서 곧바로 풀리지 않도록 소유권을 스트림 쪽으로 넘긴다.
+    const lockKey = inFlightKey;
+    const lockToken = inFlightToken;
+    inFlightKey = null;
+    inFlightToken = null;
+
+    const meta = { kind, model: opened.model, ...(chartsPayload as object) };
+    const stream = buildReadingStream(apiKey, prompt, opened.model, opened.body, deadlineAt, meta, () => {
+      if (lockKey && lockToken) releaseInFlightLock(lockKey, lockToken);
+    });
+
+    return new NextResponse(stream, {
+      headers: {
+        ...rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt),
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       return NextResponse.json(

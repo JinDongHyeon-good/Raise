@@ -77,16 +77,59 @@ export function SajuFeature({ kind }: { kind: Kind }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+
       if (!res.ok) {
+        const data = await res.json().catch(() => null);
         setError(typeof data?.error === "string" ? data.error : t("errors.generic"));
         return;
       }
-      setResult(data as ApiResult);
-      if (typeof window !== "undefined") {
-        requestAnimationFrame(() => {
-          document.getElementById("saju-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
+      if (!res.body) {
+        setError(t("errors.generic"));
+        return;
+      }
+
+      // 서버가 조각조각 흘려보내는 응답을 그대로 받아 화면에 실시간으로 채운다.
+      // 첫 줄은 chart/model 등 메타 정보(JSON), 그 뒤로는 리딩 본문 텍스트가 이어진다.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let meta: Partial<ApiResult> | null = null;
+      let reading = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        if (!meta) {
+          const newlineIndex = buffer.indexOf("\n");
+          if (newlineIndex === -1) continue;
+          try {
+            meta = JSON.parse(buffer.slice(0, newlineIndex)) as Partial<ApiResult>;
+          } catch {
+            meta = {};
+          }
+          buffer = buffer.slice(newlineIndex + 1);
+          setResult({ ...meta, kind, reading: "" } as ApiResult);
+          setLoading(false);
+          if (typeof window !== "undefined") {
+            requestAnimationFrame(() => {
+              document.getElementById("saju-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+          }
+        }
+
+        if (buffer) {
+          reading += buffer;
+          buffer = "";
+          const snapshot = reading;
+          setResult((prev) => (prev ? { ...prev, reading: snapshot } : prev));
+        }
+      }
+
+      if (!reading.trim()) {
+        setError(t("errors.generic"));
+        setResult(null);
       }
     } catch {
       setError(t("errors.network"));

@@ -63,6 +63,102 @@ export async function fetchWithTimeout(input: string, init: RequestInit, timeout
   }
 }
 
+export type GeminiStreamOpenResult =
+  | { ok: true; body: ReadableStream<Uint8Array> }
+  | { ok: false; status: number; error: string; retryable: boolean };
+
+/**
+ * SSE(:streamGenerateContent?alt=sse)로 연결을 연다. 응답 헤더 단계에서 실패하면(모델 오류·429 등)
+ * 그 시점까지는 클라이언트에 아무 바이트도 안 나간 상태이므로 호출부가 다음 모델로 재시도할 수 있다.
+ * 연결이 열린 뒤(첫 청크 이후)의 오류는 스트림 소비 쪽(readGeminiTextDeltas)에서 처리한다.
+ */
+export async function openGeminiGenerateContentStream(options: {
+  apiKey: string;
+  model: string;
+  prompt: string;
+  timeoutMs: number;
+  maxOutputTokens: number;
+  temperature?: number;
+  topP?: number;
+}): Promise<GeminiStreamOpenResult> {
+  const { apiKey, model, prompt, timeoutMs, maxOutputTokens, temperature = 0.6, topP = 0.92 } = options;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature, topP, maxOutputTokens },
+  });
+
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(url, { method: "POST", headers: { "Content-Type": "application/json" }, body }, timeoutMs);
+  } catch (error) {
+    const isAbort = error instanceof Error && error.name === "AbortError";
+    return {
+      ok: false,
+      status: 504,
+      error: isAbort ? "AI 응답 시간이 초과되었습니다." : "AI 서버와 통신하지 못했습니다.",
+      retryable: true,
+    };
+  }
+
+  if (!response.ok || !response.body) {
+    let message = "AI 리딩 요청에 실패했습니다.";
+    try {
+      const data = (await response.json()) as GeminiGenerateResponse;
+      message = data.error?.message || message;
+    } catch {
+      // 본문이 JSON이 아니면 기본 메시지 사용
+    }
+    return { ok: false, status: response.status, error: message, retryable: isRetryableGeminiError(response.status, message) };
+  }
+
+  return { ok: true, body: response.body };
+}
+
+/** SSE 스트림에서 텍스트 델타를 순서대로 뽑아낸다. */
+export async function* readGeminiTextDeltas(
+  body: ReadableStream<Uint8Array>,
+): AsyncGenerator<{ text: string; finishReason?: string }, void, void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      // Gemini SSE는 이벤트 구분자로 "\r\n\r\n"을 쓴다. JSON 페이로드 안의 실제 개행은 이스케이프된
+      // "\\r"/"\\n"이라 원본 바이트의 "\r"을 지워도 내용이 손상되지 않는다.
+      buffer += decoder.decode(value, { stream: true }).replace(/\r/g, "");
+
+      let separatorIndex: number;
+      while ((separatorIndex = buffer.indexOf("\n\n")) !== -1) {
+        const rawEvent = buffer.slice(0, separatorIndex);
+        buffer = buffer.slice(separatorIndex + 2);
+
+        const dataLine = rawEvent
+          .split("\n")
+          .find((line) => line.startsWith("data:"))
+          ?.slice(5)
+          .trim();
+        if (!dataLine) continue;
+
+        try {
+          const parsed = JSON.parse(dataLine) as GeminiGenerateResponse;
+          const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+          const finishReason = parsed.candidates?.[0]?.finishReason;
+          if (text || finishReason) yield { text, finishReason };
+        } catch {
+          // 파싱 안 되는 조각은 건너뛴다 (keep-alive 주석 등)
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export async function callGeminiGenerateContent(options: {
   apiKey: string;
   model: string;
