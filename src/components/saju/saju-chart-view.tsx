@@ -64,11 +64,11 @@ export function SajuChartView({ chart, name }: { chart: ClientChart; name?: stri
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className={`mt-4 grid gap-2 ${chart.timeKnown ? "grid-cols-4" : "grid-cols-3"}`}>
         <PillarCard label={t("pillars.year")} pillar={chart.pillars.year} />
         <PillarCard label={t("pillars.month")} pillar={chart.pillars.month} />
         <PillarCard label={t("pillars.day")} pillar={chart.pillars.day} />
-        <PillarCard label={chart.timeKnown ? t("pillars.hour") : t("pillars.hourUnknown")} pillar={chart.pillars.hour} />
+        {chart.timeKnown ? <PillarCard label={t("pillars.hour")} pillar={chart.pillars.hour} /> : null}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--piclick-ink)]">

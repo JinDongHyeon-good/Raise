@@ -464,23 +464,31 @@
       "zodiac": "Zodiac",
       "elements": "Five Elements",
       "readingTitle": "Reading",
-      "regenerate": "Read again",
+      "copy": "Copy",
+      "copied": "Copied",
       "loading": "Reading your Saju...",
-      "loadingSub": "Building your chart and reviewing the elements."
+      "loadingSub": "Building your chart and reviewing the elements.",
+      "loadingSteps": [
+        "Building your chart.",
+        "Reviewing the Five Elements.",
+        "Preparing your personal reading."
+      ],
+      "thinking": "The AI is reading your chart",
+      "typing": "Writing"
     },
     "pillars": {
       "year": "Year",
       "month": "Month",
       "day": "Day",
-      "hour": "Hour",
-      "hourUnknown": "Hour unknown"
+      "hour": "Hour"
     },
     "errors": {
       "generic": "Something went wrong. Please try again in a moment.",
       "empty": "The AI response came back empty. It may have timed out — please try again.",
       "emptyFallback": "## Notice\n\nWe couldn't load the AI reading right now. Your chart above is valid — please tap regenerate in a moment.\n\nThis reading is for reference only.",
       "authSession": "Your session expired. Please sign in again and retry.",
-      "network": "Network error. Please try again."
+      "network": "Network error. Please try again.",
+      "copyFailed": "Couldn't copy the result. Please check your browser permissions."
     },
     "disclaimer": "Fortune results are for reference only. Make important decisions with care."
   }

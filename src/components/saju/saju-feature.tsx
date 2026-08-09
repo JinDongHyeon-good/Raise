@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Sparkles, Copy, Check } from "lucide-react";
 import { AppShell } from "@/components/site/app-shell";
 import { SajuBirthForm, emptyBirthValue, type BirthValue } from "@/components/saju/saju-birth-form";
 import { SajuChartView } from "@/components/saju/saju-chart-view";
@@ -78,12 +78,88 @@ export function SajuFeature({ kind }: { kind: Kind }) {
   const [personA, setPersonA] = useState<BirthValue>(emptyBirthValue);
   const [personB, setPersonB] = useState<BirthValue>({ ...emptyBirthValue });
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
   const chartReadyRef = useRef(false);
 
+  /** 스트리밍 텍스트 부드럽게 흘려보내기용 상태(리렌더를 유발하지 않는 순수 버퍼는 ref로 관리) */
+  const revealedRef = useRef("");
+  const pendingRef = useRef("");
+  const rafRef = useRef<number | null>(null);
+  const streamOpenRef = useRef(false);
+
   const isCompat = kind === "compatibility";
   const canSubmit = isComplete(personA) && (!isCompat || isComplete(personB));
+  const hasReadingText = Boolean(result?.reading.trim().length);
+  const loadingSteps = t.raw("result.loadingSteps") as string[];
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setLoadingStep((i) => (i + 1) % loadingSteps.length);
+    }, 2200);
+    return () => window.clearInterval(id);
+  }, [loading, loadingSteps.length]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  const resetReveal = () => {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    revealedRef.current = "";
+    pendingRef.current = "";
+    streamOpenRef.current = false;
+  };
+
+  /**
+   * 네트워크가 뭉텅이로 몰아서 보내는 텍스트를 rAF로 조금씩 흘려보내 타자기처럼 부드럽게 표시한다.
+   * 밀린 양이 많을수록 더 빠르게 따라잡아서(비율 기반 스텝) 실제 도착 속도보다 과하게 뒤처지지 않는다.
+   */
+  const runReveal = () => {
+    const target = pendingRef.current;
+    const current = revealedRef.current;
+    if (current.length < target.length) {
+      const remaining = target.length - current.length;
+      const step = Math.min(remaining, Math.max(2, Math.ceil(remaining * 0.16)));
+      const next = target.slice(0, current.length + step);
+      revealedRef.current = next;
+      setResult((prev) => (prev ? { ...prev, reading: next } : prev));
+    }
+    if (streamOpenRef.current || revealedRef.current.length < pendingRef.current.length) {
+      rafRef.current = requestAnimationFrame(runReveal);
+    } else {
+      rafRef.current = null;
+    }
+  };
+
+  const ensureReveal = () => {
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(runReveal);
+    }
+  };
+
+  const handleCopyReading = async () => {
+    if (!result?.reading.trim()) return;
+    try {
+      await navigator.clipboard.writeText(result.reading);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError(t("errors.copyFailed"));
+    }
+  };
 
   /** 명식이 준비되면 결과 영역을 먼저 띄운다. 해석 본문은 이후 스트리밍으로 채워진다. */
   const showChart = (meta: Partial<ApiResult>) => {
@@ -103,6 +179,7 @@ export function SajuFeature({ kind }: { kind: Kind }) {
     /** true면 첫 줄이 chart/model 등 메타 JSON이다 (Next.js 직접 스트리밍 폴백 경로). */
     expectMetaLine: boolean,
   ) => {
+    streamOpenRef.current = true;
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
@@ -133,11 +210,13 @@ export function SajuFeature({ kind }: { kind: Kind }) {
       if (buffer) {
         reading += buffer;
         buffer = "";
-        const snapshot = reading;
-        setResult((prev) => (prev ? { ...prev, reading: snapshot } : prev));
+        pendingRef.current = reading;
+        ensureReveal();
       }
     }
 
+    streamOpenRef.current = false;
+    ensureReveal();
     return reading;
   };
 
@@ -187,6 +266,8 @@ export function SajuFeature({ kind }: { kind: Kind }) {
   const attemptOnce = async (): Promise<
     { ok: true; reading: string } | { ok: false; error: string; retryable: boolean }
   > => {
+    resetReveal();
+    setStreaming(true);
     const body: Record<string, unknown> = { kind, locale };
     if (isCompat) {
       body.personA = toPayloadPerson(personA);
@@ -272,6 +353,7 @@ export function SajuFeature({ kind }: { kind: Kind }) {
         }
 
         const outcome = await attemptOnce();
+        setStreaming(false);
         if (outcome.ok) {
           setError(null);
           return;
@@ -352,16 +434,49 @@ export function SajuFeature({ kind }: { kind: Kind }) {
           ) : null}
 
           {loading ? (
-            <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[var(--piclick-line)] bg-white p-10 text-center">
-              <span className="relative flex h-10 w-10">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--piclick-gold)]/40" />
-                <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--piclick-green)] text-white">
-                  <Sparkles className="h-5 w-5" aria-hidden />
+            <motion.div
+              className="relative mt-6 flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-[var(--piclick-line)] bg-gradient-to-b from-white to-[var(--piclick-beige-soft)] p-10 text-center shadow-[0_18px_40px_-28px_rgb(42_33_80_/0.5)]"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <div
+                className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-[var(--piclick-gold)]/15 blur-2xl"
+                aria-hidden
+              />
+              <span className="relative flex h-14 w-14 items-center justify-center">
+                <span className="absolute h-14 w-14 animate-ping rounded-full bg-[var(--piclick-gold)]/25" />
+                <span
+                  className="absolute h-11 w-11 animate-ping rounded-full bg-[var(--piclick-green)]/20"
+                  style={{ animationDelay: "0.3s" }}
+                />
+                <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--piclick-green)] to-[var(--piclick-green-deep)] text-white shadow-[0_6px_18px_-6px_rgb(42_33_80_/0.6)]">
+                  <Sparkles className="h-5 w-5 animate-[spin_5s_linear_infinite]" aria-hidden />
                 </span>
               </span>
-              <p className="text-sm font-medium text-[var(--piclick-green-deep)]">{t("result.loading")}</p>
-              <p className="text-xs text-[var(--piclick-ink-muted)]">{t("result.loadingSub")}</p>
-            </div>
+              <div className="space-y-1.5">
+                <p className="text-sm font-semibold text-[var(--piclick-green-deep)]">{t("result.loading")}</p>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={loadingStep}
+                    className="text-xs text-[var(--piclick-ink-muted)]"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {loadingSteps[loadingStep] ?? t("result.loadingSub")}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+              <div className="h-1 w-40 overflow-hidden rounded-full bg-[var(--piclick-line)]">
+                <motion.div
+                  className="h-full w-1/3 rounded-full bg-gradient-to-r from-[var(--piclick-green)] to-[var(--piclick-gold)]"
+                  animate={{ x: ["-120%", "220%"] }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+            </motion.div>
           ) : null}
         </div>
 
@@ -390,14 +505,61 @@ export function SajuFeature({ kind }: { kind: Kind }) {
                 </h2>
                 <button
                   type="button"
-                  onClick={submit}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--piclick-line)] px-3 py-1.5 text-xs font-medium text-[var(--piclick-ink-muted)] transition hover:border-[var(--piclick-green)]/40 hover:text-[var(--piclick-green-deep)]"
+                  onClick={() => void handleCopyReading()}
+                  disabled={!hasReadingText}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--piclick-line)] px-3 py-1.5 text-xs font-medium text-[var(--piclick-ink-muted)] transition hover:border-[var(--piclick-green)]/40 hover:text-[var(--piclick-green-deep)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-                  {t("result.regenerate")}
+                  {copied ? (
+                    <Check className="h-3.5 w-3.5 text-[var(--piclick-green)]" aria-hidden />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" aria-hidden />
+                  )}
+                  {copied ? t("result.copied") : t("result.copy")}
                 </button>
               </div>
-              <SajuMarkdown text={result.reading} />
+
+              {!hasReadingText && streaming ? (
+                <div className="space-y-3 py-2" aria-hidden>
+                  <div className="flex items-center gap-2 text-xs font-medium text-[var(--piclick-green-deep)]">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute h-2 w-2 animate-ping rounded-full bg-[var(--piclick-gold)]" />
+                      <span className="relative h-2 w-2 rounded-full bg-[var(--piclick-green)]" />
+                    </span>
+                    {t("result.thinking")}
+                  </div>
+                  {["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"].map((w, i) => (
+                    <div
+                      key={w}
+                      className={`h-3 ${w} animate-pulse rounded-full bg-gradient-to-r from-[var(--piclick-line)] via-[var(--piclick-beige)] to-[var(--piclick-line)]`}
+                      style={{ animationDelay: `${i * 0.12}s` }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <SajuMarkdown text={result.reading} />
+                  {streaming ? (
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--piclick-ink-muted)]">
+                      <span className="flex gap-0.5">
+                        <span
+                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--piclick-green)]"
+                          style={{ animationDelay: "0ms" }}
+                        />
+                        <span
+                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--piclick-green)]"
+                          style={{ animationDelay: "120ms" }}
+                        />
+                        <span
+                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--piclick-green)]"
+                          style={{ animationDelay: "240ms" }}
+                        />
+                      </span>
+                      {t("result.typing")}
+                    </div>
+                  ) : null}
+                </>
+              )}
+
               <p className="mt-6 border-t border-[var(--piclick-line)] pt-4 text-[11px] text-[var(--piclick-ink-muted)]">
                 {t("disclaimer")}
               </p>
