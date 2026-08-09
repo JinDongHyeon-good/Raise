@@ -33,7 +33,7 @@ export function DashboardHome() {
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-4">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
               const cardClass = `group rounded-2xl border p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-18px_rgb(42_33_80_/0.5)] sm:p-6 ${
