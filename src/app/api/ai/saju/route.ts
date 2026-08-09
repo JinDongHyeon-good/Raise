@@ -10,12 +10,14 @@ import {
   type ReadingKind,
 } from "@/lib/saju/prompt";
 import {
+  callGeminiGenerateContent,
   isRetryableGeminiError,
   openGeminiGenerateContentStream,
   parseRetryAfterSeconds,
   readGeminiTextDeltas,
 } from "@/lib/gemini-fetch";
 import { getGeminiModelChain, MAX_MODEL_ATTEMPTS, modelForAttempt } from "@/lib/gemini-models";
+import { getRelayConfig, signRelayToken } from "@/lib/ai-relay-token";
 import {
   SlidingRateLimiter,
   acquireInFlightLock,
@@ -24,18 +26,29 @@ import {
 } from "@/lib/sliding-rate-limit";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+/**
+ * Amplify Hosting은 SSR/API 응답을 30초에서 강제로 끊는다(조정 불가, maxDuration은 Vercel 전용이라
+ * 여기선 무시된다). 그래서 이 라우트는 인증·명식 계산·프롬프트 생성까지만 하고 1초 안에 끝낸다.
+ * 실제로 오래 걸리는 Gemini 호출은 supabase/functions/saju-stream 으로 넘긴다.
+ */
+export const maxDuration = 30;
 
 const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const IP_RATE_LIMIT_MAX = 20;
+const USER_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const USER_RATE_LIMIT_MAX = 6;
 const IN_FLIGHT_TTL_MS = 110 * 1000;
 
-const GEMINI_HTTP_TIMEOUT_MS = 42_000;
-const GEMINI_TOTAL_BUDGET_MS = 100_000;
+const GEMINI_HTTP_TIMEOUT_MS = 75_000;
+const GEMINI_TOTAL_BUDGET_MS = 110_000;
 const MAX_OUTPUT_TOKENS = 4096;
+const TEMPERATURE = 0.7;
 const MAX_ATTEMPTS = MAX_MODEL_ATTEMPTS;
+/** 릴레이 토큰 수명. 발급 직후 바로 쓰이므로 짧게 잡는다. */
+const RELAY_TOKEN_TTL_MS = 2 * 60 * 1000;
 
 const ipRateLimiter = new SlidingRateLimiter(IP_RATE_LIMIT_MAX, IP_RATE_LIMIT_WINDOW_MS);
+const userRateLimiter = new SlidingRateLimiter(USER_RATE_LIMIT_MAX, USER_RATE_LIMIT_WINDOW_MS);
 
 type PersonInput = {
   name?: string;
@@ -193,7 +206,8 @@ async function openFirstAvailableStream(
       prompt,
       timeoutMs,
       maxOutputTokens: MAX_OUTPUT_TOKENS,
-      temperature: 0.7,
+      temperature: TEMPERATURE,
+      thinkingLevel: "LOW",
     });
 
     if (opened.ok) return { ok: true, model, body: opened.body };
@@ -229,6 +243,10 @@ async function openFirstAvailableStream(
 const TEXT_ENCODER = new TextEncoder();
 /** 스트림 맨 끝에서만 나타나는 [END] 마커가 화면에 잠깐 비치지 않도록, 꼬리 일부를 항상 붙들고 있다가 마지막에 정리해서 내보낸다. */
 const END_MARKER_HOLDBACK = 12;
+const MIN_USABLE_CHARS = 80;
+const LAST_RESORT_READING =
+  "## 안내\n\n일시적으로 AI 해석을 가져오지 못했습니다. 위의 명식은 정상적으로 계산되었습니다. " +
+  "잠시 후 '다시 풀이하기'를 눌러 주세요.\n\n이 해석은 참고용입니다.";
 
 function stripEndMarker(text: string) {
   return text.replace(/\n?\[END\]\s*$/g, "").replace(/\[END\]/g, "");
@@ -237,7 +255,7 @@ function stripEndMarker(text: string) {
 /**
  * 첫 모델 스트림이 이미 열린 상태에서 시작해, 응답이 짧거나(MAX_TOKENS로 잘림) 부족하면
  * 같은 모델로 이어쓰기 요청을 추가로 열어가며 하나의 outgoing 스트림으로 계속 이어 붙인다.
- * 이 단계부터는 이미 클라이언트로 바이트가 나가고 있으므로, 실패해도 지금까지 받은 내용으로 마무리한다.
+ * 그래도 비면 generateContent 폴백 → 최후 안내문으로 클라이언트 빈 응답 에러를 막는다.
  */
 function buildReadingStream(
   apiKey: string,
@@ -275,14 +293,18 @@ async function streamReadingBody(
   let holdback = "";
   let body: ReadableStream<Uint8Array> | null = firstBody;
   let rounds = 0;
+  let flushedAny = false;
 
   const flush = (text: string) => {
     if (!text) return;
     holdback += text;
     if (holdback.length <= END_MARKER_HOLDBACK) return;
-    const releasable = holdback.slice(0, holdback.length - END_MARKER_HOLDBACK);
+    const releasable = holdback.slice(0, holdback.length - END_MARKER_HOLDBACK).replace(/\[END\]/g, "");
     holdback = holdback.slice(holdback.length - END_MARKER_HOLDBACK);
-    if (releasable) controller.enqueue(TEXT_ENCODER.encode(releasable));
+    if (releasable) {
+      controller.enqueue(TEXT_ENCODER.encode(releasable));
+      flushedAny = true;
+    }
   };
 
   while (body && rounds < MAX_ATTEMPTS + 2) {
@@ -290,6 +312,10 @@ async function streamReadingBody(
     let truncated = false;
     try {
       for await (const chunk of readGeminiTextDeltas(body)) {
+        if (chunk.error) {
+          console.warn("[saju] sse error event", chunk.error);
+          break;
+        }
         if (chunk.text) {
           accumulated += chunk.text;
           flush(chunk.text);
@@ -301,12 +327,13 @@ async function streamReadingBody(
       break;
     }
 
-    if (accumulated.trim().length >= 200 && !truncated) break;
+    if (accumulated.includes("[END]")) break;
+    if (accumulated.trim().length >= MIN_USABLE_CHARS && !truncated) break;
 
     const remaining = deadlineAt - Date.now();
     if (remaining < 12_000) break;
 
-    const continuationPrompt = `${originalPrompt}\n\n지금까지 작성된 내용입니다. 잘린 부분부터 이어서 끝까지 완성하세요(반복 금지):\n"""\n${accumulated.slice(-1500)}\n"""`;
+    const continuationPrompt = `${originalPrompt}\n\n지금까지 작성된 내용입니다. 잘린 부분부터 이어서 끝까지 완성하세요(반복 금지). 끝나면 [END]를 출력하세요:\n"""\n${accumulated.slice(-1500)}\n"""`;
     const timeoutMs = Math.max(12_000, Math.min(GEMINI_HTTP_TIMEOUT_MS, remaining - 2000));
     const next = await openGeminiGenerateContentStream({
       apiKey,
@@ -314,13 +341,45 @@ async function streamReadingBody(
       prompt: continuationPrompt,
       timeoutMs,
       maxOutputTokens: MAX_OUTPUT_TOKENS,
-      temperature: 0.7,
+      temperature: TEMPERATURE,
+      thinkingLevel: "LOW",
     });
     body = next.ok ? next.body : null;
   }
 
+  if (accumulated.trim().length < MIN_USABLE_CHARS) {
+    const remaining = deadlineAt - Date.now();
+    if (remaining >= 12_000) {
+      try {
+        const fallback = await callGeminiGenerateContent({
+          apiKey,
+          model: firstModel,
+          prompt: originalPrompt,
+          timeoutMs: Math.min(GEMINI_HTTP_TIMEOUT_MS, remaining - 2000),
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          temperature: TEMPERATURE,
+          thinkingLevel: "LOW",
+          deadlineAt,
+        });
+        if (fallback.ok && fallback.text.trim().length >= MIN_USABLE_CHARS) {
+          accumulated = fallback.text;
+          flush(fallback.text);
+        }
+      } catch (error) {
+        console.error("[saju] generateContent fallback error", error);
+      }
+    }
+  }
+
   const tail = stripEndMarker(holdback);
-  if (tail) controller.enqueue(TEXT_ENCODER.encode(tail));
+  if (tail) {
+    controller.enqueue(TEXT_ENCODER.encode(tail));
+    flushedAny = true;
+  }
+
+  if (!flushedAny && accumulated.trim().length === 0) {
+    controller.enqueue(TEXT_ENCODER.encode(LAST_RESORT_READING));
+  }
 }
 
 /** 명식에서 UI로 내보낼 안전한 요약 */
@@ -345,6 +404,7 @@ export async function POST(request: NextRequest) {
   try {
     pruneStaleLocks();
     ipRateLimiter.prune();
+    userRateLimiter.prune();
 
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
@@ -431,6 +491,62 @@ export async function POST(request: NextRequest) {
       chartsPayload = { chart: serializeChart(chart), today: kind === "daily" ? todayInKst() : undefined };
     }
 
+    const modelChain = getGeminiModelChain();
+    const relay = getRelayConfig();
+
+    if (relay) {
+      // 릴레이 경로: 여기서는 Gemini를 부르지 않는다. 프롬프트를 서명한 토큰만 발급하고,
+      // 브라우저가 Supabase Edge Function을 직접 호출해 스트리밍을 받는다.
+      // 긴 생성이 이 라우트를 붙들지 않으므로 in-flight 락 대신 사용자별 발급 제한을 건다.
+      const userRateLimit = userRateLimiter.check(`saju:${user.id}`);
+      if (!userRateLimit.allowed) {
+        return NextResponse.json(
+          { error: "요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.", code: "user_rate_limit" },
+          {
+            status: 429,
+            headers: {
+              ...rateLimitHeaders(USER_RATE_LIMIT_MAX, userRateLimit.remaining, userRateLimit.resetAt),
+              "Retry-After": String(Math.ceil((userRateLimit.resetAt - Date.now()) / 1000)),
+            },
+          },
+        );
+      }
+
+      const relayToken = await signRelayToken(
+        {
+          v: 1,
+          sub: user.id,
+          kind,
+          prompt,
+          model: modelChain[0],
+          fallbackModel: modelChain[1],
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          temperature: TEMPERATURE,
+          exp: Date.now() + RELAY_TOKEN_TTL_MS,
+        },
+        relay.secret,
+      );
+
+      return NextResponse.json(
+        {
+          mode: "relay",
+          kind,
+          model: modelChain[0],
+          relayUrl: relay.url,
+          relayToken,
+          ...(chartsPayload as object),
+        },
+        {
+          headers: {
+            ...rateLimitHeaders(IP_RATE_LIMIT_MAX, ipRateLimit.remaining, ipRateLimit.resetAt),
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
+
+    // 폴백 경로(로컬 개발 · Edge Function 배포 전): Next.js 안에서 직접 Gemini를 호출한다.
+    // Amplify에서는 30초에서 끊기므로 프로덕션에서는 릴레이 설정을 반드시 채워야 한다.
     inFlightKey = `saju:${user.id}`;
     const token = acquireInFlightLock(inFlightKey, IN_FLIGHT_TTL_MS);
     if (!token) {

@@ -477,6 +477,9 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again in a moment.",
+      "empty": "The AI response came back empty. It may have timed out — please try again.",
+      "emptyFallback": "## Notice\n\nWe couldn't load the AI reading right now. Your chart above is valid — please tap regenerate in a moment.\n\nThis reading is for reference only.",
+      "authSession": "Your session expired. Please sign in again and retry.",
       "network": "Network error. Please try again."
     },
     "disclaimer": "Fortune results are for reference only. Make important decisions with care."

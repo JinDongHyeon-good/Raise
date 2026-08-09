@@ -15,6 +15,10 @@ frontend:
         - echo "NEXT_PUBLIC_NAVER_SITE_VERIFICATION=${NEXT_PUBLIC_NAVER_SITE_VERIFICATION}" >> .env.production
         - echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" >> .env.production
         - echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" >> .env.production
+        # 긴 Gemini 호출을 Supabase Edge Function으로 넘기기 위한 설정.
+        # 비어 있으면 Next.js가 직접 Gemini를 호출하는데, Amplify의 30초 제한에 걸려 500이 난다.
+        - echo "NEXT_PUBLIC_SAJU_RELAY_URL=${NEXT_PUBLIC_SAJU_RELAY_URL}" >> .env.production
+        - echo "AI_RELAY_SECRET=${AI_RELAY_SECRET}" >> .env.production
 
         # 의존성 설치 및 에셋 동기화
         - pnpm install --no-frozen-lockfile
