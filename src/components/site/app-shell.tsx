@@ -10,7 +10,7 @@ import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 import type { AppLocale } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 
 type AuthMode = "login" | "signup";
 
@@ -151,8 +151,10 @@ export function AppShell({
                   : undefined);
 
   const navClass = (key: string) =>
-    `transition hover:text-[var(--piclick-green-deep)] ${
-      resolvedActive === key ? "font-medium text-[var(--piclick-green-deep)]" : ""
+    `rounded-full px-3 py-1.5 transition-all duration-200 ${
+      resolvedActive === key
+        ? "bg-[var(--piclick-green)]/10 font-semibold text-[var(--piclick-green-deep)]"
+        : "text-[var(--piclick-ink-muted)] hover:bg-[var(--piclick-beige-soft)] hover:text-[var(--piclick-green-deep)]"
     }`;
 
   const navItems = [
@@ -164,16 +166,23 @@ export function AppShell({
 
   return (
     <div className="piclick-home flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 border-b border-[var(--piclick-line)] bg-[var(--piclick-beige)]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-20 bg-[var(--piclick-beige)]/90 shadow-[0_1px_0_rgba(42,33,80,0.06),0_16px_32px_-28px_rgba(42,33,80,0.5)] backdrop-blur-md">
+        <div
+          className="h-[2px] w-full bg-gradient-to-r from-[var(--piclick-green)] via-[var(--piclick-gold)] to-[var(--piclick-green)]"
+          aria-hidden
+        />
         <div className="piclick-container grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-3 sm:h-16">
           <LocaleLink
             href="/dashboard"
-            className="font-brand-display col-start-1 min-w-0 justify-self-start truncate whitespace-nowrap text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
+            className="font-brand-display col-start-1 flex min-w-0 items-center gap-2 justify-self-start truncate whitespace-nowrap text-[1.35rem] font-bold tracking-tight text-[var(--piclick-green-deep)] sm:text-2xl"
           >
-            {brandName}
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--piclick-green)] to-[var(--piclick-green-deep)] text-white shadow-[0_6px_14px_-6px_rgba(42,33,80,0.55)] sm:h-9 sm:w-9">
+              <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </span>
+            <span className="truncate">{brandName}</span>
           </LocaleLink>
 
-          <nav className="col-start-2 hidden min-w-0 items-center justify-center gap-3.5 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:flex sm:gap-6">
+          <nav className="col-start-2 hidden min-w-0 items-center justify-center gap-1 overflow-x-auto whitespace-nowrap text-sm text-[var(--piclick-ink-muted)] sm:flex sm:gap-1.5">
             {navItems.map((item) =>
               item.authRequired ? (
                 <button
