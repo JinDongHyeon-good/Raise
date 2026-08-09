@@ -279,3 +279,104 @@ function buildSummary(args: {
   if (!args.timeKnown) lines.push("※ 태어난 시각 미상 → 시주 제외하고 해석");
   return lines.join("\n");
 }
+
+// ---------------------------------------------------------------- 대운(大運)
+
+export type DaewoonPeriod = {
+  index: number; // 1부터
+  startAge: number; // 이 대운이 시작하는 만 나이
+  endAge: number; // 이 대운이 끝나는 만 나이(포함)
+  ganjiKo: string;
+  ganjiHanja: string;
+  element: Element;
+  stemTenGod: TenGod;
+  branchTenGod: TenGod;
+};
+
+export type Daewoon = {
+  direction: "순행" | "역행";
+  /** 대운수: 첫 대운이 시작하는 만 나이 */
+  startAge: number;
+  periods: DaewoonPeriod[];
+};
+
+/** 태양의 하루 평균 이동 각도(도). 절기 경계까지 남은/지난 일수를 역산하는 초기값으로 쓴다. */
+const MEAN_DAILY_MOTION = 360 / 365.2422;
+
+const DAEWOON_PERIOD_COUNT = 8; // 80년 치 대운을 미리 계산해 둔다
+
+/** jd 시점 이후 태양황경이 targetLambda(0~360)에 도달하기까지 남은 일수(양수) */
+function daysForwardToLongitude(jd: number, targetLambda: number): number {
+  let days = ((((targetLambda - solarLongitude(jd)) % 360) + 360) % 360) / MEAN_DAILY_MOTION;
+  for (let i = 0; i < 6; i++) {
+    let err = targetLambda - solarLongitude(jd + days);
+    err = (((err + 180) % 360) + 360) % 360 - 180;
+    days += err / MEAN_DAILY_MOTION;
+  }
+  return days;
+}
+
+/** jd 시점 이전 태양황경이 targetLambda(0~360)를 지났던 시점까지의 일수(양수) */
+function daysBackwardToLongitude(jd: number, targetLambda: number): number {
+  let days = ((((solarLongitude(jd) - targetLambda) % 360) + 360) % 360) / MEAN_DAILY_MOTION;
+  for (let i = 0; i < 6; i++) {
+    let err = solarLongitude(jd - days) - targetLambda;
+    err = (((err + 180) % 360) + 360) % 360 - 180;
+    days += err / MEAN_DAILY_MOTION;
+  }
+  return days;
+}
+
+/**
+ * 대운(10년 단위 삶의 흐름) 계산.
+ * 순행: 년간이 양(甲丙戊庚壬)이고 남자, 또는 년간이 음(乙丁己辛癸)이고 여자. 그 외는 역행.
+ * 대운수(첫 대운이 시작하는 만 나이)는 생시부터 다음(순행)/이전(역행) 절기 경계까지의 일수를
+ * 3으로 나눠 구한다(3일=1년, 통상적인 근사 규칙). 성별을 모르면 순행/역행을 정할 수 없어 null.
+ */
+export function computeDaewoon(chart: SajuChart, gender: "male" | "female" | "unknown"): Daewoon | null {
+  if (gender === "unknown") return null;
+
+  const { year: sy, month: sm, day: sd, hour, minute } = chart.solar;
+  const jdnNoon = gregorianToJDN(sy, sm, sd);
+  const jdUT = jdnNoon - 0.5 + (hour + minute / 60 - KST_OFFSET_HOURS) / 24;
+  const lambda = solarLongitude(jdUT);
+
+  const sajuYear = sm === 1 || (sm === 2 && lambda < 315) ? sy - 1 : sy;
+  const yearStemIndex = ((((sajuYear - 4) % 10) + 10) % 10);
+  const yearStem = stemGanji(yearStemIndex);
+
+  const monthOrder = Math.floor((((lambda - 315 + 360) % 360) / 30));
+  const monthStemIndex = ((yearStemIndex % 5) * 2 + 2 + monthOrder) % 10;
+  const monthBranchIndex = (2 + monthOrder) % 12;
+
+  const { stemIndex: dayStemIndex } = dayPillarIndices(sy, sm, sd);
+  const dayStem = stemGanji(dayStemIndex);
+
+  const isMale = gender === "male";
+  const forward = (yearStem.yinYang === "양") === isMale;
+
+  const lowerEdge = (315 + monthOrder * 30) % 360;
+  const upperEdge = (315 + (monthOrder + 1) * 30) % 360;
+  const days = forward ? daysForwardToLongitude(jdUT, upperEdge) : daysBackwardToLongitude(jdUT, lowerEdge);
+  const startAge = Math.max(1, Math.round(days / 3));
+
+  const periods: DaewoonPeriod[] = [];
+  for (let n = 1; n <= DAEWOON_PERIOD_COUNT; n++) {
+    const step = forward ? n : -n;
+    const stem = stemGanji(monthStemIndex + step);
+    const branch = branchGanji(monthBranchIndex + step);
+    const branchMainStem = stemGanji(branch.mainStemIndex);
+    periods.push({
+      index: n,
+      startAge: startAge + (n - 1) * 10,
+      endAge: startAge + n * 10 - 1,
+      ganjiKo: `${stem.ko}${branch.ko}`,
+      ganjiHanja: `${stem.hanja}${branch.hanja}`,
+      element: stem.element,
+      stemTenGod: tenGod(dayStem.element, dayStem.yinYang, stem.element, stem.yinYang),
+      branchTenGod: tenGod(dayStem.element, dayStem.yinYang, branchMainStem.element, branchMainStem.yinYang),
+    });
+  }
+
+  return { direction: forward ? "순행" : "역행", startAge, periods };
+}
