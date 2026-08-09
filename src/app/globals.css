@@ -53,6 +53,16 @@ body {
   scroll-margin-top: 5.5rem;
 }
 
+/* iOS Safari는 포커스된 입력 요소의 font-size가 16px보다 작으면 화면을 자동으로 확대한다.
+   text-sm(14px) 등 작은 인풋이 많아 모바일 폭에서만 16px로 올려 확대를 막는다. */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 .trading-floor-page button,
 .trading-floor-page a,
 .trading-floor-page input[type="checkbox"],
