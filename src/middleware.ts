@@ -8,10 +8,18 @@ const intlMiddleware = createIntlMiddleware(routing);
 const SESSION_PATH_PREFIXES = ["/mypage", "/auth", "/trading-floor", "/resume", "/board", "/dashboard"] as const;
 const AUTH_REQUIRED_PREFIXES = ["/mypage", "/dashboard"] as const;
 /**
- * 대시보드 진입과 커뮤니티(게시판) 열람은 로그인 없이 허용하고,
- * 그 아래 개인화 기능(today/saju/gunghap 등)에서만 로그인을 요구한다.
+ * 대시보드 진입, 커뮤니티(게시판), 그리고 오늘의 운세·사주팔자·궁합 세 툴 페이지는
+ * 로그인 없이 폼과 설명을 볼 수 있게 허용한다(로그인은 실제 AI 풀이 제출 시에만
+ * saju-feature.tsx의 requireAuth로 그 자리에서 요구한다). 검색엔진이 이 페이지들을
+ * 색인할 수 있으려면 여기서 서버 단에서부터 막지 않아야 한다.
  */
-const PUBLIC_EXACT_PATHS = ["/dashboard", "/dashboard/board"] as const;
+const PUBLIC_EXACT_PATHS = [
+  "/dashboard",
+  "/dashboard/board",
+  "/dashboard/today",
+  "/dashboard/saju",
+  "/dashboard/gunghap",
+] as const;
 
 /**
  * 기본 로케일(ko)은 접두사 없이 서빙하므로 `/ko/...` 는 `/...` 로 정규화한다.

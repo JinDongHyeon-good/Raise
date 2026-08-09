@@ -8,7 +8,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        // 로그인 없이도 폼·설명이 그대로 노출되는 세 툴 페이지는 /dashboard 차단보다
+        // 더 구체적인 allow로 예외를 둔다(robots.txt는 가장 구체적인 규칙이 우선한다).
+        allow: [
+          "/",
+          "/dashboard/today",
+          "/*/dashboard/today",
+          "/dashboard/saju",
+          "/*/dashboard/saju",
+          "/dashboard/gunghap",
+          "/*/dashboard/gunghap",
+        ],
         disallow: [
           "/dashboard",
           "/*/dashboard",
