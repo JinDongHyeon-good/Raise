@@ -12,6 +12,7 @@ import {
   stemGanji,
   TenGod,
   tenGod,
+  YinYang,
 } from "@/lib/saju/constants";
 import { lunarToSolar } from "@/lib/saju/lunar";
 
@@ -87,7 +88,7 @@ export type SajuChart = {
     day: Pillar;
     hour: Pillar | null;
   };
-  dayMaster: { ko: string; hanja: string; element: Element; yinYang: string };
+  dayMaster: { ko: string; hanja: string; element: Element; yinYang: YinYang };
   zodiac: string; // 띠
   elementCounts: Record<Element, number>;
   dominantElements: Element[];

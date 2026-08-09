@@ -4,6 +4,7 @@
  *   천간: 갑(0) 을 병 정 무 기 경 신 임 계(9)
  *   지지: 자(0) 축 인 묘 진 사 오 미 신 유 술 해(11)
  */
+import type { AppLocale } from "@/i18n/routing";
 
 export type Element = "목" | "화" | "토" | "금" | "수";
 export type YinYang = "양" | "음";
@@ -128,4 +129,94 @@ export function stemGanji(index: number) {
 
 export function branchGanji(index: number) {
   return EARTHLY_BRANCHES[((index % 12) + 12) % 12];
+}
+
+/**
+ * 오행/십성/음양은 한글로 저장돼 있어서(예: "목", "비견"), 로케일별 AI 프롬프트에 쓸 표기가 따로 필요하다.
+ * ja는 한자 사주(四柱推命) 용어를 그대로, en은 통용되는 영문 BaZi 용어를 쓴다.
+ */
+export const ELEMENT_LABELS: Record<AppLocale, Record<Element, string>> = {
+  ko: { 목: "목", 화: "화", 토: "토", 금: "금", 수: "수" },
+  ja: { 목: "木", 화: "火", 토: "土", 금: "金", 수: "水" },
+  en: { 목: "Wood", 화: "Fire", 토: "Earth", 금: "Metal", 수: "Water" },
+};
+
+export function getElementLabel(element: Element, locale: AppLocale): string {
+  return ELEMENT_LABELS[locale][element];
+}
+
+export const TEN_GOD_LABELS: Record<AppLocale, Record<TenGod, string>> = {
+  ko: {
+    비견: "비견",
+    겁재: "겁재",
+    식신: "식신",
+    상관: "상관",
+    편재: "편재",
+    정재: "정재",
+    편관: "편관",
+    정관: "정관",
+    편인: "편인",
+    정인: "정인",
+  },
+  ja: {
+    비견: "比肩",
+    겁재: "劫財",
+    식신: "食神",
+    상관: "傷官",
+    편재: "偏財",
+    정재: "正財",
+    편관: "偏官",
+    정관: "正官",
+    편인: "偏印",
+    정인: "正印",
+  },
+  en: {
+    비견: "Friend",
+    겁재: "Rob Wealth",
+    식신: "Eating God",
+    상관: "Hurting Officer",
+    편재: "Indirect Wealth",
+    정재: "Direct Wealth",
+    편관: "Seven Killings",
+    정관: "Direct Officer",
+    편인: "Indirect Seal",
+    정인: "Direct Seal",
+  },
+};
+
+export function getTenGodLabel(god: TenGod, locale: AppLocale): string {
+  return TEN_GOD_LABELS[locale][god];
+}
+
+export const YIN_YANG_LABELS: Record<AppLocale, Record<YinYang, string>> = {
+  ko: { 양: "양", 음: "음" },
+  ja: { 양: "陽", 음: "陰" },
+  en: { 양: "Yang", 음: "Yin" },
+};
+
+export function getYinYangLabel(yinYang: YinYang, locale: AppLocale): string {
+  return YIN_YANG_LABELS[locale][yinYang];
+}
+
+const ZODIAC_LABELS: Record<AppLocale, Record<string, string>> = {
+  ko: { 쥐: "쥐", 소: "소", 호랑이: "호랑이", 토끼: "토끼", 용: "용", 뱀: "뱀", 말: "말", 양: "양", 원숭이: "원숭이", 닭: "닭", 개: "개", 돼지: "돼지" },
+  ja: {
+    쥐: "子（ねずみ）",
+    소: "丑（うし）",
+    호랑이: "寅（とら）",
+    토끼: "卯（うさぎ）",
+    용: "辰（たつ）",
+    뱀: "巳（へび）",
+    말: "午（うま）",
+    양: "未（ひつじ）",
+    원숭이: "申（さる）",
+    닭: "酉（とり）",
+    개: "戌（いぬ）",
+    돼지: "亥（いのしし）",
+  },
+  en: { 쥐: "Rat", 소: "Ox", 호랑이: "Tiger", 토끼: "Rabbit", 용: "Dragon", 뱀: "Snake", 말: "Horse", 양: "Goat", 원숭이: "Monkey", 닭: "Rooster", 개: "Dog", 돼지: "Pig" },
+};
+
+export function getZodiacLabel(zodiac: string, locale: AppLocale): string {
+  return ZODIAC_LABELS[locale][zodiac] ?? zodiac;
 }

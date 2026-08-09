@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
-import { isAppLocale } from "@/i18n/routing";
+import { isAppLocale, type AppLocale } from "@/i18n/routing";
 import { computeSaju, type CalendarType, type SajuChart, type SajuInput } from "@/lib/saju/engine";
 import { isLunarYearSupported } from "@/lib/saju/lunar";
 import {
@@ -441,10 +441,8 @@ export async function POST(request: NextRequest) {
     if (kind !== "daily" && kind !== "natal" && kind !== "compatibility") {
       return NextResponse.json({ error: "요청 종류가 올바르지 않습니다." }, { status: 400 });
     }
-    const locale = isAppLocale(typeof raw.locale === "string" ? raw.locale : undefined)
-      ? (raw.locale as string)
-      : "ko";
-    void locale;
+    const rawLocale = typeof raw.locale === "string" ? raw.locale : undefined;
+    const locale: AppLocale = isAppLocale(rawLocale) ? rawLocale : "ko";
 
     const apiKey = sanitizeApiKey(process.env.GEMINI_API_KEY);
     if (!apiKey) {
@@ -468,12 +466,17 @@ export async function POST(request: NextRequest) {
       } catch {
         return NextResponse.json({ error: "사주 계산에 실패했습니다. 입력을 확인해 주세요." }, { status: 400 });
       }
-      prompt = buildCompatibilityPrompt(chartA, chartB, {
-        nameA: va.value.name,
-        genderA: va.value.gender,
-        nameB: vb.value.name,
-        genderB: vb.value.gender,
-      });
+      prompt = buildCompatibilityPrompt(
+        chartA,
+        chartB,
+        {
+          nameA: va.value.name,
+          genderA: va.value.gender,
+          nameB: vb.value.name,
+          genderB: vb.value.gender,
+        },
+        locale,
+      );
       chartsPayload = { chartA: serializeChart(chartA), chartB: serializeChart(chartB) };
     } else {
       const v = validatePerson(raw.person);
@@ -486,8 +489,8 @@ export async function POST(request: NextRequest) {
       }
       prompt =
         kind === "daily"
-          ? buildDailyPrompt(chart, todayInKst(), { name: v.value.name, gender: v.value.gender })
-          : buildNatalPrompt(chart, { name: v.value.name, gender: v.value.gender });
+          ? buildDailyPrompt(chart, todayInKst(), { name: v.value.name, gender: v.value.gender }, locale)
+          : buildNatalPrompt(chart, { name: v.value.name, gender: v.value.gender }, locale);
       chartsPayload = { chart: serializeChart(chart), today: kind === "daily" ? todayInKst() : undefined };
     }
 
