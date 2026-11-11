@@ -79,6 +79,7 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
   const seo = await getTranslations({ locale, namespace: "seo.pages.bybit" });
   const code = () => <b className="text-white">{BYBIT_REFERRAL.code}</b>;
 
+  const isEn = locale === "en";
   const quick = [
     { label: t("quickCode"), value: BYBIT_REFERRAL.code, mono: true },
     { label: t("quickWhen"), value: t("quickWhenValue") },
@@ -90,13 +91,19 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
     <RaisePageShell plain>
       <JsonLd data={bybitJsonLd(locale, t("pageTitle"), seo("description"), t("breadcrumbHome"))} />
       <main className="rz-container pb-28 pt-7 sm:py-12">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-8 sm:gap-10">
+        <div className={`mx-auto flex w-full flex-col gap-8 sm:gap-10 ${isEn ? "max-w-2xl" : "max-w-xl"}`}>
           <header className="space-y-3 text-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F7A600]">{t("pageEyebrow")}</p>
-            <h1 className="font-[family-name:var(--font-brand-display)] text-[1.65rem] font-semibold tracking-tight text-white sm:text-3xl">
+            <h1
+              className={`font-[family-name:var(--font-brand-display)] font-semibold tracking-tight text-white ${
+                isEn ? "text-[1.45rem] leading-snug sm:text-[1.85rem] sm:leading-tight" : "text-[1.65rem] sm:text-3xl"
+              }`}
+            >
               {t("pageTitle")}
             </h1>
-            <p className="text-sm leading-relaxed text-[var(--rz-muted)]">{t("pageLead")}</p>
+            <p className={`text-sm text-[var(--rz-muted)] ${isEn ? "leading-snug sm:leading-relaxed" : "leading-relaxed"}`}>
+              {t("pageLead")}
+            </p>
           </header>
 
           <section aria-labelledby="bybit-quick" className="rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-4 sm:p-5">
@@ -105,9 +112,19 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
             </h2>
             <dl className="mt-3 divide-y divide-[var(--rz-line)] text-sm">
               {quick.map((row) => (
-                <div key={row.label} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:gap-4">
-                  <dt className="shrink-0 text-xs text-[var(--rz-muted)] sm:w-28 sm:text-sm">{row.label}</dt>
-                  <dd className={row.mono ? "font-mono font-bold tracking-[0.15em] text-[#F7A600]" : "text-white/90"}>{row.value}</dd>
+                <div key={row.label} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:items-baseline sm:gap-4">
+                  <dt className={`shrink-0 text-xs text-[var(--rz-muted)] sm:text-sm ${isEn ? "sm:w-32" : "sm:w-28"}`}>
+                    {row.label}
+                  </dt>
+                  <dd
+                    className={
+                      row.mono
+                        ? "font-mono font-bold tracking-[0.15em] text-[#F7A600]"
+                        : `text-white/90 ${isEn ? "leading-snug" : ""}`
+                    }
+                  >
+                    {row.value}
+                  </dd>
                 </div>
               ))}
             </dl>

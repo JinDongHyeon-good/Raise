@@ -1,12 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 import { BYBIT_REFERRAL } from "@/lib/bybit-referral";
 
 export function BybitReferralCard() {
   const t = useTranslations("bybit");
+  const isEn = useLocale() === "en";
   const [copied, setCopied] = useState(false);
 
   const copyCode = async () => {
@@ -35,14 +36,20 @@ export function BybitReferralCard() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#F7A600]">
             {t("cardEyebrow")}
           </p>
-          <p className="mt-1.5 max-w-md text-sm font-medium leading-snug text-white sm:text-base">
+          <p
+            className={`mt-1.5 font-medium leading-snug text-white ${
+              isEn ? "max-w-xl text-[13px] sm:text-[15px]" : "max-w-md text-sm sm:text-base"
+            }`}
+          >
             {t("headline")}
           </p>
         </div>
       </div>
 
       <div className="space-y-3.5 p-4 sm:p-5">
-        <p className="text-xs leading-5 text-[var(--rz-muted)] sm:text-[13px] sm:leading-6">{t("subline")}</p>
+        <p className={`text-xs text-[var(--rz-muted)] sm:text-[13px] ${isEn ? "leading-snug sm:leading-5" : "leading-5 sm:leading-6"}`}>
+          {t("subline")}
+        </p>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <div className="min-w-0 flex-1 rounded-xl border border-[#F7A600]/25 bg-black/20 px-3.5 py-3">

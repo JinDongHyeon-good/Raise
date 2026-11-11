@@ -7,7 +7,9 @@ import { BYBIT_REFERRAL } from "@/lib/bybit-referral";
 
 export function BybitSignupManual() {
   const t = useTranslations("bybit");
-  const { prep: BYBIT_SIGNUP_PREP, steps: BYBIT_SIGNUP_STEPS, faq: BYBIT_SIGNUP_FAQ } = getBybitSignupManual(useLocale());
+  const locale = useLocale();
+  const isEn = locale === "en";
+  const { prep: BYBIT_SIGNUP_PREP, steps: BYBIT_SIGNUP_STEPS, faq: BYBIT_SIGNUP_FAQ } = getBybitSignupManual(locale);
   const [openId, setOpenId] = useState<string | null>(BYBIT_SIGNUP_STEPS[0]?.id ?? null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -59,14 +61,18 @@ export function BybitSignupManual() {
                 type="button"
                 aria-expanded={open}
                 onClick={() => setOpenId(open ? null : step.id)}
-                className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.02] sm:px-5 sm:py-4"
+                className={`flex w-full gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.02] sm:px-5 sm:py-4 ${isEn ? "items-center" : "items-start"}`}
               >
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#F7A600]/15 font-mono text-xs font-bold text-[#F7A600]">
                   {index + 1}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-white">{step.title}</span>
-                  <span className="mt-0.5 block text-xs text-[var(--rz-muted)]">{step.summary}</span>
+                  <span className={`block font-semibold text-white ${isEn ? "text-[13px] leading-snug sm:text-sm" : "text-sm"}`}>
+                    {step.title}
+                  </span>
+                  <span className={`mt-0.5 block text-xs text-[var(--rz-muted)] ${isEn ? "leading-snug" : ""}`}>
+                    {step.summary}
+                  </span>
                 </span>
                 <span className={`mt-1 shrink-0 text-[var(--rz-muted)] transition ${open ? "rotate-180" : ""}`} aria-hidden>
                   ▾
