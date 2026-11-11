@@ -99,6 +99,18 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
 
 export const BYBIT_SIGNUP_FAQ = [
   {
+    q: "바이비트 추천인 코드(레퍼럴 코드)는 무엇인가요?",
+    a: `찐동코인의 바이비트 추천인 코드는 ${BYBIT_REFERRAL.code}입니다. 가입 화면의 Referral Code(선택) 칸에 입력하거나, 이 페이지의 가입 버튼으로 들어가면 자동으로 입력됩니다. 계정을 만들기 전에 입력해야 적용됩니다.`,
+  },
+  {
+    q: "추천인 코드로 가입하면 어떤 혜택이 있나요?",
+    a: "신규 가입자 보상·이벤트는 Bybit 정책에 따라 수시로 바뀝니다. 가입 화면과 Bybit 이벤트(Rewards Hub) 페이지에서 현재 혜택을 확인하세요. 추천인 코드를 넣어도 이용자에게 추가 수수료는 붙지 않습니다.",
+  },
+  {
+    q: "한국에서도 바이비트에 가입할 수 있나요?",
+    a: "이용 가능 여부는 국가·지역마다 다르고, Bybit는 일부 국가에서 서비스를 제공하지 않습니다. 거주 국가의 규제나 금융당국 안내에 따라 이용이 제한될 수 있으니, 가입 전 Bybit의 이용 제한 국가 목록과 관련 안내를 확인하세요.",
+  },
+  {
     q: "가입 후에 추천인 코드를 넣을 수 있나요?",
     a: "Bybit 공식 안내 기준으로, 일반 Referral 코드는 계정 생성 후 추가·변경이 불가합니다. 가입 제출 전에 반드시 확인하세요. (일부 Affiliate 프로그램 코드만, 조건 충족 시 가입 후 14일 이내 예외가 있을 수 있음)",
   },
@@ -210,6 +222,18 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
 ];
 
 export const BYBIT_SIGNUP_FAQ_EN = [
+  {
+    q: "What is the Bybit referral code?",
+    a: `JindongCoin's Bybit referral code is ${BYBIT_REFERRAL.code}. Enter it in the Referral Code (optional) field on the sign-up screen, or use the sign-up button on this page to have it filled in automatically. It only applies if you enter it before creating your account.`,
+  },
+  {
+    q: "What do I get for signing up with a referral code?",
+    a: "New-user rewards and promotions change from time to time under Bybit's policies. Check the sign-up screen and Bybit's Rewards Hub for the current offer. Using a referral code adds no extra fees for you.",
+  },
+  {
+    q: "Is Bybit available in my country?",
+    a: "Availability depends on your country and region. Bybit doesn't serve some jurisdictions (for example, the United States), and local regulations may restrict access elsewhere. Check Bybit's list of restricted jurisdictions and your local rules before signing up.",
+  },
   {
     q: "Can I add a referral code after signing up?",
     a: "According to Bybit, a regular referral code can't be added or changed after the account is created, so check it before submitting. (Some affiliate program codes may be an exception within 14 days of sign-up if conditions are met.)",

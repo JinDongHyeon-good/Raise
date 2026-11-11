@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { CandleChart, formatPrice, type Candle } from "@/components/raise/candle-chart";
+import { BybitInlinePromo } from "@/components/raise/bybit-inline-promo";
 import { CoinTickerStrip } from "@/components/raise/coin-ticker-strip";
 import { MarketTabs } from "@/components/raise/market-tabs";
 import { RaiseFooter, RaiseHeader } from "@/components/raise/raise-chrome";
@@ -154,6 +155,8 @@ export default function RaiseChart() {
             </p>
           </div>
         </section>
+
+        <BybitInlinePromo />
       </main>
 
       <RaiseFooter />

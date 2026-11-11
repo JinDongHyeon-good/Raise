@@ -48,6 +48,24 @@ function ContactKo() {
           </li>
         </ul>
 
+        <h2>제휴문의</h2>
+        <p>
+          광고·콘텐츠·거래소 레퍼럴·미디어 제휴 등 협업 제안은 제휴문의로 보내 주세요. 메일 제목에{" "}
+          <b>[제휴문의]</b>를 넣어 주시면 더 빠르게 확인합니다.
+        </p>
+        <ul>
+          <li>
+            제휴문의 Email:{" "}
+            <a href="mailto:wlsehdgus23@gmail.com?subject=%5B%EC%A0%9C%ED%9C%B4%EB%AC%B8%EC%9D%98%5D%20%EC%A7%84%EB%8F%99%EC%BD%94%EC%9D%B8">
+              wlsehdgus23@gmail.com
+            </a>
+          </li>
+          <li>
+            Bybit 레퍼럴 안내: <Link href="/bybit">Bybit 가입 · 레퍼럴 페이지</Link>
+          </li>
+        </ul>
+        <p>제휴문의 시 회사/서비스명, 제안 내용, 연락 가능한 담당자 정보를 함께 적어 주세요.</p>
+
         <h2>문의 시 함께 적어 주시면 좋은 정보</h2>
         <ul>
           <li>문제가 발생한 페이지 주소(URL)와 선택한 코인·검색어</li>
@@ -86,6 +104,24 @@ function ContactEn() {
             Phone: <a href="tel:+821032301521">+82 10-3230-1521</a>
           </li>
         </ul>
+
+        <h2>Partnership inquiries</h2>
+        <p>
+          For ads, content, exchange referral, or media partnerships, please email us with{" "}
+          <b>[Partnership]</b> in the subject line so we can prioritize your message.
+        </p>
+        <ul>
+          <li>
+            Partnership email:{" "}
+            <a href="mailto:wlsehdgus23@gmail.com?subject=%5BPartnership%5D%20JindongCoin">
+              wlsehdgus23@gmail.com
+            </a>
+          </li>
+          <li>
+            Bybit referral info: <Link href="/bybit">Bybit signup · referral page</Link>
+          </li>
+        </ul>
+        <p>Please include your company/product name, proposal details, and a contact person.</p>
 
         <h2>Helpful details to include</h2>
         <ul>

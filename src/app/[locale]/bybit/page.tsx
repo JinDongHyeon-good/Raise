@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { getLocalizedBrandName } from "@/lib/brand";
-import { buildPageMetadata } from "@/lib/seo";
-import { toRoutedLocale } from "@/lib/seo-i18n";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BybitReferralCard } from "@/components/raise/bybit-referral-card";
 import { BybitSignupManual } from "@/components/raise/bybit-signup-manual";
+import { BybitStickyCta } from "@/components/raise/bybit-sticky-cta";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
-import {
-  BYBIT_REFERRAL,
-  BYBIT_REFERRAL_DESCRIPTION,
-  BYBIT_REFERRAL_KEYWORDS,
-} from "@/lib/bybit-referral";
+import { JsonLd } from "@/components/seo/json-ld";
+import { localizedPath } from "@/i18n/routing";
+import { getLocalizedBrandName, getSiteUrl } from "@/lib/brand";
+import { BYBIT_REFERRAL, BYBIT_REFERRAL_KEYWORDS_EN, BYBIT_REFERRAL_KEYWORDS_KO } from "@/lib/bybit-referral";
+import { getBybitSignupManual } from "@/lib/bybit-signup-manual";
+import { buildPageMetadata } from "@/lib/seo";
+import { toRoutedLocale } from "@/lib/seo-i18n";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = toRoutedLocale((await params).locale);
@@ -20,49 +20,110 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     locale,
     title: t("title"),
     description: t("description"),
-    keywords: [
-      ...BYBIT_REFERRAL_KEYWORDS,
-      "바이비트 가입 방법",
-      "바이비트 KYC",
-      "Bybit signup guide",
-      "Bybit how to register",
-      "Bybit KYC",
-    ],
+    keywords: locale === "en" ? BYBIT_REFERRAL_KEYWORDS_EN : BYBIT_REFERRAL_KEYWORDS_KO,
     path: "/bybit",
     image: "/bybit-referral.png",
-    imageAlt: "Bybit referral invite",
+    imageAlt: locale === "en" ? "Bybit referral code XQZZ6O sign-up guide" : "바이비트 추천인 코드 XQZZ6O 가입 가이드",
     socialTitle: t("socialTitle", { brand }),
-    socialDescription: locale === "ko" ? BYBIT_REFERRAL_DESCRIPTION : t("socialDescription"),
+    socialDescription: t("socialDescription"),
   });
 }
 
+/** 검색엔진용 구조화 데이터: 가입 단계(HowTo) · 자주 묻는 질문(FAQ) · 위치(Breadcrumb) */
+function bybitJsonLd(locale: "ko" | "en", pageTitle: string, description: string, homeLabel: string) {
+  const site = getSiteUrl();
+  const url = `${site}${localizedPath("/bybit", locale)}`;
+  const { steps, faq } = getBybitSignupManual(locale);
+  const inLanguage = locale === "en" ? "en" : "ko";
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "@id": `${url}#howto`,
+      name: pageTitle,
+      description,
+      inLanguage,
+      totalTime: "PT10M",
+      supply: [{ "@type": "HowToSupply", name: locale === "en" ? "Email address or phone number" : "이메일 또는 휴대폰 번호" }, { "@type": "HowToSupply", name: locale === "en" ? "Government-issued ID" : "본인 명의 신분증" }],
+      step: steps.map((s, i) => ({
+        "@type": "HowToStep",
+        position: i + 1,
+        name: s.title.replace(/^\d+\.\s*/, ""),
+        text: [s.summary, ...s.details].join(" "),
+        url: `${url}#step-${s.id}`,
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "@id": `${url}#faq`,
+      inLanguage,
+      mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: homeLabel, item: `${site}${localizedPath("/", locale)}` },
+        { "@type": "ListItem", position: 2, name: pageTitle, item: url },
+      ],
+    },
+  ];
+}
+
 export default async function BybitReferralPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+  const { locale: rawLocale } = await params;
+  setRequestLocale(rawLocale);
+  const locale = toRoutedLocale(rawLocale) === "en" ? "en" : "ko";
   const t = await getTranslations("bybit");
+  const seo = await getTranslations({ locale, namespace: "seo.pages.bybit" });
   const code = () => <b className="text-white">{BYBIT_REFERRAL.code}</b>;
+
+  const quick = [
+    { label: t("quickCode"), value: BYBIT_REFERRAL.code, mono: true },
+    { label: t("quickWhen"), value: t("quickWhenValue") },
+    { label: t("quickTime"), value: t("quickTimeValue") },
+    { label: t("quickNeed"), value: t("quickNeedValue") },
+  ];
 
   return (
     <RaisePageShell plain>
-      <main className="rz-container py-7 sm:py-12">
+      <JsonLd data={bybitJsonLd(locale, t("pageTitle"), seo("description"), t("breadcrumbHome"))} />
+      <main className="rz-container pb-28 pt-7 sm:py-12">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-8 sm:gap-10">
           <header className="space-y-3 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F7A600]">
-              {t("pageEyebrow")}
-            </p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F7A600]">{t("pageEyebrow")}</p>
             <h1 className="font-[family-name:var(--font-brand-display)] text-[1.65rem] font-semibold tracking-tight text-white sm:text-3xl">
               {t("pageTitle")}
             </h1>
-            <p className="text-sm leading-relaxed text-[var(--rz-muted)]">{t("headline")}</p>
-            <p className="text-xs text-[var(--rz-muted)]">
-              Bybit Referral Code{" "}
-              <span className="font-mono font-semibold text-[#F7A600]">{BYBIT_REFERRAL.code}</span>
-              <span className="mx-1.5 text-white/20">·</span>
-              {t("pageCodeLine")}
-            </p>
+            <p className="text-sm leading-relaxed text-[var(--rz-muted)]">{t("pageLead")}</p>
           </header>
 
+          <section aria-labelledby="bybit-quick" className="rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-4 sm:p-5">
+            <h2 id="bybit-quick" className="text-sm font-semibold text-white">
+              {t("quickTitle")}
+            </h2>
+            <dl className="mt-3 divide-y divide-[var(--rz-line)] text-sm">
+              {quick.map((row) => (
+                <div key={row.label} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:gap-4">
+                  <dt className="shrink-0 text-xs text-[var(--rz-muted)] sm:w-28 sm:text-sm">{row.label}</dt>
+                  <dd className={row.mono ? "font-mono font-bold tracking-[0.15em] text-[#F7A600]" : "text-white/90"}>{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
           <BybitReferralCard />
+
+          <section
+            aria-labelledby="bybit-availability"
+            className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-4 text-sm leading-6 text-[var(--rz-muted)] sm:p-5"
+          >
+            <h2 id="bybit-availability" className="mb-1 text-sm font-semibold text-amber-200">
+              {t("availabilityTitle")}
+            </h2>
+            <p>{t("availabilityBody")}</p>
+          </section>
 
           <BybitSignupManual />
 
@@ -75,6 +136,7 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
           </section>
         </div>
       </main>
+      <BybitStickyCta />
     </RaisePageShell>
   );
 }

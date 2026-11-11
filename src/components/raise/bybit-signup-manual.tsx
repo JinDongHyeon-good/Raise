@@ -50,7 +50,11 @@ export function BybitSignupManual() {
         {BYBIT_SIGNUP_STEPS.map((step, index) => {
           const open = openId === step.id;
           return (
-            <li key={step.id} className="overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)]">
+            <li
+              key={step.id}
+              id={`step-${step.id}`}
+              className="scroll-mt-24 overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)]"
+            >
               <button
                 type="button"
                 aria-expanded={open}
@@ -68,8 +72,8 @@ export function BybitSignupManual() {
                   ▾
                 </span>
               </button>
-              {open ? (
-                <div className="border-t border-[var(--rz-line)] px-4 py-3.5 sm:px-5 sm:py-4">
+              {/* 닫혀 있어도 HTML에는 남겨 검색엔진이 읽을 수 있게 (화면에서만 숨김) */}
+              <div hidden={!open} className="border-t border-[var(--rz-line)] px-4 py-3.5 sm:px-5 sm:py-4">
                   <ul className="space-y-2.5">
                     {step.details.map((line) => (
                       <li key={line} className="flex gap-2 text-xs leading-5 text-[var(--rz-muted)] sm:text-sm sm:leading-6">
@@ -93,8 +97,7 @@ export function BybitSignupManual() {
                       {t("manual.startCta")}
                     </a>
                   ) : null}
-                </div>
-              ) : null}
+              </div>
             </li>
           );
         })}
@@ -118,7 +121,9 @@ export function BybitSignupManual() {
                     ▾
                   </span>
                 </button>
-                {open ? <p className="pb-3 text-xs leading-5 text-[var(--rz-muted)] sm:text-sm sm:leading-6">{item.a}</p> : null}
+                <p hidden={!open} className="pb-3 text-xs leading-5 text-[var(--rz-muted)] sm:text-sm sm:leading-6">
+                  {item.a}
+                </p>
               </div>
             );
           })}
