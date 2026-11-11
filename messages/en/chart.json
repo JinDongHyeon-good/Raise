@@ -1,1 +1,23 @@
-{}
+{
+  "srTitle": "{brand} — Live crypto, Nasdaq & S&P 500 charts",
+  "marketTabs": "Market",
+  "market": {
+    "crypto": "Crypto",
+    "us": "US Stocks"
+  },
+  "interval": {
+    "m15": "15m",
+    "h1": "1h",
+    "h4": "4h",
+    "d1": "1D",
+    "w1": "1W"
+  },
+  "high": "High",
+  "low": "Low",
+  "turnover": "Volume",
+  "loadFailed": "Couldn't load the chart.",
+  "sourceUs": "Data: Yahoo Finance · Index quotes may be delayed · US regular session",
+  "sourceCrypto": "Data: Bybit spot",
+  "noData": "No chart data",
+  "candleChart": "Candlestick chart"
+}

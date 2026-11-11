@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import RaiseHome from "@/components/raise/raise-home";
 import { JsonLd } from "@/components/seo/json-ld";
-import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { buildHomePageMetadata, getHomeJsonLd } from "@/lib/seo";
+import { toRoutedLocale } from "@/lib/seo-i18n";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -16,7 +16,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  return buildHomePageMetadata(locale as AppLocale);
+  return buildHomePageMetadata(toRoutedLocale(locale));
 }
 
 export default async function HomePage({ params }: PageProps) {
@@ -25,7 +25,7 @@ export default async function HomePage({ params }: PageProps) {
 
   return (
     <>
-      <JsonLd data={getHomeJsonLd(locale as AppLocale)} />
+      <JsonLd data={getHomeJsonLd(toRoutedLocale(locale))} />
       <RaiseHome />
     </>
   );

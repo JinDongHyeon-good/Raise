@@ -1,19 +1,22 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { BoardEditor } from "@/components/board/board-editor";
 import {
   BOARD_POST_TYPES,
-  BOARD_POST_TYPE_LABELS,
+  boardPostTypeLabelKey,
   isBoardPostType,
   type BoardPostSummary,
   type BoardPostType,
 } from "@/lib/board-types";
+import { Link, useRouter } from "@/navigation";
 
 export function PostWrite() {
+  const t = useTranslations("community");
+  const locale = useLocale();
   const router = useRouter();
   const params = useSearchParams();
   const editId = params.get("edit");
@@ -30,28 +33,29 @@ export function PostWrite() {
   useEffect(() => {
     if (!editId) return;
     let alive = true;
-    fetch(`/api/board/posts/${editId}`, { cache: "no-store" })
+    fetch(`/api/board/posts/${editId}`, { cache: "no-store", headers: { "x-ui-locale": locale } })
       .then((res) => res.json())
       .then((data: { item?: BoardPostSummary; error?: string }) => {
         if (!alive) return;
-        if (!data.item) return setError(data.error ?? "글을 불러오지 못했어요.");
+        if (!data.item) return setError(data.error ?? t("loadPostFailed"));
         setType(data.item.post_type);
         setTitle(data.item.title);
         setContent(data.item.content_html ?? "");
         setLoaded(true);
       })
-      .catch(() => alive && setError("글을 불러오지 못했어요."));
+      .catch(() => alive && setError(t("loadPostFailed")));
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
 
   if (!authLoading && !me) {
     return (
       <main className="rz-container max-w-3xl py-16 text-center">
-        <p className="text-sm text-[var(--rz-muted)]">글을 쓰려면 로그인해 주세요.</p>
+        <p className="text-sm text-[var(--rz-muted)]">{t("loginToWrite")}</p>
         <button type="button" onClick={openLogin} className="mt-4 rounded-lg bg-[var(--rz-accent)] px-4 py-2 text-sm text-white">
-          로그인
+          {t("login")}
         </button>
       </main>
     );
@@ -59,21 +63,21 @@ export function PostWrite() {
 
   const submit = async () => {
     setError(null);
-    if (!type) return setError("게시판을 골라 주세요.");
-    if (!title.trim()) return setError("제목을 입력해 주세요.");
+    if (!type) return setError(t("chooseBoard"));
+    if (!title.trim()) return setError(t("enterTitle"));
     setSaving(true);
     try {
       const res = await fetch(editId ? `/api/board/posts/${editId}` : "/api/board/posts", {
         method: editId ? "PATCH" : "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "x-ui-locale": locale },
         body: JSON.stringify({ title: title.trim(), content_html: content, post_type: type }),
       });
       const data = (await res.json()) as { item?: BoardPostSummary; error?: string };
       if (res.status === 401) return openLogin();
-      if (!res.ok || !data.item) return setError(data.error ?? "저장하지 못했어요.");
+      if (!res.ok || !data.item) return setError(data.error ?? t("saveFailed"));
       router.push(`/community/${data.item.id}`);
     } catch {
-      setError("저장하지 못했어요.");
+      setError(t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -82,9 +86,9 @@ export function PostWrite() {
   return (
     <main className="rz-container max-w-3xl py-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">{editId ? "글 수정" : "글쓰기"}</h1>
+        <h1 className="text-xl font-bold">{editId ? t("editPost") : t("write")}</h1>
         <Link href={editId ? `/community/${editId}` : "/community"} className="text-xs text-[var(--rz-muted)] hover:text-[var(--rz-text)]">
-          취소
+          {t("cancel")}
         </Link>
       </div>
 
@@ -93,21 +97,21 @@ export function PostWrite() {
       ) : (
         <div className="space-y-3">
           <fieldset>
-            <legend className="mb-2 text-xs text-[var(--rz-muted)]">게시판</legend>
+            <legend className="mb-2 text-xs text-[var(--rz-muted)]">{t("board")}</legend>
             <div className="flex flex-wrap gap-2">
-              {BOARD_POST_TYPES.map((t) => (
+              {BOARD_POST_TYPES.map((board) => (
                 <button
-                  key={t}
+                  key={board}
                   type="button"
-                  onClick={() => setType(t)}
-                  aria-pressed={type === t}
+                  onClick={() => setType(board)}
+                  aria-pressed={type === board}
                   className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                    type === t
+                    type === board
                       ? "border-[var(--rz-accent)] bg-[var(--rz-accent)]/15 text-[var(--rz-text)]"
                       : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
                   }`}
                 >
-                  {BOARD_POST_TYPE_LABELS[t]}
+                  {t(boardPostTypeLabelKey(board))}
                 </button>
               ))}
             </div>
@@ -117,7 +121,7 @@ export function PostWrite() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={120}
-            placeholder="제목"
+            placeholder={t("titlePlaceholder")}
             className="w-full rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] px-3 py-2.5 text-base outline-none focus:border-[var(--rz-accent)]"
           />
 
@@ -132,7 +136,7 @@ export function PostWrite() {
               disabled={saving}
               className="rounded-lg bg-[var(--rz-accent)] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              {saving ? "저장 중…" : editId ? "수정 완료" : "등록"}
+              {saving ? t("saving") : editId ? t("saveEdit") : t("submit")}
             </button>
           </div>
         </div>

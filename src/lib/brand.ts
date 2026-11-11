@@ -4,8 +4,8 @@ export const SERVICE_NAME = "찐동코인";
 export const SERVICE_NAME_EN = "JindongCoin";
 export const SERVICE_NAME_JA = "JindongCoin";
 
-export function getLocalizedBrandName(_locale: AppLocale): string {
-  return SERVICE_NAME;
+export function getLocalizedBrandName(locale: AppLocale): string {
+  return locale === "en" ? SERVICE_NAME_EN : SERVICE_NAME;
 }
 
 export const GOOGLE_ADSENSE_CLIENT = "ca-pub-7677744293773918";
@@ -48,6 +48,33 @@ export const SERVICE_VALUES = [
   },
 ] as const;
 
+/** 영어 서비스 한 줄 소개 (/en 메타 description·OG·JSON-LD) */
+export const SERVICE_DESCRIPTION_EN =
+  "JindongCoin shows live charts for major cryptocurrencies like Bitcoin and Ethereum and for US stock indices like the Nasdaq and S&P 500, summarizes crypto and stock outlook videos on YouTube with AI based only on what is said in the video, and hosts a community where crypto and stock investors share analysis and information.";
+
+export const SERVICE_VALUES_EN = [
+  {
+    title: "Live crypto & US stock charts",
+    body: "See candlestick charts for Bitcoin, Ethereum, XRP and Solana alongside the Nasdaq Composite, Nasdaq 100, S&P 500 and Dow Jones, from 15-minute to weekly candles, all on one screen.",
+  },
+  {
+    title: "AI summaries of crypto & stock YouTube videos",
+    body: "Browse crypto and stock outlook videos on YouTube, and let AI summarize a long video's key claims, the price levels mentioned and the speaker's view, based only on what is said in the video. Every point carries a timestamp so you can check it right away.",
+  },
+  {
+    title: "Crypto & stock community",
+    body: "Investors share opinions and reasoning on the Crypto Analysis, Stock Analysis, US Stocks, Korean Stocks, News & Info, Q&A and P&L Proof boards.",
+  },
+] as const;
+
+export function getLocalizedServiceDescription(locale: AppLocale): string {
+  return locale === "en" ? SERVICE_DESCRIPTION_EN : SERVICE_DESCRIPTION;
+}
+
+export function getServiceValues(locale: AppLocale): ReadonlyArray<{ title: string; body: string }> {
+  return locale === "en" ? SERVICE_VALUES_EN : SERVICE_VALUES;
+}
+
 /** 한국어 검색 유입용 핵심 키워드 */
 export const SERVICE_KEYWORDS = [
   "찐동코인",
@@ -73,6 +100,12 @@ export const SERVICE_KEYWORDS = [
   "주식 AI 분석",
   "해외주식 게시판",
   "주식 손익인증",
+  "바이비트",
+  "바이비트 가입",
+  "바이비트 레퍼럴",
+  "바이비트 추천인",
+  "Bybit referral",
+  "Bybit invite",
 ] as const;
 
 export const SERVICE_KEYWORDS_EN = [
@@ -85,6 +118,20 @@ export const SERVICE_KEYWORDS_EN = [
   "AI crypto chart analysis",
   "crypto YouTube summary",
   "bitcoin price",
+  "bitcoin live chart",
+  "ethereum chart",
+  "nasdaq live chart",
+  "nasdaq 100 chart",
+  "S&P 500 chart",
+  "Dow Jones chart",
+  "stock market outlook",
+  "crypto YouTube",
+  "YouTube video summary",
+  "AI video summary",
+  "investor community",
+  "Bybit",
+  "Bybit referral",
+  "Bybit invite code",
 ] as const;
 
 export const SERVICE_KEYWORDS_JA = ["JindongCoin", "Jinco", "暗号資産コミュニティ", "暗号資産チャート", "AI分析"] as const;

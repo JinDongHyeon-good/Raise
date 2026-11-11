@@ -1,1 +1,56 @@
-{}
+{
+  "presetAnalysis": "{name} 분석",
+  "presetPrediction": "{name} 전망",
+  "presetChart": "{name} 차트분석",
+  "relatedVideos": "관련 영상",
+  "searchPlaceholder": "유튜브 검색",
+  "search": "검색",
+  "filterButton": "필터",
+  "filterButtonActive": "필터 ({count}개 적용됨)",
+  "myChannels": "내 채널 추가하기",
+  "noFavorites": "아직 즐겨찾기한 채널이 없어요. 영상을 재생한 뒤 <b>★ 채널 즐겨찾기</b>를 누르면 그 채널의 새 영상이 여기에 모여요.",
+  "allChannels": "전체",
+  "unfavoriteChannel": "{channel} 즐겨찾기 해제",
+  "unfavoriteTitle": "채널 즐겨찾기 해제",
+  "favoriteTitle": "이 채널 즐겨찾기",
+  "favorited": "즐겨찾기됨",
+  "favoriteChannel": "채널 즐겨찾기",
+  "noFilterMatch": "필터 조건에 맞는 영상이 없어요. 필터를 바꿔 보세요.",
+  "noFavoriteVideos": "즐겨찾기 채널에 새 영상이 없어요.",
+  "noResults": "검색 결과가 없어요.",
+  "loadingMore": "더 불러오는 중",
+  "loadFailed": "영상을 불러오지 못했어요.",
+  "favoriteToggleFailed": "즐겨찾기를 바꾸지 못했어요.",
+  "filters": {
+    "dialogLabel": "영상 필터",
+    "title": "필터",
+    "close": "닫기",
+    "orderTitle": "정렬",
+    "uploadedTitle": "업로드 날짜",
+    "lengthTitle": "영상 길이",
+    "help": "불러온 영상 안에서 걸러 보여 줘요. 기본값으로 저장하면 이 브라우저에서 다음에도 이 설정으로 열려요.",
+    "savedNote": "기본값으로 저장했어요.",
+    "sameAsDefault": "기본값과 같음",
+    "saveDefault": "기본값으로 저장",
+    "reset": "초기화",
+    "apply": "적용",
+    "order": {
+      "relevance": "관련도",
+      "date": "최신",
+      "viewCount": "조회수"
+    },
+    "uploaded": {
+      "any": "전체",
+      "day": "오늘",
+      "week": "이번 주",
+      "month": "이번 달",
+      "year": "올해"
+    },
+    "length": {
+      "any": "전체",
+      "short": "4분 미만",
+      "medium": "4~20분",
+      "long": "20분 이상"
+    }
+  }
+}

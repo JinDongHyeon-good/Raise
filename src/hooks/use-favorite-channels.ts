@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 
@@ -8,6 +9,8 @@ export type FavoriteChannel = { id: string; title: string; thumbnail: string };
 /** 로그인 사용자의 유튜브 채널 즐겨찾기 (비로그인이면 빈 목록, 토글 시 로그인 창) */
 export function useFavoriteChannels() {
   const { me, requireLogin } = useAuth();
+  const t = useTranslations("video");
+  const locale = useLocale();
   const [state, setState] = useState<{ userId: string | null; channels: FavoriteChannel[] }>({ userId: null, channels: [] });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +20,7 @@ export function useFavoriteChannels() {
   useEffect(() => {
     if (!meId) return;
     let alive = true;
-    fetch("/api/youtube/favorites", { cache: "no-store" })
+    fetch("/api/youtube/favorites", { cache: "no-store", headers: { "x-ui-locale": locale } })
       .then((res) => (res.ok ? res.json() : { items: [] }))
       .then((data: { items?: FavoriteChannel[] }) => {
         if (alive) setState({ userId: meId, channels: data.items ?? [] });
@@ -26,7 +29,7 @@ export function useFavoriteChannels() {
     return () => {
       alive = false;
     };
-  }, [meId]);
+  }, [meId, locale]);
 
   // 로그아웃하면 목록을 비운다 (다른 사람 목록이 남지 않게)
   const channels = useMemo(() => (state.userId === meId ? state.channels : []), [state, meId]);
@@ -40,15 +43,18 @@ export function useFavoriteChannels() {
       const removing = channels.some((c) => c.id === channelId);
       try {
         const res = removing
-          ? await fetch(`/api/youtube/favorites?channelId=${encodeURIComponent(channelId)}`, { method: "DELETE" })
+          ? await fetch(`/api/youtube/favorites?channelId=${encodeURIComponent(channelId)}`, {
+              method: "DELETE",
+              headers: { "x-ui-locale": locale },
+            })
           : await fetch("/api/youtube/favorites", {
               method: "POST",
-              headers: { "content-type": "application/json" },
+              headers: { "content-type": "application/json", "x-ui-locale": locale },
               body: JSON.stringify({ channelId }),
             });
         const data = (await res.json().catch(() => ({}))) as { item?: FavoriteChannel; error?: string };
         if (!res.ok) {
-          setError(data.error ?? "즐겨찾기를 바꾸지 못했어요.");
+          setError(data.error ?? t("favoriteToggleFailed"));
           return;
         }
         setState((prev) => ({
@@ -63,7 +69,7 @@ export function useFavoriteChannels() {
         setBusyId(null);
       }
     },
-    [channels, meId, requireLogin],
+    [channels, meId, requireLogin, locale, t],
   );
 
   return { channels, isFavorite, toggle, busyId, error, loggedIn: Boolean(meId) };

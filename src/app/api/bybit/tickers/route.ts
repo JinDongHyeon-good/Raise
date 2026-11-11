@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 
 export const runtime = "nodejs";
 
@@ -25,12 +26,12 @@ type Ticker = {
 let snapshot: { at: number; list: Ticker[] } | null = null;
 const FRESH_MS = 5_000;
 
-async function loadAll(): Promise<Ticker[]> {
+async function loadAll(tr: ReturnType<typeof apiTranslator>): Promise<Ticker[]> {
   if (snapshot && Date.now() - snapshot.at < FRESH_MS) return snapshot.list;
   const response = await fetch("https://api.bybit.com/v5/market/tickers?category=spot", { cache: "no-store" });
-  if (!response.ok) throw new Error("Bybit tickers API 요청 실패");
+  if (!response.ok) throw new Error(tr("bybit.tickersRequestFailed"));
   const data = (await response.json()) as { retCode: number; retMsg: string; result?: { list?: BybitTicker[] } };
-  if (data.retCode !== 0 || !data.result?.list) throw new Error(data.retMsg || "Bybit tickers 응답 오류");
+  if (data.retCode !== 0 || !data.result?.list) throw new Error(data.retMsg || tr("bybit.tickersResponseError"));
   const list = data.result.list.map((t) => ({
     symbol: t.symbol,
     price: Number(t.lastPrice),
@@ -45,6 +46,7 @@ async function loadAll(): Promise<Ticker[]> {
 
 /** ?symbols=BTCUSDT,ETHUSDT — 현물 24h 시세 */
 export async function GET(request: NextRequest) {
+  const tr = apiTranslator(request);
   const wanted = new Set(
     (new URL(request.url).searchParams.get("symbols") ?? "")
       .split(",")
@@ -54,13 +56,13 @@ export async function GET(request: NextRequest) {
   );
 
   try {
-    const list = await loadAll();
+    const list = await loadAll(tr);
     return NextResponse.json({ tickers: list.filter((t) => wanted.size === 0 || wanted.has(t.symbol)) });
   } catch (error) {
     if (snapshot) {
       return NextResponse.json({ tickers: snapshot.list.filter((t) => wanted.size === 0 || wanted.has(t.symbol)), stale: true });
     }
-    const message = error instanceof Error ? error.message : "Bybit API 통신 중 오류가 발생했습니다.";
+    const message = error instanceof Error ? error.message : tr("bybit.networkError");
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

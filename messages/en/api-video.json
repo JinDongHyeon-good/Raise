@@ -1,0 +1,18 @@
+{
+  "video": {
+    "queryRequired": "The q parameter is required.",
+    "tooManySearches": "Too many new searches. Please try again in a moment.",
+    "youtubeQuota": "We've hit today's YouTube lookup limit. Please try again tomorrow afternoon.",
+    "youtubeQuotaShort": "We've hit today's YouTube lookup limit.",
+    "loadFailed": "Couldn't load videos.",
+    "invalidVideo": "Invalid video",
+    "tooManyRequests": "Too many requests. Please try again in a moment.",
+    "summaryFailed": "Couldn't create the summary. Please try again in a moment.",
+    "summaryStepFailed": "Couldn't continue the summary.",
+    "rejected": {
+      "notFound": "Video not found.",
+      "live": "Live streams can't be summarized.",
+      "tooLong": "Videos longer than 60 minutes aren't summarized."
+    }
+  }
+}

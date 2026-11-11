@@ -1,18 +1,29 @@
 import type { Metadata } from "next";
-import { SERVICE_NAME } from "@/lib/brand";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getLocalizedBrandName } from "@/lib/brand";
 import { buildPageMetadata } from "@/lib/seo";
+import { toRoutedLocale } from "@/lib/seo-i18n";
 import { Suspense } from "react";
 import { CommunityList } from "@/components/community/community-list";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "코인·주식 커뮤니티",
-  description: `${SERVICE_NAME} 코인·주식 커뮤니티 — 코인분석, 주식분석, 해외주식, 국내주식, 뉴스·정보, 질문, 손익인증 게시판에서 비트코인·나스닥·미국 주식 이야기를 나눠 보세요.`,
-  path: "/community",
-  image: "/og-community.png",
-});
+type PageProps = { params: Promise<{ locale: string }> };
 
-export default function CommunityPage() {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const locale = toRoutedLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "seo.pages.community" });
+  return buildPageMetadata({
+    locale,
+    title: t("title"),
+    description: t("description", { brand: getLocalizedBrandName(locale) }),
+    path: "/community",
+    image: "/og-community.png",
+  });
+}
+
+export default async function CommunityPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   return (
     <RaisePageShell plain>
       <Suspense>

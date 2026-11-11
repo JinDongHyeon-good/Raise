@@ -1,7 +1,8 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { formatPrice } from "@/components/raise/candle-chart";
-import { type Coin, type Ticker } from "@/lib/coins";
+import { localizedName, type Coin, type Ticker } from "@/lib/coins";
 
 type Props = {
   coins: Coin[];
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }: Props) {
+  const locale = useLocale();
   return (
     <div className="border-b border-[var(--rz-line)] bg-[var(--rz-bg-elevated)]">
       <div className="rz-container">
@@ -34,7 +36,7 @@ export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }:
               >
                 <span className="text-[11px] tracking-wide text-[var(--rz-muted)]">
                   <b className="font-semibold text-[var(--rz-text)]">{c.ticker}</b>
-                  <span className="ml-1.5">{c.name}</span>
+                  <span className="ml-1.5">{localizedName(c, locale)}</span>
                 </span>
                 <span className="mt-1 font-mono text-[15px] tabular-nums tracking-tight">
                   {t ? formatPrice(t.price) : "—"}

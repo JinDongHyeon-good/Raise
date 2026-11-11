@@ -1,11 +1,13 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
 import type { Ticker } from "@/lib/coins";
 import { ASSETS, type Market } from "@/lib/markets";
 
 /** 코인(Bybit, 10초) 또는 미국 지수(Yahoo, 30초) 시세 */
 export function useMarketTickers(market: Market) {
+  const locale = useLocale();
   const [state, setState] = useState<{ market: Market; tickers: Record<string, Ticker> }>({ market, tickers: {} });
 
   useEffect(() => {
@@ -15,7 +17,7 @@ export function useMarketTickers(market: Market) {
       market === "us" ? `/api/stocks/quotes?symbols=${encodeURIComponent(symbols)}` : `/api/bybit/tickers?symbols=${symbols}`;
     const load = async () => {
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { headers: { "x-ui-locale": locale } });
         const data = (await res.json()) as { tickers?: Ticker[] };
         if (alive && data.tickers) {
           setState({ market, tickers: Object.fromEntries(data.tickers.map((t) => [t.symbol, t])) });
@@ -30,7 +32,7 @@ export function useMarketTickers(market: Market) {
       alive = false;
       window.clearInterval(id);
     };
-  }, [market]);
+  }, [market, locale]);
 
   // 시장을 바꾼 직후 이전 시장 시세가 섞여 보이지 않게
   return state.market === market ? state.tickers : {};

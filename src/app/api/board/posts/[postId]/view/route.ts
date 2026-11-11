@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import { getSupabaseAdminClient, requireSessionUser } from "@/lib/board-server";
 
 export const runtime = "nodejs";
@@ -12,12 +13,13 @@ const UUID_RE = /^[0-9a-f-]{36}$/i;
  * 증가는 DB 함수에서 원자적으로 처리하고 최신 조회수를 돌려준다.
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const t = apiTranslator(request);
   const { postId } = await params;
-  if (!UUID_RE.test(postId)) return NextResponse.json({ error: "잘못된 게시글" }, { status: 400 });
+  if (!UUID_RE.test(postId)) return NextResponse.json({ error: t("board.invalidPost") }, { status: 400 });
 
   const admin = getSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ error: "SUPABASE_SECRET_KEY가 설정되지 않았습니다." }, { status: 503 });
+    return NextResponse.json({ error: t("board.viewUnavailable") }, { status: 503 });
   }
 
   const { user } = await requireSessionUser();
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { data, error } = await admin.rpc("board_register_view", { p_post_id: postId, p_viewer_key: viewerKey });
   if (error) {
     console.error("[board/view]", error.message);
-    return NextResponse.json({ error: "조회수 등록 실패" }, { status: 500 });
+    return NextResponse.json({ error: t("board.viewFailed") }, { status: 500 });
   }
 
   const response = NextResponse.json({ view_count: Number(data ?? 0) });

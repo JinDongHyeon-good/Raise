@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 import { getChannelVideos, YoutubeQuotaError, type YoutubeVideo } from "@/lib/youtube";
 
@@ -9,8 +10,9 @@ export const runtime = "nodejs";
  * ?channelId= 를 주면 그 채널만
  */
 export async function GET(request: Request) {
+  const t = apiTranslator(request);
   const { supabase, user } = await requireSessionUser();
-  if (!user) return NextResponse.json({ error: "로그인이 필요해요.", code: "login_required" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: t("youtubeFavorites.loginRequired"), code: "login_required" }, { status: 401 });
 
   const only = new URL(request.url).searchParams.get("channelId");
   const { data, error } = await supabase.from("FAVORITE_CHANNELS").select("channel_id").eq("user_auth_id", user.id);
@@ -22,7 +24,7 @@ export async function GET(request: Request) {
   const results = await Promise.allSettled(channelIds.map((id) => getChannelVideos(id)));
   if (channelIds.length && results.every((r) => r.status === "rejected")) {
     const quota = results.some((r) => r.status === "rejected" && r.reason instanceof YoutubeQuotaError);
-    return NextResponse.json({ error: quota ? "오늘 YouTube 조회 한도를 다 썼어요." : "영상을 불러오지 못했어요." }, { status: quota ? 429 : 502 });
+    return NextResponse.json({ error: quota ? t("youtubeFavorites.quotaExhausted") : t("youtubeFavorites.videosLoadFailed") }, { status: quota ? 429 : 502 });
   }
   const videos: YoutubeVideo[] = results
     .flatMap((r) => (r.status === "fulfilled" ? r.value : []))

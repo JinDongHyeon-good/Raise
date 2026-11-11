@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { CandleChart, formatPrice, type Candle } from "@/components/raise/candle-chart";
 import { CoinTickerStrip } from "@/components/raise/coin-ticker-strip";
@@ -7,10 +8,14 @@ import { MarketTabs } from "@/components/raise/market-tabs";
 import { RaiseFooter, RaiseHeader } from "@/components/raise/raise-chrome";
 import { useMarketTickers } from "@/hooks/use-market-tickers";
 import { INTERVALS, formatTurnover } from "@/lib/coins";
-import { ASSETS, klineUrl, type Asset, type Market } from "@/lib/markets";
-import { SERVICE_NAME } from "@/lib/brand";
+import { ASSETS, klineUrl, localizedLabel, localizedName, type Asset, type Market } from "@/lib/markets";
+import type { AppLocale } from "@/i18n/routing";
+import { getLocalizedBrandName } from "@/lib/brand";
 
 export default function RaiseChart() {
+  const t = useTranslations("chart");
+  const locale = useLocale();
+  const serviceName = getLocalizedBrandName(locale as AppLocale);
   const [market, setMarket] = useState<Market>("crypto");
   const [coin, setCoin] = useState<Asset>(ASSETS.crypto[0]);
   const [interval, setInterval_] = useState("60");
@@ -29,18 +34,19 @@ export default function RaiseChart() {
   useEffect(() => {
     let alive = true;
     const key = `${coin.symbol}:${interval}`;
+    const loadError = t("loadFailed");
     const load = async (initial: boolean) => {
       try {
-        const res = await fetch(klineUrl(coin, interval));
+        const res = await fetch(klineUrl(coin, interval), { headers: { "x-ui-locale": locale } });
         const data = (await res.json()) as { candles?: Candle[]; error?: string };
         if (!alive) return;
         if (data.candles) {
           setChart({ key, candles: data.candles, error: null });
         } else if (initial) {
-          setChart((prev) => ({ key, candles: prev.candles, error: data.error ?? "차트를 불러오지 못했어요." }));
+          setChart((prev) => ({ key, candles: prev.candles, error: data.error ?? loadError }));
         }
       } catch {
-        if (alive && initial) setChart((prev) => ({ key, candles: prev.candles, error: "차트를 불러오지 못했어요." }));
+        if (alive && initial) setChart((prev) => ({ key, candles: prev.candles, error: loadError }));
       }
     };
     void load(true);
@@ -49,7 +55,7 @@ export default function RaiseChart() {
       alive = false;
       window.clearInterval(id);
     };
-  }, [coin, interval]);
+  }, [coin, interval, locale, t]);
 
   const ticker = tickers[coin.symbol];
   const candles = chart.candles;
@@ -68,7 +74,7 @@ export default function RaiseChart() {
       />
 
       <main className="rz-container space-y-5 py-5 sm:py-7">
-        <h1 className="sr-only">{SERVICE_NAME} — 코인·나스닥·S&P500 실시간 차트</h1>
+        <h1 className="sr-only">{t("srTitle", { brand: serviceName })}</h1>
 
         <section className="overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] shadow-[var(--rz-shadow)]">
           <div className="flex flex-col gap-4 border-b border-[var(--rz-line)] px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
@@ -76,10 +82,10 @@ export default function RaiseChart() {
               <p className="text-xs tracking-wide text-[var(--rz-muted)]">
                 {coin.market === "crypto" ? (
                   <>
-                    {coin.name} <span className="font-mono">{coin.label}</span>
+                    {localizedName(coin, locale)} <span className="font-mono">{localizedLabel(coin, locale)}</span>
                   </>
                 ) : (
-                  coin.label
+                  localizedLabel(coin, locale)
                 )}
               </p>
               <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -96,9 +102,17 @@ export default function RaiseChart() {
               </div>
               {ticker ? (
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
-                  <span>고가 {formatPrice(ticker.high24h)}</span>
-                  <span>저가 {formatPrice(ticker.low24h)}</span>
-                  {ticker.turnover24h !== undefined ? <span>거래대금 {formatTurnover(ticker.turnover24h)}</span> : null}
+                  <span>
+                    {t("high")} {formatPrice(ticker.high24h)}
+                  </span>
+                  <span>
+                    {t("low")} {formatPrice(ticker.low24h)}
+                  </span>
+                  {ticker.turnover24h !== undefined ? (
+                    <span>
+                      {t("turnover")} {formatTurnover(ticker.turnover24h)}
+                    </span>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -116,7 +130,7 @@ export default function RaiseChart() {
                         : "text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
                     }`}
                   >
-                    {iv.label}
+                    {t(`interval.${iv.key}`)}
                   </button>
                 ))}
               </div>
@@ -136,7 +150,7 @@ export default function RaiseChart() {
               </div>
             )}
             <p className="mt-2 text-right text-[11px] text-[var(--rz-muted)]">
-              {coin.market === "us" ? "데이터: Yahoo Finance · 지수 시세는 지연될 수 있어요 · 미국 정규장 기준" : "데이터: Bybit 현물"}
+              {coin.market === "us" ? t("sourceUs") : t("sourceCrypto")}
             </p>
           </div>
         </section>

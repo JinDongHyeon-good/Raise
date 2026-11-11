@@ -13,6 +13,7 @@ import { createHash } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { apiTranslator } from "@/lib/server-i18n";
 
 export const AI_DAILY_LIMIT = Number(process.env.AI_DAILY_LIMIT) || 5;
 const AI_IP_DAILY_LIMIT = Number(process.env.AI_IP_DAILY_LIMIT) || 10;
@@ -76,11 +77,12 @@ export async function consumeAiQuota(
   return data as AiQuotaResult;
 }
 
+/** 막힌 이유별 안내 문구 키 (messages/<locale>/api.json 의 aiQuota.*) */
 const DENY_MESSAGES: Record<Exclude<ConsumeReason, "ok" | "repeat">, string> = {
-  user_limit: `오늘 AI 사용 ${AI_DAILY_LIMIT}회를 모두 썼어요. 내일 다시 이용해 주세요.`,
-  ip_limit: "이 네트워크에서 오늘 사용할 수 있는 AI 횟수를 모두 썼어요. 내일 다시 이용해 주세요.",
-  global_limit: "오늘 AI 기능 이용이 많아 잠시 멈췄어요. 내일 다시 이용해 주세요.",
-  blocked: "AI 기능 이용이 제한된 계정이에요. 문의 페이지로 연락해 주세요.",
+  user_limit: "aiQuota.userLimit",
+  ip_limit: "aiQuota.ipLimit",
+  global_limit: "aiQuota.globalLimit",
+  blocked: "aiQuota.blocked",
 };
 
 /**
@@ -92,20 +94,21 @@ export async function guardAiRequest(
   feature: AiFeature,
   itemKey: string,
 ): Promise<{ ok: true; quota: AiQuotaResult } | { ok: false; response: NextResponse }> {
+  const t = apiTranslator(request);
   if (!isSameOrigin(request)) {
-    return { ok: false, response: NextResponse.json({ error: "허용되지 않은 요청이에요." }, { status: 403 }) };
+    return { ok: false, response: NextResponse.json({ error: t("aiQuota.crossSite") }, { status: 403 }) };
   }
   if (!user) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "AI 기능은 로그인 후 이용할 수 있어요.", code: "login_required" }, { status: 401 }),
+      response: NextResponse.json({ error: t("aiQuota.loginRequired"), code: "login_required" }, { status: 401 }),
     };
   }
   if (!isVerified(user)) {
     return {
       ok: false,
       response: NextResponse.json(
-        { error: "이메일 인증을 마친 계정만 AI 기능을 쓸 수 있어요. 메일함의 인증 링크를 눌러 주세요.", code: "email_unverified" },
+        { error: t("aiQuota.emailUnverified"), code: "email_unverified" },
         { status: 403 },
       ),
     };
@@ -118,7 +121,7 @@ export async function guardAiRequest(
       return {
         ok: false,
         response: NextResponse.json(
-          { error: DENY_MESSAGES[reason], code: reason === "user_limit" ? "ai_quota_exceeded" : `ai_${reason}`, quota },
+          { error: t(DENY_MESSAGES[reason], { limit: AI_DAILY_LIMIT }), code: reason === "user_limit" ? "ai_quota_exceeded" : `ai_${reason}`, quota },
           { status: reason === "blocked" ? 403 : 429 },
         ),
       };
@@ -128,7 +131,7 @@ export async function guardAiRequest(
     if (error instanceof AiQuotaUnavailableError) {
       return {
         ok: false,
-        response: NextResponse.json({ error: "AI 사용량을 확인할 수 없어 잠시 이용할 수 없어요." }, { status: 503 }),
+        response: NextResponse.json({ error: t("aiQuota.unavailable") }, { status: 503 }),
       };
     }
     throw error;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { LoginModal } from "@/components/auth/login-modal";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
@@ -27,13 +28,14 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/me", { cache: "no-store" });
+      const res = await fetch("/api/me", { cache: "no-store", headers: { "x-ui-locale": locale } });
       const data = (await res.json()) as { user: Me | null };
       setMe(data.user);
     } catch {
@@ -41,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     queueMicrotask(() => void refresh());
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(() => {
     const supabase = getSupabaseBrowserClientSafe();
+    // /auth/signout 은 언어 라우팅 밖의 라우트 핸들러 — 끝나면 "/" 로 보낸다
     void supabase?.auth.signOut().finally(() => {
       window.location.assign("/auth/signout");
     });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VideoSummaryPanel } from "@/components/raise/video-summary-panel";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -30,8 +31,13 @@ type Page = { videos: Video[]; nextPageToken: string | null };
 const REVEAL_STEP = 12;
 const MAX_PAGES = 4;
 
-export function formatCount(n: number | null) {
+/** 조회수 — ko: 1.2만회 / en: 12K views */
+export function formatCount(n: number | null, locale = "ko") {
   if (n === null) return "";
+  if (locale !== "ko") {
+    const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+    return `${compact} ${n === 1 ? "view" : "views"}`;
+  }
   if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억회`;
   if (n >= 10_000) return `${(n / 10_000).toFixed(n >= 100_000 ? 0 : 1)}만회`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}천회`;
@@ -48,24 +54,50 @@ function formatDuration(iso: string | null) {
   return hours > 0 ? `${hours}:${pad(min)}:${pad(s)}` : `${min}:${pad(s)}`;
 }
 
-export function timeAgo(iso: string) {
+/** 업로드 시점 — ko: 3시간 전 / en: 3 hours ago */
+export function timeAgo(iso: string, locale = "ko") {
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff / 60_000);
-  if (min < 60) return `${Math.max(1, min)}분 전`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}시간 전`;
   const day = Math.floor(hr / 24);
-  if (day < 30) return `${day}일 전`;
   const mon = Math.floor(day / 30);
+  if (locale !== "ko") {
+    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "always" });
+    if (min < 60) return rtf.format(-Math.max(1, min), "minute");
+    if (hr < 24) return rtf.format(-hr, "hour");
+    if (day < 30) return rtf.format(-day, "day");
+    return mon < 12 ? rtf.format(-mon, "month") : rtf.format(-Math.floor(mon / 12), "year");
+  }
+  if (min < 60) return `${Math.max(1, min)}분 전`;
+  if (hr < 24) return `${hr}시간 전`;
+  if (day < 30) return `${day}일 전`;
   return mon < 12 ? `${mon}개월 전` : `${Math.floor(mon / 12)}년 전`;
 }
 
-export function presetQueries(coinName: string) {
-  return [`${coinName} 분석`, `${coinName} 전망`, `${coinName} 차트분석`];
-}
-
-export function VideoSection({ coinName, hideTitle = false }: { coinName: string; hideTitle?: boolean }) {
-  const presets = useMemo(() => presetQueries(coinName), [coinName]);
+/**
+ * 검색 배지는 현재 언어의 종목 이름으로 만든다
+ * ko: "비트코인 분석/전망/차트분석", en: "Bitcoin analysis/prediction/chart analysis"
+ */
+export function VideoSection({
+  coinName,
+  coinNameEn,
+  hideTitle = false,
+}: {
+  /** 한국어 종목 이름 */
+  coinName: string;
+  /** 영어 종목 이름 (없으면 coinName) */
+  coinNameEn?: string;
+  hideTitle?: boolean;
+}) {
+  const t = useTranslations("video");
+  const locale = useLocale();
+  const lang = locale === "en" ? "en" : "ko";
+  const name = locale === "ko" ? coinName : (coinNameEn ?? coinName);
+  const presets = useMemo(
+    () => [t("presetAnalysis", { name }), t("presetPrediction", { name }), t("presetChart", { name })],
+    [t, name],
+  );
+  const loadFailed = t("loadFailed");
   const [query, setQuery] = useState(presets[0]);
   const [queryInput, setQueryInput] = useState(presets[0]);
   // 필터 (정렬·업로드 날짜·길이). 저장된 기본값 위에 이번 화면에서 바꾼 값을 덮어쓴다
@@ -90,9 +122,9 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
   const [favFeed, setFavFeed] = useState<{ key: string; videos: Video[]; error: string | null }>({ key: "", videos: [], error: null });
 
   // 코인이 바뀌면 그 코인의 첫 배지로 검색 (렌더 중 상태 조정 — effect 불필요)
-  const [lastCoin, setLastCoin] = useState(coinName);
-  if (lastCoin !== coinName) {
-    setLastCoin(coinName);
+  const [lastCoin, setLastCoin] = useState(name);
+  if (lastCoin !== name) {
+    setLastCoin(name);
     setMode("search");
     setQuery(presets[0]);
     setQueryInput(presets[0]);
@@ -103,38 +135,41 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
   // 첫 페이지
   useEffect(() => {
     let alive = true;
-    fetch(`/api/youtube/search?q=${encodeURIComponent(query)}`)
+    fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&lang=${lang}`, { headers: { "x-ui-locale": locale } })
       .then(async (res) => {
         const data = (await res.json()) as Partial<Page> & { error?: string };
         if (!alive) return;
         setPages(
           data.videos
             ? { key: query, list: [{ videos: data.videos, nextPageToken: data.nextPageToken ?? null }], error: null }
-            : { key: query, list: [], error: data.error ?? "영상을 불러오지 못했어요." },
+            : { key: query, list: [], error: data.error ?? loadFailed },
         );
       })
-      .catch(() => alive && setPages({ key: query, list: [], error: "영상을 불러오지 못했어요." }));
+      .catch(() => alive && setPages({ key: query, list: [], error: loadFailed }));
     return () => {
       alive = false;
     };
-  }, [query]);
+  }, [query, lang, locale, loadFailed]);
 
   // 즐겨찾기 피드
   useEffect(() => {
     if (mode !== "favorites" || !favorites.loggedIn) return;
     let alive = true;
     const key = favKey;
-    fetch(`/api/youtube/favorites/feed${favFilter ? `?channelId=${encodeURIComponent(favFilter)}` : ""}`, { cache: "no-store" })
+    fetch(`/api/youtube/favorites/feed${favFilter ? `?channelId=${encodeURIComponent(favFilter)}` : ""}`, {
+      cache: "no-store",
+      headers: { "x-ui-locale": locale },
+    })
       .then(async (res) => {
         const data = (await res.json()) as { videos?: Video[]; error?: string };
         if (!alive) return;
-        setFavFeed(data.videos ? { key, videos: data.videos, error: null } : { key, videos: [], error: data.error ?? "영상을 불러오지 못했어요." });
+        setFavFeed(data.videos ? { key, videos: data.videos, error: null } : { key, videos: [], error: data.error ?? loadFailed });
       })
-      .catch(() => alive && setFavFeed({ key, videos: [], error: "영상을 불러오지 못했어요." }));
+      .catch(() => alive && setFavFeed({ key, videos: [], error: loadFailed }));
     return () => {
       alive = false;
     };
-  }, [mode, favFilter, favKey, favorites.loggedIn]);
+  }, [mode, favFilter, favKey, favorites.loggedIn, locale, loadFailed]);
 
   const inFavorites = mode === "favorites";
   const loading = inFavorites ? favFeed.key !== favKey : pages.key !== query;
@@ -160,7 +195,9 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
     setLoadingMore(true);
     try {
       const pageIndex = pages.list.length;
-      const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&page=${pageIndex}`);
+      const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&page=${pageIndex}&lang=${lang}`, {
+        headers: { "x-ui-locale": locale },
+      });
       const data = (await res.json()) as Partial<Page>;
       if (data.videos) {
         const next = { videos: data.videos, nextPageToken: data.nextPageToken ?? null };
@@ -173,7 +210,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
     } finally {
       setLoadingMore(false);
     }
-  }, [visible, all.length, canFetchMore, loadingMore, pages.list, query]);
+  }, [visible, all.length, canFetchMore, loadingMore, pages.list, query, lang, locale]);
 
   // 무한 스크롤: 목록 끝이 보이면 더 불러오기
   useEffect(() => {
@@ -212,7 +249,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
 
   return (
     <section id="videos" className="scroll-mt-20">
-      {hideTitle ? null : <h2 className="mb-3 text-lg font-semibold">관련 영상</h2>}
+      {hideTitle ? null : <h2 className="mb-3 text-lg font-semibold">{t("relatedVideos")}</h2>}
 
       <form
         className="mb-3 flex gap-2"
@@ -224,7 +261,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
         <input
           value={queryInput}
           onChange={(e) => setQueryInput(e.target.value)}
-          placeholder="유튜브 검색"
+          placeholder={t("searchPlaceholder")}
           maxLength={100}
           className="min-w-0 flex-1 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--rz-accent)]/60"
         />
@@ -236,12 +273,12 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
             <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
             <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          검색
+          {t("search")}
         </button>
         <button
           type="button"
           onClick={() => setFilterOpen(true)}
-          aria-label={`필터${filterCount ? ` (${filterCount}개 적용됨)` : ""}`}
+          aria-label={filterCount ? t("filterButtonActive", { count: filterCount }) : t("filterButton")}
           aria-haspopup="dialog"
           className={`relative flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
             filterCount
@@ -252,7 +289,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
             <path d="M4 6h16M7 12h10M10 18h4" strokeLinecap="round" />
           </svg>
-          <span className="hidden sm:inline">필터</span>
+          <span className="hidden sm:inline">{t("filterButton")}</span>
           {filterCount ? (
             <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[var(--rz-accent)] px-1 text-[10px] font-semibold text-[var(--rz-accent-fg)]">
               {filterCount}
@@ -285,7 +322,8 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
               : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
           }`}
         >
-          ★ 내 채널 추가하기{favorites.channels.length ? ` ${favorites.channels.length}` : ""}
+          ★ {t("myChannels")}
+          {favorites.channels.length ? ` ${favorites.channels.length}` : ""}
         </button>
         {presets.map((p) => (
           <button
@@ -307,7 +345,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
         <div className="mb-4 rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-3">
           {favorites.channels.length === 0 ? (
             <p className="text-xs leading-5 text-[var(--rz-muted)]">
-              아직 즐겨찾기한 채널이 없어요. 영상을 재생한 뒤 <b className="text-[var(--rz-text)]">★ 채널 즐겨찾기</b>를 누르면 그 채널의 새 영상이 여기에 모여요.
+              {t.rich("noFavorites", { b: (chunks) => <b className="text-[var(--rz-text)]">{chunks}</b> })}
             </p>
           ) : (
             <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden">
@@ -316,7 +354,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
                 onClick={() => setFavFilter(null)}
                 className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs ${favFilter === null ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"}`}
               >
-                전체
+                {t("allChannels")}
               </button>
               {favorites.channels.map((c) => (
                 <span
@@ -338,7 +376,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
                       if (favFilter === c.id) setFavFilter(null);
                       void favorites.toggle(c.id);
                     }}
-                    aria-label={`${c.title} 즐겨찾기 해제`}
+                    aria-label={t("unfavoriteChannel", { channel: c.title })}
                     className="rounded px-1 text-[var(--rz-muted)] hover:text-[var(--rz-up)]"
                   >
                     ×
@@ -367,7 +405,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
               <div className="min-w-0">
                 <p className="line-clamp-2 text-sm font-medium leading-snug">{playing.title}</p>
                 <p className="mt-1 text-xs text-[var(--rz-muted)]">
-                  {[playing.channelTitle, formatCount(playing.viewCount), timeAgo(playing.publishedAt)].filter(Boolean).join(" · ")}
+                  {[playing.channelTitle, formatCount(playing.viewCount, locale), timeAgo(playing.publishedAt, locale)].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs sm:shrink-0 sm:justify-end">
@@ -377,14 +415,14 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
                     onClick={() => void favorites.toggle(playing.channelId!)}
                     disabled={favorites.busyId === playing.channelId}
                     aria-pressed={favorites.isFavorite(playing.channelId)}
-                    title={favorites.isFavorite(playing.channelId) ? "채널 즐겨찾기 해제" : "이 채널 즐겨찾기"}
+                    title={favorites.isFavorite(playing.channelId) ? t("unfavoriteTitle") : t("favoriteTitle")}
                     className={`rounded-lg border px-2.5 py-2 transition disabled:opacity-50 sm:py-1.5 ${
                       favorites.isFavorite(playing.channelId)
                         ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
                         : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
                     }`}
                   >
-                    {favorites.isFavorite(playing.channelId) ? "★ 즐겨찾기됨" : "☆ 채널 즐겨찾기"}
+                    {favorites.isFavorite(playing.channelId) ? `★ ${t("favorited")}` : `☆ ${t("favoriteChannel")}`}
                   </button>
                 ) : null}
                 <a
@@ -443,19 +481,19 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
                   </p>
                   <p className="mt-1 truncate text-xs text-[var(--rz-muted)]">{v.channelTitle}</p>
                   <p className="truncate text-xs text-[var(--rz-muted)]">
-                    {[formatCount(v.viewCount), timeAgo(v.publishedAt)].filter(Boolean).join(" · ")}
+                    {[formatCount(v.viewCount, locale), timeAgo(v.publishedAt, locale)].filter(Boolean).join(" · ")}
                   </p>
                 </button>
               ))}
           {!loading && all.length === 0 ? (
             <p className="col-span-full py-10 text-center text-sm text-[var(--rz-muted)]">
               {loadedCount > 0 && filterCount
-                ? "필터 조건에 맞는 영상이 없어요. 필터를 바꿔 보세요."
+                ? t("noFilterMatch")
                 : inFavorites
                   ? favorites.channels.length
-                    ? "즐겨찾기 채널에 새 영상이 없어요."
+                    ? t("noFavoriteVideos")
                     : ""
-                  : "검색 결과가 없어요."}
+                  : t("noResults")}
             </p>
           ) : null}
         </div>
@@ -464,7 +502,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
       {!loading && hasMore ? (
         <div ref={sentinel} className="flex justify-center py-5" aria-hidden={!loadingMore}>
           {loadingMore ? (
-            <div className="rz-linear-indeterminate w-full max-w-xs" role="status" aria-label="더 불러오는 중">
+            <div className="rz-linear-indeterminate w-full max-w-xs" role="status" aria-label={t("loadingMore")}>
               <span />
             </div>
           ) : (

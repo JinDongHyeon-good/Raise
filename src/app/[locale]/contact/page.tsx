@@ -1,16 +1,33 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import { toRoutedLocale } from "@/lib/seo-i18n";
+import { Link } from "@/navigation";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
-import { SERVICE_NAME } from "@/lib/brand";
+import { SERVICE_NAME, SERVICE_NAME_EN, getLocalizedBrandName } from "@/lib/brand";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "문의",
-  description: `${SERVICE_NAME} 서비스 문의 및 연락처입니다.`,
-  path: "/contact",
-});
+type PageProps = { params: Promise<{ locale: string }> };
 
-export default function ContactPage() {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const locale = toRoutedLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "seo.pages.contact" });
+  return buildPageMetadata({
+    locale,
+    title: t("title"),
+    description: t("description", { brand: getLocalizedBrandName(locale) }),
+    path: "/contact",
+  });
+}
+
+export default async function ContactPage({ params }: PageProps) {
+  const locale = toRoutedLocale((await params).locale);
+  setRequestLocale(locale);
+  return locale === "en" ? <ContactEn /> : <ContactKo />;
+}
+
+/* 한국어 본문 */
+
+function ContactKo() {
   return (
     <RaisePageShell>
       <main>
@@ -41,6 +58,45 @@ export default function ContactPage() {
         <p className="mt-8">
           개인정보 처리 방식은 <Link href="/privacy">개인정보처리방침</Link>, 이용 조건은{" "}
           <Link href="/terms">이용약관</Link>에서 확인할 수 있습니다.
+        </p>
+      </main>
+    </RaisePageShell>
+  );
+}
+
+/* English body */
+
+function ContactEn() {
+  return (
+    <RaisePageShell>
+      <main>
+        <h1>Contact</h1>
+        <p className="mt-4">
+          Please send bug reports, questions about our privacy or advertising policies, and partnership proposals to the
+          contact details below. We aim to reply within 1–3 business days.
+        </p>
+
+        <h2>Operator contact</h2>
+        <p>{SERVICE_NAME_EN} is a web service run by an individual.</p>
+        <ul>
+          <li>
+            Email: <a href="mailto:wlsehdgus23@gmail.com">wlsehdgus23@gmail.com</a>
+          </li>
+          <li>
+            Phone: <a href="tel:+821032301521">+82 10-3230-1521</a>
+          </li>
+        </ul>
+
+        <h2>Helpful details to include</h2>
+        <ul>
+          <li>The URL of the page where the problem occurred, and the coin or search term you selected</li>
+          <li>Your device and browser</li>
+          <li>When the problem occurred, and a screenshot</li>
+        </ul>
+
+        <p className="mt-8">
+          See our <Link href="/privacy">Privacy Policy</Link> for how we handle personal information and our{" "}
+          <Link href="/terms">Terms of Service</Link> for the conditions of use.
         </p>
       </main>
     </RaisePageShell>

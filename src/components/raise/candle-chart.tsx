@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 export type Candle = {
@@ -26,14 +27,23 @@ export function formatPrice(value: number) {
   return value.toLocaleString("en-US", { minimumFractionDigits: Math.min(2, digits), maximumFractionDigits: digits });
 }
 
-function formatTime(ts: number, interval: string) {
+function formatTime(ts: number, interval: string, locale: string) {
   const d = new Date(ts);
   const pad = (n: number) => String(n).padStart(2, "0");
+  if (locale !== "ko") {
+    // 예: Nov 11, 2026 / Nov 11 14:00
+    if (interval === "D" || interval === "W") {
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+    return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
   if (interval === "D" || interval === "W") return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
   return `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function CandleChart({ candles, interval }: { candles: Candle[]; interval: string }) {
+  const t = useTranslations("chart");
+  const locale = useLocale();
   const [hover, setHover] = useState<number | null>(null);
 
   const geo = useMemo(() => {
@@ -52,7 +62,7 @@ export function CandleChart({ candles, interval }: { candles: Candle[]; interval
   }, [candles]);
 
   if (!geo) {
-    return <div className="flex h-[300px] items-center justify-center text-sm text-[var(--rz-muted)]">차트 데이터 없음</div>;
+    return <div className="flex h-[300px] items-center justify-center text-sm text-[var(--rz-muted)]">{t("noData")}</div>;
   }
 
   const { step, y, ticks, maxVol } = geo;
@@ -71,7 +81,7 @@ export function CandleChart({ candles, interval }: { candles: Candle[]; interval
   return (
     <div className="relative">
       <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
-        <span>{formatTime(active.timestamp, interval)}</span>
+        <span>{formatTime(active.timestamp, interval, locale)}</span>
         <span>
           O <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.open)}</b>
         </span>
@@ -93,7 +103,7 @@ export function CandleChart({ candles, interval }: { candles: Candle[]; interval
         onMouseMove={handleMove}
         onMouseLeave={() => setHover(null)}
         role="img"
-        aria-label="캔들 차트"
+        aria-label={t("candleChart")}
       >
         {ticks.map((price) => (
           <g key={price}>

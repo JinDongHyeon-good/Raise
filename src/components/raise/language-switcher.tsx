@@ -5,6 +5,11 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "@/navigation";
 import { localeLabels, type RoutedLocale } from "@/i18n/routing";
 
+/** 직접 고른 언어를 1년 기억 (첫 방문 자동 선택보다 우선) */
+function rememberLocale(locale: RoutedLocale) {
+  document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+}
+
 /** 헤더 오른쪽 지구본 — 한국어/English 전환 (같은 페이지 그대로, 검색 조건 유지) */
 export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "list" }) {
   const t = useTranslations("common");
@@ -32,8 +37,7 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "lis
   const choose = (next: RoutedLocale) => {
     setOpen(false);
     if (next === locale) return;
-    // 직접 고른 언어를 기억 (첫 방문 자동 선택보다 우선)
-    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+    rememberLocale(next);
     const query = window.location.search;
     startTransition(() => {
       router.replace(`${pathname}${query}`, { locale: next });

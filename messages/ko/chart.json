@@ -1,1 +1,23 @@
-{}
+{
+  "srTitle": "{brand} — 코인·나스닥·S&P500 실시간 차트",
+  "marketTabs": "시장",
+  "market": {
+    "crypto": "코인",
+    "us": "미국증시"
+  },
+  "interval": {
+    "m15": "15분",
+    "h1": "1시간",
+    "h4": "4시간",
+    "d1": "일",
+    "w1": "주"
+  },
+  "high": "고가",
+  "low": "저가",
+  "turnover": "거래대금",
+  "loadFailed": "차트를 불러오지 못했어요.",
+  "sourceUs": "데이터: Yahoo Finance · 지수 시세는 지연될 수 있어요 · 미국 정규장 기준",
+  "sourceCrypto": "데이터: Bybit 현물",
+  "noData": "차트 데이터 없음",
+  "candleChart": "캔들 차트"
+}

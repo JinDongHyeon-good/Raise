@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import { SlidingRateLimiter } from "@/lib/sliding-rate-limit";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
@@ -19,18 +20,19 @@ function escapeIlike(value: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const t = apiTranslator(request);
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
   if (!limiter.check(ip).allowed) {
-    return NextResponse.json({ error: "잠시 후 다시 시도해 주세요." }, { status: 429 });
+    return NextResponse.json({ error: t("findId.tooManyRequests") }, { status: 429 });
   }
   const body = (await request.json().catch(() => ({}))) as { nickname?: string };
   const nickname = body.nickname?.trim() ?? "";
   if (nickname.length < 2 || nickname.length > 16) {
-    return NextResponse.json({ error: "닉네임을 2~16자로 입력해 주세요." }, { status: 400 });
+    return NextResponse.json({ error: t("findId.nicknameLength") }, { status: 400 });
   }
 
   const admin = getSupabaseAdminClient();
-  if (!admin) return NextResponse.json({ error: "지금은 아이디 찾기를 할 수 없어요." }, { status: 503 });
+  if (!admin) return NextResponse.json({ error: t("findId.unavailable") }, { status: 503 });
 
   const { data: profile } = await admin
     .from("USER_MST")

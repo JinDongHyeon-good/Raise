@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import {
   DEFAULT_FILTERS,
@@ -22,11 +23,14 @@ type Props = {
 function OptionGroup<T extends string>({
   title,
   options,
+  label,
   value,
   onChange,
 }: {
   title: string;
-  options: Array<{ value: T; label: string }>;
+  options: Array<{ value: T }>;
+  /** 옵션 값 → 화면 라벨 (현재 언어) */
+  label: (value: T) => string;
   value: T;
   onChange: (value: T) => void;
 }) {
@@ -46,7 +50,7 @@ function OptionGroup<T extends string>({
                 : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
             }`}
           >
-            {o.label}
+            {label(o.value)}
           </button>
         ))}
       </div>
@@ -55,6 +59,7 @@ function OptionGroup<T extends string>({
 }
 
 export function VideoFilterModal({ open, value, savedDefault, onApply, onClose }: Props) {
+  const t = useTranslations("video");
   const [draft, setDraft] = useState<VideoFilters>(value);
   const [savedNote, setSavedNote] = useState<string | null>(null);
 
@@ -93,30 +98,43 @@ export function VideoFilterModal({ open, value, savedDefault, onApply, onClose }
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="영상 필터"
+        aria-label={t("filters.dialogLabel")}
         className="w-full max-w-md rounded-t-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-[var(--rz-text)] shadow-[var(--rz-shadow)] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <p className="text-base font-semibold">필터</p>
-          <button type="button" onClick={onClose} aria-label="닫기" className="text-xl leading-none text-[var(--rz-muted)]">
+          <p className="text-base font-semibold">{t("filters.title")}</p>
+          <button type="button" onClick={onClose} aria-label={t("filters.close")} className="text-xl leading-none text-[var(--rz-muted)]">
             ×
           </button>
         </div>
 
         <div className="space-y-5">
-          <OptionGroup title="정렬" options={ORDER_OPTIONS} value={draft.order} onChange={(order) => setDraft((d) => ({ ...d, order }))} />
           <OptionGroup
-            title="업로드 날짜"
+            title={t("filters.orderTitle")}
+            options={ORDER_OPTIONS}
+            label={(v) => t(`filters.order.${v}`)}
+            value={draft.order}
+            onChange={(order) => setDraft((d) => ({ ...d, order }))}
+          />
+          <OptionGroup
+            title={t("filters.uploadedTitle")}
             options={UPLOADED_OPTIONS}
+            label={(v) => t(`filters.uploaded.${v}`)}
             value={draft.uploaded}
             onChange={(uploaded) => setDraft((d) => ({ ...d, uploaded }))}
           />
-          <OptionGroup title="영상 길이" options={LENGTH_OPTIONS} value={draft.length} onChange={(length) => setDraft((d) => ({ ...d, length }))} />
+          <OptionGroup
+            title={t("filters.lengthTitle")}
+            options={LENGTH_OPTIONS}
+            label={(v) => t(`filters.length.${v}`)}
+            value={draft.length}
+            onChange={(length) => setDraft((d) => ({ ...d, length }))}
+          />
         </div>
 
         <p className="mt-5 text-[11px] leading-5 text-[var(--rz-muted)]">
-          불러온 영상 안에서 걸러 보여 줘요. 기본값으로 저장하면 이 브라우저에서 다음에도 이 설정으로 열려요.
+          {t("filters.help")}
         </p>
         {savedNote ? <p className="mt-1 text-xs text-emerald-400">{savedNote}</p> : null}
 
@@ -127,18 +145,18 @@ export function VideoFilterModal({ open, value, savedDefault, onApply, onClose }
               onClick={() => setDraft(DEFAULT_FILTERS)}
               className="rounded-lg px-3 py-2 text-sm text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
             >
-              초기화
+              {t("filters.reset")}
             </button>
             <button
               type="button"
               disabled={isSavedDefault}
               onClick={() => {
                 saveDefaultVideoFilters(sameFilters(draft, DEFAULT_FILTERS) ? null : draft);
-                setSavedNote("기본값으로 저장했어요.");
+                setSavedNote(t("filters.savedNote"));
               }}
               className="rounded-lg border border-[var(--rz-line)] px-3 py-2 text-sm text-[var(--rz-muted)] transition hover:text-[var(--rz-text)] disabled:opacity-40"
             >
-              {isSavedDefault ? "기본값과 같음" : "기본값으로 저장"}
+              {isSavedDefault ? t("filters.sameAsDefault") : t("filters.saveDefault")}
             </button>
           </div>
           <button
@@ -146,7 +164,7 @@ export function VideoFilterModal({ open, value, savedDefault, onApply, onClose }
             onClick={() => onApply(draft)}
             className="rounded-lg bg-[var(--rz-accent)] px-5 py-2 text-sm font-medium text-[var(--rz-accent-fg)] transition hover:brightness-110"
           >
-            적용
+            {t("filters.apply")}
           </button>
         </div>
       </div>

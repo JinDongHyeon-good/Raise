@@ -1,16 +1,33 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import { toRoutedLocale } from "@/lib/seo-i18n";
+import { Link } from "@/navigation";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
-import { GOOGLE_ADSENSE_CLIENT, SERVICE_NAME } from "@/lib/brand";
+import { GOOGLE_ADSENSE_CLIENT, SERVICE_NAME, SERVICE_NAME_EN, getLocalizedBrandName } from "@/lib/brand";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "개인정보처리방침",
-  description: `${SERVICE_NAME} 개인정보처리방침 — 처리 정보, 쿠키·광고(Google AdSense), YouTube 임베드, AI 요약, 이용자 권리`,
-  path: "/privacy",
-});
+type PageProps = { params: Promise<{ locale: string }> };
 
-export default function PrivacyPage() {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const locale = toRoutedLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "seo.pages.privacy" });
+  return buildPageMetadata({
+    locale,
+    title: t("title"),
+    description: t("description", { brand: getLocalizedBrandName(locale) }),
+    path: "/privacy",
+  });
+}
+
+export default async function PrivacyPage({ params }: PageProps) {
+  const locale = toRoutedLocale((await params).locale);
+  setRequestLocale(locale);
+  return locale === "en" ? <PrivacyEn /> : <PrivacyKo />;
+}
+
+/* 한국어 본문 */
+
+function PrivacyKo() {
   return (
     <RaisePageShell>
       <main>
@@ -89,6 +106,113 @@ export default function PrivacyPage() {
 
         <h2>8. 방침 변경</h2>
         <p>본 방침은 법령·서비스 변경에 따라 수정될 수 있으며, 변경 시 본 페이지의 시행일을 갱신합니다.</p>
+      </main>
+    </RaisePageShell>
+  );
+}
+
+/* English body */
+
+function PrivacyEn() {
+  return (
+    <RaisePageShell>
+      <main>
+        <h1>Privacy Policy</h1>
+        <p className="meta">
+          Effective date: 2026-11-11 · Last updated: 2026-11-11 (added member features, AI summaries and US stock market
+          data)
+        </p>
+        <p className="mt-4">
+          {SERVICE_NAME_EN} (the &quot;Service&quot;) complies with the Personal Information Protection Act of the Republic
+          of Korea and other applicable laws. This policy explains what information the Service processes and why, and how
+          cookies, advertising and third-party content are handled.
+        </p>
+
+        <h2>1. Information we process</h2>
+        <p>
+          When you sign up or sign in, we process your email address (for Google sign-in, the email, name and profile
+          image of your Google account) and your nickname. Posts, comments and upvotes you create, YouTube channels you
+          add to favorites, and records of your use of AI features (date, feature and target video) are stored as you use
+          the Service. Access logs, IP addresses, browser and device information, search terms you enter, and a visitor
+          identification cookie used to count views may also be generated.
+        </p>
+
+        <h2>2. Purposes of use</h2>
+        <ul>
+          <li>Identifying members, keeping you signed in, and providing community features (posts, comments, upvotes)</li>
+          <li>
+            Providing crypto and US stock market prices and charts, video search, channel favorites, and AI video summaries
+          </li>
+          <li>
+            Preventing abuse, such as daily usage limits for AI features and blocking excessive requests; analyzing errors;
+            and improving service quality
+          </li>
+          <li>Displaying and measuring advertisements within the Service (Google AdSense, etc.)</li>
+        </ul>
+
+        <h2>3. Third-party services</h2>
+        <ul>
+          <li>
+            <strong>Supabase:</strong> Used for authentication and as the database that stores member accounts, posts,
+            comments, favorites and usage records.
+          </li>
+          <li>
+            <strong>Google Vertex AI (Gemini):</strong> For AI video summaries, we send the URL of a public YouTube video
+            so its content can be transcribed and summarized. No personal information about you is sent.
+          </li>
+          <li>
+            <strong>YouTube:</strong> We use the YouTube Data API for video search, and videos are played in
+            privacy-enhanced mode (youtube-nocookie.com). When you play a video, Google&apos;s{" "}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </a>{" "}
+            applies.
+          </li>
+          <li>
+            <strong>Bybit · Yahoo Finance:</strong> Crypto prices are fetched from Bybit&apos;s public API and US index
+            prices from Yahoo Finance through our server; no user information is passed to them.
+          </li>
+        </ul>
+
+        <h2>4. Cookies and advertising</h2>
+        <p>
+          The Service may display third-party advertisements such as Google AdSense (publisher ID {GOOGLE_ADSENSE_CLIENT}
+          ), and advertising vendors, including Google, may use cookies to serve ads based on your previous visits. You can
+          limit personalized ads in{" "}
+          <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">
+            Google Ad Settings
+          </a>
+          , and you can learn more at{" "}
+          <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">
+            Google Advertising &amp; Privacy
+          </a>
+          . You can refuse cookies in your browser settings, but some features may be limited.
+        </p>
+
+        <h2>5. Retention period</h2>
+        <p>
+          Server logs are destroyed without delay once their operational and security purposes have been fulfilled. The
+          lifetime of advertising and analytics cookies follows each provider&apos;s policy.
+        </p>
+
+        <h2>6. Your rights</h2>
+        <p>
+          You can submit requests to access or delete your personal information, and other privacy questions, through our{" "}
+          <Link href="/contact">contact page</Link> or by emailing{" "}
+          <a href="mailto:wlsehdgus23@gmail.com">wlsehdgus23@gmail.com</a>.
+        </p>
+
+        <h2>7. Children&apos;s information</h2>
+        <p>
+          The Service is not directed at children under 14, and we do not knowingly process personal information of
+          children.
+        </p>
+
+        <h2>8. Changes to this policy</h2>
+        <p>
+          This policy may be revised as laws or the Service change; when it is, we will update the effective date on this
+          page.
+        </p>
       </main>
     </RaisePageShell>
   );

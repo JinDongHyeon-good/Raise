@@ -1,0 +1,18 @@
+{
+  "video": {
+    "queryRequired": "q 파라미터가 필요합니다.",
+    "tooManySearches": "새 검색이 너무 많아요. 잠시 후 다시 시도하세요.",
+    "youtubeQuota": "오늘 YouTube 조회 한도를 다 썼어요. 내일 오후 다시 시도해 주세요.",
+    "youtubeQuotaShort": "오늘 YouTube 조회 한도를 다 썼어요.",
+    "loadFailed": "영상을 불러오지 못했어요.",
+    "invalidVideo": "잘못된 영상",
+    "tooManyRequests": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
+    "summaryFailed": "요약을 만들지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "summaryStepFailed": "요약을 진행하지 못했어요.",
+    "rejected": {
+      "notFound": "영상을 찾을 수 없어요.",
+      "live": "라이브 방송은 요약할 수 없어요.",
+      "tooLong": "60분이 넘는 영상은 요약하지 않아요."
+    }
+  }
+}

@@ -3,6 +3,16 @@ export const BOARD_POST_TYPES = ["free", "analysis", "stock_analysis", "us_stock
 
 export type BoardPostType = (typeof BOARD_POST_TYPES)[number];
 
+/**
+ * 게시판·정렬 이름은 messages/<locale>/community.json 에서 번역한다:
+ *   t(boardPostTypeLabelKey(type)) → "boards.<type>", t(boardSortLabelKey(sort)) → "sorts.<sort>"
+ * 아래 한국어 맵은 번역 컨텍스트가 없는 곳(서버 등)용 기본값.
+ */
+export function boardPostTypeLabelKey(type: BoardPostType) {
+  return `boards.${type}` as const;
+}
+
+/** 한국어 기본 표기 (UI는 boardPostTypeLabelKey + useTranslations("community") 사용) */
 export const BOARD_POST_TYPE_LABELS: Record<BoardPostType, string> = {
   free: "자유게시판",
   analysis: "코인분석",
@@ -16,6 +26,11 @@ export const BOARD_POST_TYPE_LABELS: Record<BoardPostType, string> = {
 
 export const BOARD_SORTS = ["latest", "popular", "views"] as const;
 export type BoardSort = (typeof BOARD_SORTS)[number];
+export function boardSortLabelKey(sort: BoardSort) {
+  return `sorts.${sort}` as const;
+}
+
+/** 한국어 기본 표기 (UI는 boardSortLabelKey + useTranslations("community") 사용) */
 export const BOARD_SORT_LABELS: Record<BoardSort, string> = {
   latest: "최신순",
   popular: "추천순",

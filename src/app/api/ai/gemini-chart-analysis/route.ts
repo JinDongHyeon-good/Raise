@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import { getVertexGeminiHeaders, getVertexGeminiUrl, isVertexGeminiConfigured } from "@/lib/gemini-fetch";
 import { getGeminiModelChain } from "@/lib/gemini-models";
 import { guardAiRequest } from "@/lib/ai-quota";
@@ -103,30 +104,31 @@ function checkRateLimit(clientKey: string) {
   };
 }
 
+/** 실패하면 message 에 api.json 키를 담는다 */
 function validateBody(input: unknown): { ok: true; body: AnalyzeRequestBody } | { ok: false; message: string } {
   if (!input || typeof input !== "object") {
-    return { ok: false, message: "요청 본문 형식이 올바르지 않습니다." };
+    return { ok: false, message: "chartAnalysis.invalidBody" };
   }
 
   const body = input as Partial<AnalyzeRequestBody>;
   if (!body.symbol || typeof body.symbol !== "string" || !/^[A-Z0-9]{3,20}$/.test(body.symbol)) {
-    return { ok: false, message: "symbol 형식이 올바르지 않습니다." };
+    return { ok: false, message: "chartAnalysis.invalidSymbol" };
   }
   if (body.market !== "spot" && body.market !== "linear") {
-    return { ok: false, message: "market 값이 올바르지 않습니다." };
+    return { ok: false, message: "chartAnalysis.invalidMarket" };
   }
   if (!body.interval || typeof body.interval !== "string" || body.interval.length > 6) {
-    return { ok: false, message: "interval 값이 올바르지 않습니다." };
+    return { ok: false, message: "chartAnalysis.invalidInterval" };
   }
   if (!Array.isArray(body.candles) || body.candles.length < 10 || body.candles.length > 240) {
-    return { ok: false, message: "candles 개수는 10~240개여야 합니다." };
+    return { ok: false, message: "chartAnalysis.candleCount" };
   }
 
   for (const candle of body.candles) {
-    if (!candle || typeof candle !== "object") return { ok: false, message: "candles 데이터 형식이 올바르지 않습니다." };
+    if (!candle || typeof candle !== "object") return { ok: false, message: "chartAnalysis.candleFormat" };
     const values = [candle.timestamp, candle.open, candle.high, candle.low, candle.close, candle.volume];
     if (!values.every((value) => typeof value === "number" && Number.isFinite(value))) {
-      return { ok: false, message: "candles 숫자 데이터가 올바르지 않습니다." };
+      return { ok: false, message: "chartAnalysis.candleNumbers" };
     }
   }
 
@@ -221,23 +223,24 @@ function isCompleteAnalysis(text: string, market: "spot" | "linear") {
 }
 
 export async function POST(request: NextRequest) {
+  const t = apiTranslator(request);
   try {
     const requestStartedAt = Date.now();
     if (process.env.AI_ANALYSIS_ENABLED?.toLowerCase() === "false") {
-      return NextResponse.json({ error: "현재 AI 분석 기능이 비활성화되어 있습니다." }, { status: 503 });
+      return NextResponse.json({ error: t("chartAnalysis.disabled") }, { status: 503 });
     }
 
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
     if (origin && host && !isAllowedOrigin(origin, host)) {
-      return NextResponse.json({ error: "허용되지 않은 요청 출처입니다." }, { status: 403 });
+      return NextResponse.json({ error: t("chartAnalysis.originNotAllowed") }, { status: 403 });
     }
 
     const clientIp = getClientIp(request);
     const rateLimit = checkRateLimit(clientIp);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." },
+        { error: t("chartAnalysis.tooManyRequests") },
         {
           status: 429,
           headers: {
@@ -250,12 +253,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isVertexGeminiConfigured()) {
-      return NextResponse.json({ error: "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS가 설정되지 않았습니다." }, { status: 500 });
+      return NextResponse.json({ error: t("chartAnalysis.notConfigured") }, { status: 500 });
     }
 
     const parsedBody = validateBody(await request.json());
     if (!parsedBody.ok) {
-      return NextResponse.json({ error: parsedBody.message }, { status: 400 });
+      return NextResponse.json({ error: t(parsedBody.message) }, { status: 400 });
     }
     const body = parsedBody.body;
 
@@ -418,7 +421,7 @@ export async function POST(request: NextRequest) {
     const candidateModels = getGeminiModelChain();
     console.log("[gemini-analysis] model candidates", candidateModels);
 
-    let lastErrorMessage = "Gemini 요청 실패";
+    let lastErrorMessage = t("chartAnalysis.requestFailed");
     for (const model of candidateModels) {
       console.log("[gemini-analysis] trying model", model);
       let analysis = "";
@@ -428,7 +431,7 @@ export async function POST(request: NextRequest) {
         const elapsedMs = Date.now() - requestStartedAt;
         if (elapsedMs > GEMINI_TOTAL_BUDGET_MS) {
           return NextResponse.json(
-            { error: "AI 분석 응답 대기 시간이 길어져 중단되었습니다. 잠시 후 다시 시도해 주세요." },
+            { error: t("chartAnalysis.budgetExceeded") },
             { status: 504 },
           );
         }
@@ -470,13 +473,13 @@ export async function POST(request: NextRequest) {
         const data = (await response.json()) as GeminiGenerateResponse;
 
         if (!response.ok) {
-          lastErrorMessage = data.error?.message || `Gemini 요청 실패 (${model})`;
+          lastErrorMessage = data.error?.message || t("chartAnalysis.requestFailedModel", { model });
           console.error("[gemini-analysis] model failed", { model, attempt, error: lastErrorMessage });
           if (isQuotaExceededError(lastErrorMessage)) {
             const retryAfter = parseRetryAfterSeconds(lastErrorMessage) ?? 10;
             return NextResponse.json(
               {
-                error: `Gemini 쿼터가 초과되었습니다. 약 ${retryAfter}초 후 다시 시도해 주세요.`,
+                error: t("chartAnalysis.quotaExceeded", { seconds: retryAfter }),
                 code: "quota_exceeded",
               },
               {
@@ -492,7 +495,7 @@ export async function POST(request: NextRequest) {
 
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (!text) {
-          lastErrorMessage = `Gemini 응답이 비어 있습니다. (${model})`;
+          lastErrorMessage = t("chartAnalysis.emptyResponse", { model });
           console.error("[gemini-analysis] empty response", { model, attempt });
           continue;
         }
@@ -556,10 +559,10 @@ export async function POST(request: NextRequest) {
     console.error("[gemini-analysis] unexpected error", error);
     if (error instanceof Error && error.name === "AbortError") {
       return NextResponse.json(
-        { error: "AI 분석 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요." },
+        { error: t("chartAnalysis.timeout") },
         { status: 504 },
       );
     }
-    return NextResponse.json({ error: "Gemini 분석 중 오류가 발생했습니다." }, { status: 500 });
+    return NextResponse.json({ error: t("chartAnalysis.unexpected") }, { status: 500 });
   }
 }

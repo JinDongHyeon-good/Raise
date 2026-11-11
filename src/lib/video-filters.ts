@@ -12,26 +12,18 @@ export type VideoFilters = { order: VideoOrder; uploaded: UploadedWithin; length
 
 export const DEFAULT_FILTERS: VideoFilters = { order: "relevance", uploaded: "any", length: "any" };
 
-export const ORDER_OPTIONS: Array<{ value: VideoOrder; label: string }> = [
-  { value: "relevance", label: "관련도" },
-  { value: "date", label: "최신" },
-  { value: "viewCount", label: "조회수" },
+/** 화면 라벨은 video 메시지의 filters.order.<value> / filters.uploaded.<value> / filters.length.<value> */
+export const ORDER_OPTIONS: Array<{ value: VideoOrder }> = [{ value: "relevance" }, { value: "date" }, { value: "viewCount" }];
+
+export const UPLOADED_OPTIONS: Array<{ value: UploadedWithin }> = [
+  { value: "any" },
+  { value: "day" },
+  { value: "week" },
+  { value: "month" },
+  { value: "year" },
 ];
 
-export const UPLOADED_OPTIONS: Array<{ value: UploadedWithin; label: string }> = [
-  { value: "any", label: "전체" },
-  { value: "day", label: "오늘" },
-  { value: "week", label: "이번 주" },
-  { value: "month", label: "이번 달" },
-  { value: "year", label: "올해" },
-];
-
-export const LENGTH_OPTIONS: Array<{ value: VideoLength; label: string }> = [
-  { value: "any", label: "전체" },
-  { value: "short", label: "4분 미만" },
-  { value: "medium", label: "4~20분" },
-  { value: "long", label: "20분 이상" },
-];
+export const LENGTH_OPTIONS: Array<{ value: VideoLength }> = [{ value: "any" }, { value: "short" }, { value: "medium" }, { value: "long" }];
 
 const STORAGE_KEY = "jd.videoFilters.v1";
 const CHANGE_EVENT = "jd-video-filters-change";

@@ -1,18 +1,25 @@
-export type Coin = { symbol: string; ticker: string; name: string };
+/** name = 한국어 이름, nameEn = 영어 이름 — 화면에는 localizedName()으로 현재 언어에 맞춰 보여 준다 */
+export type Coin = { symbol: string; ticker: string; name: string; nameEn: string };
 
 export const COINS: Coin[] = [
-  { symbol: "BTCUSDT", ticker: "BTC", name: "비트코인" },
-  { symbol: "ETHUSDT", ticker: "ETH", name: "이더리움" },
-  { symbol: "XRPUSDT", ticker: "XRP", name: "리플" },
-  { symbol: "SOLUSDT", ticker: "SOL", name: "솔라나" },
+  { symbol: "BTCUSDT", ticker: "BTC", name: "비트코인", nameEn: "Bitcoin" },
+  { symbol: "ETHUSDT", ticker: "ETH", name: "이더리움", nameEn: "Ethereum" },
+  { symbol: "XRPUSDT", ticker: "XRP", name: "리플", nameEn: "XRP" },
+  { symbol: "SOLUSDT", ticker: "SOL", name: "솔라나", nameEn: "Solana" },
 ];
 
+/** 현재 언어의 종목 이름 (ko 외에는 영어) */
+export function localizedName(coin: Pick<Coin, "name" | "nameEn">, locale: string) {
+  return locale === "ko" ? coin.name : coin.nameEn;
+}
+
+/** 봉 간격 — 화면 라벨은 chart 메시지의 interval.<key> */
 export const INTERVALS = [
-  { value: "15", label: "15분" },
-  { value: "60", label: "1시간" },
-  { value: "240", label: "4시간" },
-  { value: "D", label: "일" },
-  { value: "W", label: "주" },
+  { value: "15", key: "m15" },
+  { value: "60", key: "h1" },
+  { value: "240", key: "h4" },
+  { value: "D", key: "d1" },
+  { value: "W", key: "w1" },
 ] as const;
 
 export type Ticker = {

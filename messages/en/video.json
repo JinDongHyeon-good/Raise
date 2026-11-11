@@ -1,1 +1,56 @@
-{}
+{
+  "presetAnalysis": "{name} analysis",
+  "presetPrediction": "{name} prediction",
+  "presetChart": "{name} chart analysis",
+  "relatedVideos": "Related videos",
+  "searchPlaceholder": "Search YouTube",
+  "search": "Search",
+  "filterButton": "Filters",
+  "filterButtonActive": "Filters ({count} applied)",
+  "myChannels": "My channels",
+  "noFavorites": "No favorite channels yet. Play a video and tap <b>★ Favorite channel</b> to collect that channel's new videos here.",
+  "allChannels": "All",
+  "unfavoriteChannel": "Remove {channel} from favorites",
+  "unfavoriteTitle": "Remove channel from favorites",
+  "favoriteTitle": "Add this channel to favorites",
+  "favorited": "Favorited",
+  "favoriteChannel": "Favorite channel",
+  "noFilterMatch": "No videos match these filters. Try changing them.",
+  "noFavoriteVideos": "No new videos from your favorite channels.",
+  "noResults": "No results found.",
+  "loadingMore": "Loading more",
+  "loadFailed": "Couldn't load videos.",
+  "favoriteToggleFailed": "Couldn't update favorites.",
+  "filters": {
+    "dialogLabel": "Video filters",
+    "title": "Filters",
+    "close": "Close",
+    "orderTitle": "Sort by",
+    "uploadedTitle": "Upload date",
+    "lengthTitle": "Duration",
+    "help": "Filters apply to the videos already loaded. Save as default to open with these settings next time in this browser.",
+    "savedNote": "Saved as default.",
+    "sameAsDefault": "Same as default",
+    "saveDefault": "Save as default",
+    "reset": "Reset",
+    "apply": "Apply",
+    "order": {
+      "relevance": "Relevance",
+      "date": "Newest",
+      "viewCount": "Most viewed"
+    },
+    "uploaded": {
+      "any": "Any time",
+      "day": "Today",
+      "week": "This week",
+      "month": "This month",
+      "year": "This year"
+    },
+    "length": {
+      "any": "Any",
+      "short": "Under 4 min",
+      "medium": "4–20 min",
+      "long": "Over 20 min"
+    }
+  }
+}

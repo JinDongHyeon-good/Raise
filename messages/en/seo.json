@@ -1,1 +1,45 @@
-{}
+{
+  "pages": {
+    "chart": {
+      "title": "Live Crypto & Nasdaq Charts",
+      "description": "Live candlestick charts for Bitcoin, Ethereum, XRP and Solana plus the Nasdaq Composite, Nasdaq 100, S&P 500 and Dow Jones — from 15-minute to weekly candles at a glance."
+    },
+    "community": {
+      "title": "Crypto & Stock Community",
+      "description": "{brand} crypto and stock community — talk Bitcoin, the Nasdaq and US stocks on the Crypto Analysis, Stock Analysis, US Stocks, Korean Stocks, News & Info, Q&A and P&L Proof boards."
+    },
+    "communityPost": {
+      "fallbackTitle": "Community",
+      "socialTitle": "{title} | {brand} Community",
+      "fallbackDescription": "A post in the {brand} crypto and stock community",
+      "imageAlt": "{brand} Community"
+    },
+    "communityWrite": {
+      "title": "Write a Post"
+    },
+    "resetPassword": {
+      "title": "Reset Password"
+    },
+    "about": {
+      "title": "About"
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "How to contact {brand} and where to send your questions."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "{brand} Privacy Policy — information we process, cookies and ads (Google AdSense), YouTube embeds, AI summaries, and your rights"
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "description": "{brand} Terms of Service — nature of the service, investment disclaimer, third-party content, and advertising"
+    },
+    "bybit": {
+      "title": "How to Sign Up for Bybit · Referral Code XQZZ6O Guide",
+      "description": "A step-by-step guide to signing up for Bybit: entering referral code XQZZ6O, creating your account, KYC verification and setting up 2FA security.",
+      "socialTitle": "How to Sign Up for Bybit · Referral Guide | {brand}",
+      "socialDescription": "If you enjoy JindongCoin, please consider signing up for Bybit with our referral. Bybit referral code XQZZ6O · Bybit invite signup."
+    }
+  }
+}

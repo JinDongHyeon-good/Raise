@@ -1,1 +1,45 @@
-{}
+{
+  "pages": {
+    "chart": {
+      "title": "코인·나스닥 실시간 차트",
+      "description": "비트코인·이더리움·리플·솔라나와 나스닥·나스닥100·S&P500·다우존스 실시간 캔들 차트. 15분봉부터 주봉까지 한눈에 확인하세요."
+    },
+    "community": {
+      "title": "코인·주식 커뮤니티",
+      "description": "{brand} 코인·주식 커뮤니티 — 코인분석, 주식분석, 해외주식, 국내주식, 뉴스·정보, 질문, 손익인증 게시판에서 비트코인·나스닥·미국 주식 이야기를 나눠 보세요."
+    },
+    "communityPost": {
+      "fallbackTitle": "커뮤니티",
+      "socialTitle": "{title} | {brand} 커뮤니티",
+      "fallbackDescription": "{brand} 코인·주식 커뮤니티 게시글",
+      "imageAlt": "{brand} 커뮤니티"
+    },
+    "communityWrite": {
+      "title": "글쓰기"
+    },
+    "resetPassword": {
+      "title": "비밀번호 재설정"
+    },
+    "about": {
+      "title": "서비스 소개"
+    },
+    "contact": {
+      "title": "문의",
+      "description": "{brand} 서비스 문의 및 연락처입니다."
+    },
+    "privacy": {
+      "title": "개인정보처리방침",
+      "description": "{brand} 개인정보처리방침 — 처리 정보, 쿠키·광고(Google AdSense), YouTube 임베드, AI 요약, 이용자 권리"
+    },
+    "terms": {
+      "title": "이용약관",
+      "description": "{brand} 서비스 이용약관 — 서비스 성격, 투자 면책, 외부 콘텐츠, 광고"
+    },
+    "bybit": {
+      "title": "Bybit 가입 방법 · 바이비트 레퍼럴 코드 XQZZ6O 매뉴얼",
+      "description": "Bybit(바이비트) 가입 방법 상세 매뉴얼. 레퍼럴 코드 XQZZ6O 입력, 계정 생성, KYC, 2FA 보안 설정까지 단계별로 안내합니다. Bybit signup guide · Bybit referral.",
+      "socialTitle": "Bybit 가입 방법 · 바이비트 레퍼럴 매뉴얼 | {brand}",
+      "socialDescription": "찐동코인 이용에 만족하셨다면 Bybit(바이비트) 레퍼럴 가입을 부탁드립니다. Bybit Referral Code XQZZ6O · 바이비트 추천인 코드 · Bybit invite signup."
+    }
+  }
+}

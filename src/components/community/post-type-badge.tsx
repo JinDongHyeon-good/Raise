@@ -1,4 +1,5 @@
-import { BOARD_POST_TYPE_LABELS, type BoardPostType } from "@/lib/board-types";
+import { useTranslations } from "next-intl";
+import { boardPostTypeLabelKey, type BoardPostType } from "@/lib/board-types";
 
 const COLORS: Record<BoardPostType, string> = {
   free: "bg-slate-500/15 text-slate-300",
@@ -12,9 +13,10 @@ const COLORS: Record<BoardPostType, string> = {
 };
 
 export function PostTypeBadge({ type }: { type: BoardPostType }) {
+  const t = useTranslations("community");
   return (
     <span className={`inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[11px] font-medium ${COLORS[type]}`}>
-      {BOARD_POST_TYPE_LABELS[type]}
+      {t(boardPostTypeLabelKey(type))}
     </span>
   );
 }

@@ -1,1 +1,96 @@
-{}
+{
+  "board": {
+    "loginRequired": "로그인이 필요합니다.",
+    "commentRequired": "댓글 내용을 입력해 주세요.",
+    "noEditPermission": "수정 권한이 없습니다.",
+    "noDeletePermission": "삭제 권한이 없습니다.",
+    "commentUpdateFailed": "댓글 수정 실패",
+    "commentDeleteFailed": "댓글 삭제 실패",
+    "likeFailed": "좋아요 처리 실패",
+    "unlikeFailed": "좋아요 취소 실패",
+    "postsLoadFailed": "게시글 조회 실패",
+    "boardRequired": "게시판을 선택해 주세요.",
+    "titleBodyRequired": "제목과 본문을 입력해 주세요.",
+    "bodyTooLong": "본문이 너무 깁니다.",
+    "postCreateFailed": "게시글 작성 실패",
+    "postNotFound": "게시글을 찾을 수 없습니다.",
+    "postLoadFailed": "게시글 상세 조회 실패",
+    "validBoardRequired": "올바른 게시판을 선택해 주세요.",
+    "postUpdateFailed": "게시글 수정 실패",
+    "postDeleteFailed": "게시글 삭제 실패",
+    "parentCommentNotFound": "답글 대상 댓글을 찾을 수 없습니다.",
+    "nestedReplyNotAllowed": "대댓글에는 다시 답글을 달 수 없습니다.",
+    "commentCreateFailed": "댓글 작성 실패",
+    "invalidPost": "잘못된 게시글",
+    "viewUnavailable": "SUPABASE_SECRET_KEY가 설정되지 않았습니다.",
+    "viewFailed": "조회수 등록 실패",
+    "imageRequired": "이미지 파일이 필요합니다.",
+    "imageTypeInvalid": "PNG/JPEG/WEBP/GIF만 업로드 가능합니다.",
+    "imageTooLarge": "이미지는 5MB 이하만 업로드 가능합니다.",
+    "imageUploadFailed": "이미지 업로드 실패"
+  },
+  "me": {
+    "loginRequired": "로그인이 필요합니다.",
+    "nicknameLength": "닉네임은 2~16자로 정해 주세요.",
+    "nicknameChars": "닉네임에는 글자, 숫자, _ . - 만 쓸 수 있어요.",
+    "nicknameTaken": "이미 쓰고 있는 닉네임이에요."
+  },
+  "youtubeFavorites": {
+    "loginRequired": "로그인이 필요해요.",
+    "favoriteLoginRequired": "로그인하고 채널을 즐겨찾기 할 수 있어요.",
+    "invalidChannel": "잘못된 채널이에요.",
+    "channelNotFound": "채널을 찾을 수 없어요.",
+    "favoriteLimit": "즐겨찾기는 50개까지 할 수 있어요.",
+    "channelLoadFailed": "채널 정보를 불러오지 못했어요.",
+    "quotaExhausted": "오늘 YouTube 조회 한도를 다 썼어요.",
+    "videosLoadFailed": "영상을 불러오지 못했어요."
+  },
+  "findId": {
+    "tooManyRequests": "잠시 후 다시 시도해 주세요.",
+    "nicknameLength": "닉네임을 2~16자로 입력해 주세요.",
+    "unavailable": "지금은 아이디 찾기를 할 수 없어요."
+  },
+  "stocks": {
+    "quotesFailed": "시세를 불러오지 못했어요.",
+    "unsupportedSymbol": "지원하지 않는 종목이에요.",
+    "chartFailed": "차트를 불러오지 못했어요."
+  },
+  "bybit": {
+    "symbolRequired": "symbol 파라미터가 필요합니다.",
+    "klineRequestFailed": "Bybit kline API 요청 실패",
+    "klineResponseError": "Bybit kline 응답 오류",
+    "tickersRequestFailed": "Bybit tickers API 요청 실패",
+    "tickersResponseError": "Bybit tickers 응답 오류",
+    "networkError": "Bybit API 통신 중 오류가 발생했습니다."
+  },
+  "aiQuota": {
+    "userLimit": "오늘 AI 사용 {limit}회를 모두 썼어요. 내일 다시 이용해 주세요.",
+    "ipLimit": "이 네트워크에서 오늘 사용할 수 있는 AI 횟수를 모두 썼어요. 내일 다시 이용해 주세요.",
+    "globalLimit": "오늘 AI 기능 이용이 많아 잠시 멈췄어요. 내일 다시 이용해 주세요.",
+    "blocked": "AI 기능 이용이 제한된 계정이에요. 문의 페이지로 연락해 주세요.",
+    "crossSite": "허용되지 않은 요청이에요.",
+    "loginRequired": "AI 기능은 로그인 후 이용할 수 있어요.",
+    "emailUnverified": "이메일 인증을 마친 계정만 AI 기능을 쓸 수 있어요. 메일함의 인증 링크를 눌러 주세요.",
+    "unavailable": "AI 사용량을 확인할 수 없어 잠시 이용할 수 없어요."
+  },
+  "chartAnalysis": {
+    "disabled": "현재 AI 분석 기능이 비활성화되어 있습니다.",
+    "originNotAllowed": "허용되지 않은 요청 출처입니다.",
+    "tooManyRequests": "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+    "notConfigured": "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS가 설정되지 않았습니다.",
+    "invalidBody": "요청 본문 형식이 올바르지 않습니다.",
+    "invalidSymbol": "symbol 형식이 올바르지 않습니다.",
+    "invalidMarket": "market 값이 올바르지 않습니다.",
+    "invalidInterval": "interval 값이 올바르지 않습니다.",
+    "candleCount": "candles 개수는 10~240개여야 합니다.",
+    "candleFormat": "candles 데이터 형식이 올바르지 않습니다.",
+    "candleNumbers": "candles 숫자 데이터가 올바르지 않습니다.",
+    "budgetExceeded": "AI 분석 응답 대기 시간이 길어져 중단되었습니다. 잠시 후 다시 시도해 주세요.",
+    "requestFailed": "Gemini 요청 실패",
+    "requestFailedModel": "Gemini 요청 실패 ({model})",
+    "quotaExceeded": "Gemini 쿼터가 초과되었습니다. 약 {seconds}초 후 다시 시도해 주세요.",
+    "emptyResponse": "Gemini 응답이 비어 있습니다. ({model})",
+    "timeout": "AI 분석 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.",
+    "unexpected": "Gemini 분석 중 오류가 발생했습니다."
+  }
+}

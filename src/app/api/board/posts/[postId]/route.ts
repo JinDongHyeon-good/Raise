@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import {
   hydrateComments,
   hydratePostSummaries,
@@ -16,7 +17,8 @@ import {
 
 export const runtime = "nodejs";
 
-export async function GET(_: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const t = apiTranslator(request);
   const { postId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
@@ -31,7 +33,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ postId
     ]);
 
     if (postError) return NextResponse.json({ error: postError.message }, { status: 500 });
-    if (!post) return NextResponse.json({ error: "게시글을 찾을 수 없습니다." }, { status: 404 });
+    if (!post) return NextResponse.json({ error: t("board.postNotFound") }, { status: 404 });
     if (commentError) return NextResponse.json({ error: commentError.message }, { status: 500 });
 
     const [item] = await hydratePostSummaries(supabase, [post], user?.id, { includeContent: true });
@@ -41,23 +43,24 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ postId
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "게시글 상세 조회 실패" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postLoadFailed") }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const t = apiTranslator(request);
   const { postId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
     const body = (await request.json()) as { title?: string; content_html?: string; post_type?: string };
     const title = body.title?.trim() ?? "";
     const contentHtml = sanitizePostHtml(body.content_html ?? "");
     if (body.post_type && !isBoardPostType(body.post_type)) {
-      return NextResponse.json({ error: "올바른 게시판을 선택해 주세요." }, { status: 400 });
+      return NextResponse.json({ error: t("board.validBoardRequired") }, { status: 400 });
     }
     if (!title || isEmptyHtml(contentHtml)) {
-      return NextResponse.json({ error: "제목과 본문을 입력해 주세요." }, { status: 400 });
+      return NextResponse.json({ error: t("board.titleBodyRequired") }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -75,20 +78,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .maybeSingle<BoardPostRow>();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    if (!data) return NextResponse.json({ error: "수정 권한이 없습니다." }, { status: 403 });
+    if (!data) return NextResponse.json({ error: t("board.noEditPermission") }, { status: 403 });
 
     const [item] = await hydratePostSummaries(supabase, [data], user.id, { includeContent: true });
     return NextResponse.json({ item });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "게시글 수정 실패" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postUpdateFailed") }, { status: 500 });
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const t = apiTranslator(request);
   const { postId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
     const { data, error } = await supabase
       .from("BOARD_POSTS")
       .update({ deleted_at: new Date().toISOString() })
@@ -98,9 +102,9 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ pos
       .select("id");
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    if (!data?.length) return NextResponse.json({ error: "삭제 권한이 없습니다." }, { status: 403 });
+    if (!data?.length) return NextResponse.json({ error: t("board.noDeletePermission") }, { status: 403 });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "게시글 삭제 실패" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postDeleteFailed") }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 import { ensureUserProfileOnAuth } from "@/lib/ensure-user-profile-server";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
@@ -26,19 +27,20 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const t = apiTranslator(request);
   const { supabase, user } = await requireSessionUser();
-  if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: t("me.loginRequired") }, { status: 401 });
 
   const body = (await request.json()) as { nickname?: string };
   const nickname = body.nickname?.trim() ?? "";
   if (nickname.length < 2 || nickname.length > 16) {
-    return NextResponse.json({ error: "닉네임은 2~16자로 정해 주세요." }, { status: 400 });
+    return NextResponse.json({ error: t("me.nicknameLength") }, { status: 400 });
   }
   if (!/^[\p{L}\p{N}_.-]+$/u.test(nickname)) {
-    return NextResponse.json({ error: "닉네임에는 글자, 숫자, _ . - 만 쓸 수 있어요." }, { status: 400 });
+    return NextResponse.json({ error: t("me.nicknameChars") }, { status: 400 });
   }
   if (await isNicknameTakenByOther(supabase, nickname, user.id)) {
-    return NextResponse.json({ error: "이미 쓰고 있는 닉네임이에요." }, { status: 409 });
+    return NextResponse.json({ error: t("me.nicknameTaken") }, { status: 409 });
   }
 
   const { error } = await supabase

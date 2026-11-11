@@ -1,15 +1,20 @@
 /**
  * API 응답 메시지 다국어 — 화면이 아닌 서버(API 라우트)에서 쓰는 문구
- * 문구는 messages/<locale>/api.json 에 있다.
+ * 문구는 messages/<locale>/api.json (일반) 과 api-video.json (영상 검색·요약) 에 있다.
  * 언어 판단: x-ui-locale 헤더 > NEXT_LOCALE 쿠키 > Referer 경로(/en) > Accept-Language > ko
  */
 import type { NextRequest } from "next/server";
 import koApi from "../../messages/ko/api.json";
 import enApi from "../../messages/en/api.json";
+import koApiVideo from "../../messages/ko/api-video.json";
+import enApiVideo from "../../messages/en/api-video.json";
 import { LOCALE_COOKIE, isRoutedLocale, type RoutedLocale } from "@/i18n/routing";
 
 type Dict = Record<string, unknown>;
-const DICTS: Record<RoutedLocale, Dict> = { ko: koApi as Dict, en: enApi as Dict };
+const DICTS: Record<RoutedLocale, Dict> = {
+  ko: { ...(koApi as Dict), ...(koApiVideo as Dict) },
+  en: { ...(enApi as Dict), ...(enApiVideo as Dict) },
+};
 
 export function getApiLocale(request: Request | NextRequest): RoutedLocale {
   const header = request.headers.get("x-ui-locale");

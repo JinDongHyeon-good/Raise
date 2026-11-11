@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 
@@ -32,11 +33,12 @@ function mmss(sec: number) {
 }
 
 function TimeButton({ t, onSeek }: { t: number; onSeek: (sec: number) => void }) {
+  const tr = useTranslations("summary");
   return (
     <button
       type="button"
       onClick={() => onSeek(Math.floor(t))}
-      title="이 시점부터 영상 보기"
+      title={tr("seekTitle")}
       className="mt-0.5 min-h-8 shrink-0 rounded-md border border-[var(--rz-accent)]/35 bg-[var(--rz-accent-soft)] px-2 py-1 font-mono text-[11px] font-medium text-[var(--rz-accent)] transition hover:border-[var(--rz-accent)]/60 hover:bg-[var(--rz-accent)]/20 sm:min-h-0 sm:px-1.5 sm:py-0.5"
     >
       {mmss(t)}
@@ -77,18 +79,29 @@ function SummaryRow({ t, onSeek, children }: { t: number; onSeek: (sec: number) 
   );
 }
 
-const STANCE_COLOR: Record<string, string> = {
-  상승: "text-[var(--rz-up)]",
-  하락: "text-[var(--rz-down)]",
+/** 서버가 돌려준 관점 라벨(한국어·영어) → 상승/하락 */
+function stanceDirection(label: string): "up" | "down" | null {
+  const key = label.trim().toLowerCase();
+  if (key === "상승" || key === "bullish") return "up";
+  if (key === "하락" || key === "bearish") return "down";
+  return null;
+}
+
+const STANCE_COLOR: Record<"up" | "down", string> = {
+  up: "text-[var(--rz-up)]",
+  down: "text-[var(--rz-down)]",
 };
 
-const STANCE_BG: Record<string, string> = {
-  상승: "border-[var(--rz-up)]/30 bg-[var(--rz-up)]/10",
-  하락: "border-[var(--rz-down)]/30 bg-[var(--rz-down)]/10",
+const STANCE_BG: Record<"up" | "down", string> = {
+  up: "border-[var(--rz-up)]/30 bg-[var(--rz-up)]/10",
+  down: "border-[var(--rz-down)]/30 bg-[var(--rz-down)]/10",
 };
 
 export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek: (sec: number) => void }) {
   const { me, requireLogin, refresh } = useAuth();
+  const t = useTranslations("summary");
+  const locale = useLocale();
+  const lang = locale === "en" ? "en" : "ko";
   const [view, setView] = useState<View | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,8 +125,8 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
       for (let i = 0; i < 400 && !cancelled.current; i++) {
         const res = await fetch("/api/youtube/summary", {
           method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ videoId, retry: retry && first }),
+          headers: { "content-type": "application/json", "x-ui-locale": locale },
+          body: JSON.stringify({ videoId, lang, retry: retry && first }),
         });
         first = false;
         const data = (await res.json().catch(() => ({}))) as { item?: View; quota?: Quota; error?: string; code?: string };
@@ -123,7 +136,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
           return;
         }
         if (!res.ok || !data.item) {
-          setError(data.error ?? "요약을 만들지 못했어요.");
+          setError(data.error ?? t("failed"));
           return;
         }
         setView(data.item);
@@ -131,7 +144,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
         await new Promise((r) => setTimeout(r, 1500));
       }
     } catch {
-      setError("요약을 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
+      setError(t("failedRetryLater"));
     } finally {
       setRunning(false);
       void refresh();
@@ -140,12 +153,15 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
   const usage = quota ?? me?.aiUsage ?? null;
   const summary = view?.status === "done" ? view.summary : null;
+  const stanceDir = summary?.stance ? stanceDirection(summary.stance.label) : null;
 
   const statusText = (() => {
-    if (!view) return "준비 중…";
-    if (view.status === "transcribing") return `영상 받아쓰는 중 (${view.progress.done}/${view.progress.total} 구간)`;
-    if (view.status === "summarizing") return "받아쓴 내용으로 요약하는 중";
-    if (view.status === "verifying") return "요약이 영상 내용과 맞는지 확인하는 중";
+    if (!view) return t("statusPreparing");
+    if (view.status === "transcribing") {
+      return t("statusTranscribing", { done: view.progress.done, total: view.progress.total });
+    }
+    if (view.status === "summarizing") return t("statusSummarizing");
+    if (view.status === "verifying") return t("statusVerifying");
     return "";
   })();
 
@@ -177,11 +193,11 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
               AI SUMMARY
             </div>
             <p className="font-[family-name:var(--font-brand-display)] text-[15px] font-semibold tracking-tight text-white sm:text-lg">
-              AI 영상 요약
+              {t("title")}
             </p>
             <p className="mt-1 text-xs leading-5 text-[var(--rz-muted)] sm:max-w-md">
-              영상에서 실제로 나온 말만 근거로 한국어로 핵심을 정리해요.
-              {me && usage ? ` 오늘 ${usage.used}/${usage.limit}회 사용` : " 로그인 후 하루 5회"}
+              {t("intro")}
+              {me && usage ? ` ${t("usageToday", { used: usage.used, limit: usage.limit })}` : ` ${t("loginDailyLimit")}`}
             </p>
             {error ? <p className="mt-2 text-xs text-[var(--rz-up)]">{error}</p> : null}
           </div>
@@ -191,7 +207,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
             className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--rz-accent)] px-4 py-3 text-sm font-semibold text-[var(--rz-accent-fg)] shadow-[0_8px_20px_rgb(225_29_72_/_0.35)] transition hover:brightness-110 sm:w-auto sm:shrink-0 sm:py-2.5"
           >
             <AiSparkIcon />
-            {me ? "AI 요약 보기" : "로그인하고 AI 요약 보기"}
+            {me ? t("start") : t("loginToStart")}
           </button>
         </div>
       </div>
@@ -212,12 +228,12 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
             AI SUMMARY
           </div>
           <p className="font-[family-name:var(--font-brand-display)] text-[15px] font-semibold tracking-tight text-white sm:text-base">
-            AI 영상 요약
+            {t("title")}
           </p>
         </div>
         {usage ? (
           <span className="shrink-0 rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)]/80 px-2 py-1 text-[10px] text-[var(--rz-muted)] sm:px-2.5 sm:text-[11px]">
-            오늘 {usage.used}/{usage.limit}회
+            {t("quotaBadge", { used: usage.used, limit: usage.limit })}
           </span>
         ) : null}
       </div>
@@ -235,7 +251,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
             />
           </div>
           <p className="mt-2 text-[11px] leading-5 text-[var(--rz-muted)]">
-            처음 요약하는 영상은 1~3분 걸려요. 한 번 요약된 영상은 바로 보여요.
+            {t("waitNote")}
           </p>
         </div>
       ) : null}
@@ -244,13 +260,13 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
       {view?.status === "failed" ? (
         <div className="relative mt-3 flex flex-col gap-2.5 rounded-xl border border-[var(--rz-up)]/25 bg-[var(--rz-up)]/10 px-3 py-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3.5">
-          <p className="min-w-0 break-words text-xs text-[var(--rz-up)]">{view.error ?? "요약을 만들지 못했어요."}</p>
+          <p className="min-w-0 break-words text-xs text-[var(--rz-up)]">{view.error ?? t("failed")}</p>
           <button
             type="button"
             onClick={() => void start(true)}
             className="w-full rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] px-3 py-2.5 text-xs text-white transition hover:bg-[var(--rz-panel-2)] sm:w-auto sm:py-1.5"
           >
-            다시 시도
+            {t("retry")}
           </button>
         </div>
       ) : null}
@@ -259,21 +275,21 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
         <div className="relative mt-3 space-y-3 text-sm sm:mt-4 sm:space-y-4">
           {summary.noSpeech || (summary.overview.length === 0 && summary.points.length === 0) ? (
             <p className={`${cardClass} text-xs text-[var(--rz-muted)]`}>
-              영상에서 근거를 확인할 수 있는 내용이 부족해 요약을 만들지 않았어요.
+              {t("noEvidence")}
             </p>
           ) : null}
 
           {summary.stance ? (
             <div
               className={`flex items-start gap-2.5 rounded-xl border px-3 py-3 sm:gap-3 sm:px-3.5 ${
-                STANCE_BG[summary.stance.label] ?? "border-[var(--rz-line)] bg-[var(--rz-bg)]/50"
+                stanceDir ? STANCE_BG[stanceDir] : "border-[var(--rz-line)] bg-[var(--rz-bg)]/50"
               }`}
             >
               <TimeButton t={summary.stance.t} onSeek={onSeek} />
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--rz-muted)]">화자의 관점</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--rz-muted)]">{t("stanceTitle")}</p>
                 <p className="mt-1 break-words leading-6 text-white">
-                  <b className={`text-[15px] sm:text-base ${STANCE_COLOR[summary.stance.label] ?? ""}`}>
+                  <b className={`text-[15px] sm:text-base ${stanceDir ? STANCE_COLOR[stanceDir] : ""}`}>
                     {summary.stance.label}
                   </b>
                   <span className="text-[var(--rz-muted)]"> — {summary.stance.reason}</span>
@@ -284,7 +300,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
           {summary.overview.length ? (
             <div className={cardClass}>
-              <SectionTitle>영상 요지</SectionTitle>
+              <SectionTitle>{t("overviewTitle")}</SectionTitle>
               <ul className="space-y-2.5 sm:space-y-3">
                 {summary.overview.map((o, i) => (
                   <SummaryRow key={i} t={o.t} onSeek={onSeek}>
@@ -297,7 +313,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
           {summary.points.length ? (
             <div className={cardClass}>
-              <SectionTitle>영상 속 주요 주장</SectionTitle>
+              <SectionTitle>{t("pointsTitle")}</SectionTitle>
               <ul className="space-y-3">
                 {summary.points.map((p, i) => (
                   <SummaryRow key={i} t={p.t} onSeek={onSeek}>
@@ -315,7 +331,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
           {summary.levels.length ? (
             <div className={cardClass}>
-              <SectionTitle>영상에서 언급된 가격대</SectionTitle>
+              <SectionTitle>{t("levelsTitle")}</SectionTitle>
               <ul className="divide-y divide-[var(--rz-line)] overflow-hidden rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)]/60">
                 {summary.levels.map((l, i) => (
                   <li key={i} className="flex flex-col gap-1.5 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-2">
@@ -338,9 +354,8 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
           ) : null}
 
           <div className="rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)]/70 p-3 text-[11px] leading-5 text-[var(--rz-muted)]">
-            AI가 영상을 받아쓴 뒤 그 내용만으로 요약했고, 각 항목이 받아쓴 원문과 맞는지 한 번 더 확인했어요.
-            {summary.dropped > 0 ? ` 원문으로 확인되지 않은 ${summary.dropped}개 항목은 뺐어요.` : ""} 시간을 누르면 그
-            장면부터 볼 수 있어요. 요약은 영상 화자의 주장이며 투자 권유가 아니에요.
+            {t("disclaimerMethod")}
+            {summary.dropped > 0 ? ` ${t("disclaimerDropped", { count: summary.dropped })}` : ""} {t("disclaimerTail")}
           </div>
 
           {view?.transcript?.length ? (
@@ -350,7 +365,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
                 onClick={() => setShowTranscript((v) => !v)}
                 className="min-h-10 text-left text-xs font-medium text-[var(--rz-accent)] transition hover:brightness-125 sm:min-h-0"
               >
-                {showTranscript ? "받아쓴 원문 접기" : `받아쓴 원문 보기 (${view.transcript.length}문단)`}
+                {showTranscript ? t("hideTranscript") : t("showTranscript", { count: view.transcript.length })}
               </button>
               {showTranscript ? (
                 <ol className="mt-2 max-h-64 space-y-2.5 overflow-y-auto overscroll-contain rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/50 p-3 text-xs leading-5 sm:mt-2.5 sm:max-h-80">

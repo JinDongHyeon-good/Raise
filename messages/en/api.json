@@ -1,1 +1,96 @@
-{}
+{
+  "board": {
+    "loginRequired": "Please log in first.",
+    "commentRequired": "Please enter a comment.",
+    "noEditPermission": "You don't have permission to edit this.",
+    "noDeletePermission": "You don't have permission to delete this.",
+    "commentUpdateFailed": "Couldn't update the comment.",
+    "commentDeleteFailed": "Couldn't delete the comment.",
+    "likeFailed": "Couldn't like this.",
+    "unlikeFailed": "Couldn't remove your like.",
+    "postsLoadFailed": "Couldn't load posts.",
+    "boardRequired": "Please choose a board.",
+    "titleBodyRequired": "Please enter a title and body.",
+    "bodyTooLong": "The post is too long.",
+    "postCreateFailed": "Couldn't create the post.",
+    "postNotFound": "Post not found.",
+    "postLoadFailed": "Couldn't load the post.",
+    "validBoardRequired": "Please choose a valid board.",
+    "postUpdateFailed": "Couldn't update the post.",
+    "postDeleteFailed": "Couldn't delete the post.",
+    "parentCommentNotFound": "The comment you're replying to wasn't found.",
+    "nestedReplyNotAllowed": "You can't reply to a reply.",
+    "commentCreateFailed": "Couldn't post the comment.",
+    "invalidPost": "Invalid post.",
+    "viewUnavailable": "SUPABASE_SECRET_KEY is not configured.",
+    "viewFailed": "Couldn't record the view.",
+    "imageRequired": "Please attach an image file.",
+    "imageTypeInvalid": "Only PNG, JPEG, WEBP, or GIF images can be uploaded.",
+    "imageTooLarge": "Images must be 5MB or smaller.",
+    "imageUploadFailed": "Image upload failed."
+  },
+  "me": {
+    "loginRequired": "Please log in first.",
+    "nicknameLength": "Nicknames must be 2–16 characters.",
+    "nicknameChars": "Nicknames can only contain letters, numbers, and _ . -",
+    "nicknameTaken": "That nickname is already taken."
+  },
+  "youtubeFavorites": {
+    "loginRequired": "Please log in first.",
+    "favoriteLoginRequired": "Log in to save channels to your favorites.",
+    "invalidChannel": "Invalid channel.",
+    "channelNotFound": "Channel not found.",
+    "favoriteLimit": "You can save up to 50 favorite channels.",
+    "channelLoadFailed": "Couldn't load channel info.",
+    "quotaExhausted": "Today's YouTube lookup limit has been reached.",
+    "videosLoadFailed": "Couldn't load videos."
+  },
+  "findId": {
+    "tooManyRequests": "Please try again in a moment.",
+    "nicknameLength": "Please enter a nickname of 2–16 characters.",
+    "unavailable": "Finding your ID isn't available right now."
+  },
+  "stocks": {
+    "quotesFailed": "Couldn't load quotes.",
+    "unsupportedSymbol": "This symbol isn't supported.",
+    "chartFailed": "Couldn't load the chart."
+  },
+  "bybit": {
+    "symbolRequired": "The symbol parameter is required.",
+    "klineRequestFailed": "Bybit kline API request failed.",
+    "klineResponseError": "Bybit kline response error.",
+    "tickersRequestFailed": "Bybit tickers API request failed.",
+    "tickersResponseError": "Bybit tickers response error.",
+    "networkError": "An error occurred while contacting the Bybit API."
+  },
+  "aiQuota": {
+    "userLimit": "You've used all {limit} AI requests for today. Please try again tomorrow.",
+    "ipLimit": "This network has used up today's AI requests. Please try again tomorrow.",
+    "globalLimit": "AI features are paused for today due to high demand. Please try again tomorrow.",
+    "blocked": "This account is restricted from using AI features. Please reach out via the contact page.",
+    "crossSite": "This request isn't allowed.",
+    "loginRequired": "Please log in to use AI features.",
+    "emailUnverified": "AI features are only available to verified accounts. Please click the verification link in your inbox.",
+    "unavailable": "AI is temporarily unavailable because usage couldn't be checked."
+  },
+  "chartAnalysis": {
+    "disabled": "AI analysis is currently disabled.",
+    "originNotAllowed": "Request origin not allowed.",
+    "tooManyRequests": "Too many requests. Please try again in a moment.",
+    "notConfigured": "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS is not configured.",
+    "invalidBody": "Invalid request body.",
+    "invalidSymbol": "Invalid symbol format.",
+    "invalidMarket": "Invalid market value.",
+    "invalidInterval": "Invalid interval value.",
+    "candleCount": "candles must contain 10–240 items.",
+    "candleFormat": "Invalid candles data format.",
+    "candleNumbers": "Invalid numeric values in candles.",
+    "budgetExceeded": "AI analysis was stopped because it took too long. Please try again in a moment.",
+    "requestFailed": "Gemini request failed.",
+    "requestFailedModel": "Gemini request failed ({model}).",
+    "quotaExceeded": "Gemini quota exceeded. Please try again in about {seconds} seconds.",
+    "emptyResponse": "Gemini returned an empty response. ({model})",
+    "timeout": "AI analysis timed out. Please try again in a moment.",
+    "unexpected": "An error occurred during Gemini analysis."
+  }
+}

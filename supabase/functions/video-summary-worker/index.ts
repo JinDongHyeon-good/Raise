@@ -67,9 +67,13 @@ type VideoSummary = {
   noSpeech: boolean;
   model: { transcribe: string; text: string };
 };
+type Lang = "ko" | "en";
+
 type SummaryJob = {
   v: 1;
   videoId: string;
+  /** 요약 언어 (없으면 ko). 받아쓰기는 언어와 무관하게 원문 그대로 */
+  lang?: Lang;
   title: string;
   channelTitle: string;
   durationSec: number;
@@ -86,7 +90,8 @@ type SummaryJob = {
 
 // ── DB (PostgREST) ───────────────────────────────────────
 
-const keyOf = (videoId: string) => `summary:v1:${videoId}`;
+const keyOf = (videoId: string, lang: Lang = "ko") => (lang === "ko" ? `summary:v1:${videoId}` : `summary:v1:${videoId}:${lang}`);
+const isLang = (v: unknown): v is Lang => v === "ko" || v === "en";
 
 /** Supabase가 자동으로 넣어 주는 키 사용 (새 sb_secret 키 우선, 없으면 구형 service_role) */
 function dbKey() {
@@ -108,8 +113,8 @@ function dbHeaders(extra: Record<string, string> = {}) {
   return headers;
 }
 
-async function loadJob(videoId: string): Promise<SummaryJob | null> {
-  const url = `${env("SUPABASE_URL")}/rest/v1/YOUTUBE_SEARCH_CACHE?select=payload&query_key=eq.${encodeURIComponent(keyOf(videoId))}`;
+async function loadJob(videoId: string, lang: Lang): Promise<SummaryJob | null> {
+  const url = `${env("SUPABASE_URL")}/rest/v1/YOUTUBE_SEARCH_CACHE?select=payload&query_key=eq.${encodeURIComponent(keyOf(videoId, lang))}`;
   const res = await fetch(url, { headers: dbHeaders() });
   if (!res.ok) throw new Error(`DB 읽기 실패 ${res.status}`);
   const rows = (await res.json()) as Array<{ payload: SummaryJob }>;
@@ -121,7 +126,7 @@ async function saveJob(job: SummaryJob) {
   const res = await fetch(`${env("SUPABASE_URL")}/rest/v1/YOUTUBE_SEARCH_CACHE`, {
     method: "POST",
     headers: dbHeaders({ Prefer: "resolution=merge-duplicates,return=minimal" }),
-    body: JSON.stringify({ query_key: keyOf(job.videoId), payload: job, fetched_at: new Date().toISOString() }),
+    body: JSON.stringify({ query_key: keyOf(job.videoId, job.lang ?? "ko"), payload: job, fetched_at: new Date().toISOString() }),
   });
   if (!res.ok) throw new Error(`DB 저장 실패 ${res.status}: ${await res.text()}`);
 }
@@ -308,7 +313,16 @@ async function transcribeChunk(job: SummaryJob, index: number) {
 
 // ── 2) 요약 ──────────────────────────────────────────────
 
-const DRAFT_SCHEMA = {
+const KIND_ENUM: Record<Lang, string[]> = {
+  ko: ["지지", "저항", "목표", "손절", "현재가", "기타"],
+  en: ["Support", "Resistance", "Target", "Stop-loss", "Current", "Other"],
+};
+const STANCE_ENUM: Record<Lang, string[]> = {
+  ko: ["상승", "하락", "중립", "혼재", "불명확"],
+  en: ["Bullish", "Bearish", "Neutral", "Mixed", "Unclear"],
+};
+
+const draftSchema = (lang: Lang) => ({
   type: "OBJECT",
   properties: {
     is_speech: { type: "BOOLEAN", description: "요약할 만한 발언이 있으면 true" },
@@ -342,7 +356,7 @@ const DRAFT_SCHEMA = {
         properties: {
           coin: { type: "STRING", description: "가격이 언급된 대상 (코인·종목·지수 이름, 예: 비트코인, 나스닥, 엔비디아)" },
           price: { type: "STRING", description: "받아쓰기에 적힌 표기 그대로" },
-          kind: { type: "STRING", enum: ["지지", "저항", "목표", "손절", "현재가", "기타"] },
+          kind: { type: "STRING", enum: KIND_ENUM[lang] },
           segs: { type: "ARRAY", items: { type: "STRING" } },
           quote: { type: "STRING" },
         },
@@ -353,7 +367,7 @@ const DRAFT_SCHEMA = {
       type: "OBJECT",
       nullable: true,
       properties: {
-        label: { type: "STRING", enum: ["상승", "하락", "중립", "혼재", "불명확"] },
+        label: { type: "STRING", enum: STANCE_ENUM[lang] },
         reason: { type: "STRING" },
         segs: { type: "ARRAY", items: { type: "STRING" } },
       },
@@ -361,22 +375,26 @@ const DRAFT_SCHEMA = {
     },
   },
   required: ["is_speech", "overview", "points", "levels"],
-};
+});
 
 async function summarize(job: SummaryJob) {
+  const lang: Lang = job.lang ?? "ko";
+  const outLang = lang === "en" ? "영어(English)" : "한국어";
   const transcript = allSegments(job)
     .map((s) => `[${s.id} | ${mmss(s.t)}] ${s.text}`)
     .join("\n");
   const prompt = [
-    "아래는 유튜브 영상의 받아쓰기 원문이다. 이 원문에 적힌 내용만 근거로 한국어 요약을 만들어라.",
+    `아래는 유튜브 영상의 받아쓰기 원문이다. 이 원문에 적힌 내용만 근거로 ${outLang} 요약을 만들어라.`,
     "",
     "절대 규칙:",
     "1. 원문에 없는 사실·숫자·전망·배경지식을 절대 추가하지 마라. 네가 아는 시장 정보도 쓰지 마라.",
-    "2. 화자의 의견은 사실처럼 쓰지 말고 '화자는 ~라고 본다/말한다'처럼 화자의 말로 적어라.",
+    lang === "en"
+      ? "2. 화자의 의견은 사실처럼 쓰지 말고 'The speaker says/thinks ...'처럼 화자의 말로 적어라."
+      : "2. 화자의 의견은 사실처럼 쓰지 말고 '화자는 ~라고 본다/말한다'처럼 화자의 말로 적어라.",
     '3. 모든 항목에 근거 문단 번호(segs, 예: ["S3","S4"])를 붙여라. 근거를 댈 수 없는 내용은 쓰지 마라.',
     "4. quote는 근거 문단에서 글자 그대로 복사한 원문이어야 한다. 번역하거나 고치지 마라 (외국어면 외국어 그대로).",
     "5. 숫자·가격은 원문 표기 그대로 옮겨라 (예: 원문이 '9만 2천'이면 '9만 2천', '92,000'이면 '92,000').",
-    "6. 요약 문장(overview.text, points.claim, stance.reason)은 원문이 외국어여도 반드시 한국어로 써라.",
+    `6. 요약 문장(overview.text, points.claim, stance.reason)은 원문 언어와 상관없이 반드시 ${outLang}로 써라. levels.coin(대상 이름)도 ${outLang}로 써라.`,
     "7. 화자가 직접 말하지 않은 가격대(코인 가격·주가·지수 포인트)는 levels에 넣지 마라. 확실하지 않으면 빼라.",
     "8. 광고·구독 요청·인사말은 요약하지 마라.",
     "",
@@ -387,7 +405,7 @@ async function summarize(job: SummaryJob) {
     transcript,
   ].join("\n");
 
-  const text = await generate({ model: TEXT_MODEL, parts: [{ text: prompt }], schema: DRAFT_SCHEMA, thinkingLow: true });
+  const text = await generate({ model: TEXT_MODEL, parts: [{ text: prompt }], schema: draftSchema(lang), thinkingLow: true });
   job.draft = JSON.parse(text) as Draft;
 }
 
@@ -454,7 +472,7 @@ async function verify(job: SummaryJob) {
   if (draft.stance) {
     const found = cited(draft.stance.segs);
     if (!found || !numbersOk(draft.stance.reason, found)) dropped++;
-    else candidates.push({ id: "T0", text: `화자의 관점: ${draft.stance.label} — ${draft.stance.reason}`, found, kind: "stance", index: 0 });
+    else candidates.push({ id: "T0", text: `화자의 관점(speaker's view): ${draft.stance.label} — ${draft.stance.reason}`, found, kind: "stance", index: 0 });
   }
 
   // (c) 의미 검증: 근거 원문만으로 성립하는가
@@ -509,8 +527,8 @@ async function verify(job: SummaryJob) {
 // ── 단계 실행 ────────────────────────────────────────────
 
 /** 한 단계 진행. 진행했으면 true, 할 게 없으면(끝났거나 다른 실행이 잡고 있음) false */
-async function step(videoId: string): Promise<boolean> {
-  const job = await loadJob(videoId);
+async function step(videoId: string, lang: Lang): Promise<boolean> {
+  const job = await loadJob(videoId, lang);
   if (!job || job.status === "done" || job.status === "failed") return false;
   if (job.lockedUntil > Date.now()) return false;
 
@@ -570,22 +588,22 @@ async function step(videoId: string): Promise<boolean> {
   return job.status !== "done" && job.status !== "failed";
 }
 
-async function kickSelf(videoId: string, hop: number) {
+async function kickSelf(videoId: string, lang: Lang, hop: number) {
   await fetch(`${env("SUPABASE_URL")}/functions/v1/video-summary-worker`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-worker-secret": env("VIDEO_SUMMARY_WORKER_SECRET") },
-    body: JSON.stringify({ videoId, hop }),
+    body: JSON.stringify({ videoId, lang, hop }),
   }).catch((error) => console.error("kickSelf failed", String(error)));
 }
 
-async function run(videoId: string, hop: number) {
+async function run(videoId: string, lang: Lang, hop: number) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < START_STEP_BEFORE_MS) {
-    const more = await step(videoId);
+    const more = await step(videoId, lang);
     if (!more) return;
   }
   // 시간 예산을 다 썼는데 아직 남았으면 새 실행으로 이어간다 (무한 루프 방지: 최대 40번)
-  if (hop < 40) await kickSelf(videoId, hop + 1);
+  if (hop < 40) await kickSelf(videoId, lang, hop + 1);
 }
 
 function timingSafeEqual(a: string, b: string) {
@@ -601,11 +619,12 @@ Deno.serve(async (req) => {
   if (!secret || !timingSafeEqual(req.headers.get("x-worker-secret") ?? "", secret)) {
     return new Response("Unauthorized", { status: 401 });
   }
-  const body = (await req.json().catch(() => ({}))) as { videoId?: string; hop?: number };
+  const body = (await req.json().catch(() => ({}))) as { videoId?: string; lang?: string; hop?: number };
+  const lang: Lang = isLang(body.lang) ? body.lang : "ko";
   const videoId = body.videoId ?? "";
   if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return new Response("Bad Request", { status: 400 });
 
-  const work = run(videoId, Number(body.hop) || 0).catch((error) => console.error("run failed", videoId, String(error)));
+  const work = run(videoId, lang, Number(body.hop) || 0).catch((error) => console.error("run failed", videoId, String(error)));
   if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work);
   else await work;
   return new Response(JSON.stringify({ accepted: true }), { status: 202, headers: { "content-type": "application/json" } });

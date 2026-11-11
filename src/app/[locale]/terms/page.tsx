@@ -1,16 +1,33 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo";
-import Link from "next/link";
+import { toRoutedLocale } from "@/lib/seo-i18n";
+import { Link } from "@/navigation";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
-import { SERVICE_NAME } from "@/lib/brand";
+import { SERVICE_NAME, SERVICE_NAME_EN, getLocalizedBrandName } from "@/lib/brand";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "이용약관",
-  description: `${SERVICE_NAME} 서비스 이용약관 — 서비스 성격, 투자 면책, 외부 콘텐츠, 광고`,
-  path: "/terms",
-});
+type PageProps = { params: Promise<{ locale: string }> };
 
-export default function TermsPage() {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const locale = toRoutedLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "seo.pages.terms" });
+  return buildPageMetadata({
+    locale,
+    title: t("title"),
+    description: t("description", { brand: getLocalizedBrandName(locale) }),
+    path: "/terms",
+  });
+}
+
+export default async function TermsPage({ params }: PageProps) {
+  const locale = toRoutedLocale((await params).locale);
+  setRequestLocale(locale);
+  return locale === "en" ? <TermsEn /> : <TermsKo />;
+}
+
+/* 한국어 본문 */
+
+function TermsKo() {
   return (
     <RaisePageShell>
       <main>
@@ -56,6 +73,66 @@ export default function TermsPage() {
         <h2>7. 문의</h2>
         <p>
           약관 관련 문의는 <Link href="/contact">문의 페이지</Link>를 이용해 주세요.
+        </p>
+      </main>
+    </RaisePageShell>
+  );
+}
+
+/* English body */
+
+function TermsEn() {
+  return (
+    <RaisePageShell>
+      <main>
+        <h1>Terms of Service</h1>
+        <p className="meta">Effective date: 2026-11-11</p>
+
+        <h2>1. Purpose</h2>
+        <p>
+          These Terms set out the conditions of use and the scope of responsibility for the services provided by{" "}
+          {SERVICE_NAME_EN}: viewing crypto and US stock market prices and charts, searching related videos and AI
+          summaries, and the community.
+        </p>
+
+        <h2>2. Nature of the service and investment disclaimer</h2>
+        <p>
+          The service is an information service that collects and displays publicly available prices and videos. It does
+          not provide investment recommendations or financial advice. Prices may be delayed or differ from actual trading
+          prices. You are solely responsible for any investment decisions you make based on information from the service
+          and for their results.
+        </p>
+
+        <h2>3. Third-party content</h2>
+        <p>
+          Videos are provided by YouTube, crypto prices by Bybit, and US index prices by Yahoo Finance; the rights to and
+          responsibility for each piece of content belong to its respective provider and publisher. Opinions expressed in
+          videos do not represent the views of {SERVICE_NAME_EN}, and the service does not guarantee the accuracy of video
+          content.
+        </p>
+
+        <h2>4. Restrictions on use</h2>
+        <p>
+          Automated bulk requests, actions that disrupt the service, and use that violates applicable laws may be
+          restricted without prior notice.
+        </p>
+
+        <h2>5. Advertising</h2>
+        <p>
+          Third-party advertisements may be displayed on the service, and advertisers are responsible for the content of
+          their ads and any transactions with them. Matters relating to cookies and advertising are governed by our{" "}
+          <Link href="/privacy">Privacy Policy</Link>.
+        </p>
+
+        <h2>6. Changes to and suspension of the service</h2>
+        <p>
+          We may change or discontinue features for operational or technical reasons, and some features may be temporarily
+          unavailable due to limits or outages of external APIs.
+        </p>
+
+        <h2>7. Contact</h2>
+        <p>
+          For questions about these Terms, please use our <Link href="/contact">contact page</Link>.
         </p>
       </main>
     </RaisePageShell>

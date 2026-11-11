@@ -1,7 +1,9 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { mapAuthErrorMessage } from "@/lib/auth-errors";
+import { localizedPath, type RoutedLocale } from "@/i18n/routing";
+import { getAuthErrorKey } from "@/lib/auth-errors";
 import { getAuthCallbackUrl } from "@/lib/auth-urls";
 import { ensureUserProfileClient } from "@/lib/ensure-user-profile-client";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
@@ -11,12 +13,19 @@ type Mode = "login" | "signup" | "reset" | "findId";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 8;
 
-const TITLES: Record<Mode, string> = {
-  login: "로그인",
-  signup: "회원가입",
-  reset: "비밀번호 찾기",
-  findId: "아이디 찾기",
-};
+const TITLE_KEYS = {
+  login: "login",
+  signup: "signup",
+  reset: "findPassword",
+  findId: "findId",
+} as const satisfies Record<Mode, string>;
+
+const SUBMIT_KEYS = {
+  login: "submitLogin",
+  signup: "submitSignup",
+  reset: "submitReset",
+  findId: "findId",
+} as const satisfies Record<Mode, string>;
 
 const inputClass =
   "w-full rounded-lg border border-[var(--rz-line)] bg-[var(--rz-bg)] px-3 py-2.5 text-sm outline-none focus:border-[var(--rz-accent)]";
@@ -32,6 +41,8 @@ export function LoginModal({
   onClose: () => void;
   onAuthenticated: () => void | Promise<void>;
 }) {
+  const t = useTranslations("auth");
+  const locale = useLocale() as RoutedLocale;
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,6 +71,7 @@ export function LoginModal({
 
   const supabase = getSupabaseBrowserClientSafe();
   const trimmedEmail = email.trim().toLowerCase();
+  const authError = (err: { message?: string } | null) => t(getAuthErrorKey(err), { min: MIN_PASSWORD });
   const confirmMismatch = mode === "signup" && passwordConfirm.length > 0 && password !== passwordConfirm;
 
   const switchMode = (next: Mode) => {
@@ -74,7 +86,7 @@ export function LoginModal({
 
   const google = async () => {
     setError(null);
-    if (!supabase) return setError("로그인 설정을 불러오지 못했어요.");
+    if (!supabase) return setError(t("errors.configMissing"));
     setBusy(true);
     const next = `${window.location.pathname}${window.location.search}`;
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -82,7 +94,7 @@ export function LoginModal({
       options: { redirectTo: getAuthCallbackUrl(next) },
     });
     if (oauthError) {
-      setError(mapAuthErrorMessage(oauthError));
+      setError(authError(oauthError));
       setBusy(false);
     }
   };
@@ -97,12 +109,12 @@ export function LoginModal({
       options: { emailRedirectTo: getAuthCallbackUrl(window.location.pathname) },
     });
     setBusy(false);
-    if (resendError) setError(mapAuthErrorMessage(resendError));
-    else setInfo("인증 메일을 다시 보냈어요. 메일함(스팸함 포함)을 확인해 주세요.");
+    if (resendError) setError(authError(resendError));
+    else setInfo(t("info.resent"));
   };
 
   const submitLogin = async () => {
-    if (!supabase) return setError("로그인 설정을 불러오지 못했어요.");
+    if (!supabase) return setError(t("errors.configMissing"));
     const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
     if (signInError) {
       if (signInError.message.toLowerCase().includes("email not confirmed")) setCanResend(true);
@@ -113,8 +125,8 @@ export function LoginModal({
   };
 
   const submitSignup = async () => {
-    if (!supabase) return setError("로그인 설정을 불러오지 못했어요.");
-    if (password !== passwordConfirm) return setError("비밀번호가 서로 달라요. 다시 확인해 주세요.");
+    if (!supabase) return setError(t("errors.configMissing"));
+    if (password !== passwordConfirm) return setError(t("errors.passwordMismatchRetry"));
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
@@ -123,7 +135,7 @@ export function LoginModal({
     if (signUpError) throw signUpError;
     // 이미 가입된 이메일이면 Supabase는 에러 대신 identities가 빈 사용자를 돌려준다
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
-      setError("이미 가입된 이메일이에요. 로그인하거나 비밀번호 찾기를 이용해 주세요.");
+      setError(t("errors.alreadyRegisteredSignup"));
       return;
     }
     if (data.session && data.user) {
@@ -132,28 +144,28 @@ export function LoginModal({
       return;
     }
     setCanResend(true);
-    setInfo(`${trimmedEmail}로 인증 메일을 보냈어요. 메일의 링크를 누르면 가입이 끝나요.`);
+    setInfo(t("info.verificationSent", { email: trimmedEmail }));
   };
 
   const submitReset = async () => {
-    if (!supabase) return setError("로그인 설정을 불러오지 못했어요.");
+    if (!supabase) return setError(t("errors.configMissing"));
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-      redirectTo: getAuthCallbackUrl("/auth/reset-password"),
+      redirectTo: getAuthCallbackUrl(localizedPath("/auth/reset-password", locale)),
     });
     // 가입 여부를 알려 주지 않도록 성공·실패 모두 같은 안내 (요청 한도 초과만 따로)
     if (resetError && resetError.message.toLowerCase().includes("rate limit")) throw resetError;
-    setInfo("가입된 이메일이면 비밀번호 재설정 링크를 보냈어요. 메일함(스팸함 포함)을 확인해 주세요.");
+    setInfo(t("info.resetSent"));
   };
 
   const submitFindId = async () => {
     const res = await fetch("/api/auth/find-id", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "x-ui-locale": locale },
       body: JSON.stringify({ nickname: nickname.trim() }),
     });
     const data = (await res.json().catch(() => ({}))) as { found?: boolean; email?: string; provider?: string; error?: string };
-    if (!res.ok) return setError(data.error ?? "찾지 못했어요. 잠시 후 다시 시도해 주세요.");
-    if (!data.found || !data.email) return setError("그 닉네임으로 가입된 계정이 없어요.");
+    if (!res.ok) return setError(data.error ?? t("errors.findIdFailed"));
+    if (!data.found || !data.email) return setError(t("errors.nicknameNotFound"));
     setFoundId({ email: data.email, provider: data.provider ?? "email" });
   };
 
@@ -163,11 +175,11 @@ export function LoginModal({
     setInfo(null);
     setFoundId(null);
     if (mode === "findId") {
-      if (nickname.trim().length < 2) return setError("닉네임을 2자 이상 입력해 주세요.");
+      if (nickname.trim().length < 2) return setError(t("errors.nicknameTooShort"));
     } else {
-      if (!EMAIL_PATTERN.test(trimmedEmail)) return setError("이메일 형식이 올바르지 않아요.");
+      if (!EMAIL_PATTERN.test(trimmedEmail)) return setError(t("errors.invalidEmail"));
       if ((mode === "login" || mode === "signup") && password.length < MIN_PASSWORD) {
-        return setError(`비밀번호는 ${MIN_PASSWORD}자 이상이어야 해요.`);
+        return setError(t("errors.passwordTooShort", { min: MIN_PASSWORD }));
       }
     }
     setBusy(true);
@@ -177,15 +189,13 @@ export function LoginModal({
       if (mode === "reset") await submitReset();
       if (mode === "findId") await submitFindId();
     } catch (err) {
-      setError(mapAuthErrorMessage(err instanceof Error ? err : null));
+      setError(authError(err instanceof Error ? err : null));
     } finally {
       setBusy(false);
     }
   };
 
-  const submitLabel = busy
-    ? "처리 중…"
-    : { login: "이메일로 로그인", signup: "가입하기", reset: "재설정 링크 보내기", findId: "아이디 찾기" }[mode];
+  const submitLabel = busy ? t("processing") : t(SUBMIT_KEYS[mode]);
 
   return (
     <div
@@ -196,22 +206,18 @@ export function LoginModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={TITLES[mode]}
+        aria-label={t(TITLE_KEYS[mode])}
         className="max-h-[92dvh] w-full max-w-sm overflow-y-auto rounded-t-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-[var(--rz-text)] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between">
           <div>
-            <p className="text-lg font-semibold">{TITLES[mode]}</p>
+            <p className="text-lg font-semibold">{t(TITLE_KEYS[mode])}</p>
             <p className="mt-1 text-xs text-[var(--rz-muted)]">
-              {mode === "reset"
-                ? "가입한 이메일로 비밀번호 재설정 링크를 보내 드려요."
-                : mode === "findId"
-                  ? "아이디는 가입한 이메일이에요. 닉네임으로 찾아 드려요."
-                  : "AI 요약·분석, 커뮤니티 글·댓글은 로그인 후 이용할 수 있어요."}
+              {mode === "reset" ? t("subtitleReset") : mode === "findId" ? t("subtitleFindId") : t("subtitleLogin")}
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="닫기" className="text-xl leading-none text-[var(--rz-muted)]">
+          <button type="button" onClick={onClose} aria-label={t("close")} className="text-xl leading-none text-[var(--rz-muted)]">
             ×
           </button>
         </div>
@@ -230,12 +236,12 @@ export function LoginModal({
                 <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
                 <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
               </svg>
-              Google로 계속하기
+              {t("continueWithGoogle")}
             </button>
 
             <div className="my-4 flex items-center gap-3 text-[11px] text-[var(--rz-muted)]">
               <span className="h-px flex-1 bg-[var(--rz-line)]" />
-              또는 이메일
+              {t("orEmail")}
               <span className="h-px flex-1 bg-[var(--rz-line)]" />
             </div>
           </>
@@ -246,8 +252,8 @@ export function LoginModal({
             <input
               type="text"
               autoComplete="nickname"
-              placeholder="닉네임"
-              aria-label="닉네임"
+              placeholder={t("nickname")}
+              aria-label={t("nickname")}
               value={nickname}
               maxLength={16}
               onChange={(e) => setNickname(e.target.value)}
@@ -257,8 +263,8 @@ export function LoginModal({
             <input
               type="email"
               autoComplete="email"
-              placeholder="이메일"
-              aria-label="이메일"
+              placeholder={t("email")}
+              aria-label={t("email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClass}
@@ -269,8 +275,8 @@ export function LoginModal({
             <input
               type="password"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
-              placeholder={`비밀번호 (${MIN_PASSWORD}자 이상)`}
-              aria-label="비밀번호"
+              placeholder={t("passwordPlaceholder", { min: MIN_PASSWORD })}
+              aria-label={t("password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={inputClass}
@@ -282,16 +288,16 @@ export function LoginModal({
               <input
                 type="password"
                 autoComplete="new-password"
-                placeholder="비밀번호 확인"
-                aria-label="비밀번호 확인"
+                placeholder={t("passwordConfirm")}
+                aria-label={t("passwordConfirm")}
                 aria-invalid={confirmMismatch}
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 className={`${inputClass} ${confirmMismatch ? "border-[var(--rz-up)]" : ""}`}
               />
-              {confirmMismatch ? <p className="text-xs text-[var(--rz-up)]">비밀번호가 서로 달라요.</p> : null}
+              {confirmMismatch ? <p className="text-xs text-[var(--rz-up)]">{t("passwordMismatch")}</p> : null}
               {!confirmMismatch && passwordConfirm.length >= MIN_PASSWORD && password === passwordConfirm ? (
-                <p className="text-xs text-emerald-400">비밀번호가 일치해요.</p>
+                <p className="text-xs text-emerald-400">{t("passwordMatch")}</p>
               ) : null}
             </>
           ) : null}
@@ -301,10 +307,10 @@ export function LoginModal({
 
           {foundId ? (
             <div className="rounded-lg border border-[var(--rz-line)] bg-[var(--rz-bg)] p-3 text-sm">
-              <p className="text-xs text-[var(--rz-muted)]">가입한 아이디(이메일)</p>
+              <p className="text-xs text-[var(--rz-muted)]">{t("foundIdLabel")}</p>
               <p className="mt-0.5 font-mono">{foundId.email}</p>
               {foundId.provider === "google" ? (
-                <p className="mt-1 text-xs text-[var(--rz-muted)]">Google로 가입한 계정이에요. &lsquo;Google로 계속하기&rsquo;로 로그인하세요.</p>
+                <p className="mt-1 text-xs text-[var(--rz-muted)]">{t("foundIdGoogle")}</p>
               ) : null}
             </div>
           ) : null}
@@ -316,7 +322,7 @@ export function LoginModal({
               disabled={busy}
               className="w-full rounded-lg border border-[var(--rz-line)] px-4 py-2 text-xs text-[var(--rz-muted)] hover:text-[var(--rz-text)] disabled:opacity-60"
             >
-              인증 메일 다시 보내기
+              {t("resendVerification")}
             </button>
           ) : null}
 
@@ -330,40 +336,40 @@ export function LoginModal({
             <>
               <p>
                 <button type="button" onClick={() => switchMode("findId")} className="hover:text-[var(--rz-text)]">
-                  아이디 찾기
+                  {t("findId")}
                 </button>
                 <span className="mx-2 text-[var(--rz-line-strong)]">|</span>
                 <button type="button" onClick={() => switchMode("reset")} className="hover:text-[var(--rz-text)]">
-                  비밀번호 찾기
+                  {t("findPassword")}
                 </button>
               </p>
               <p>
-                계정이 없나요?{" "}
+                {t("noAccount")}{" "}
                 <button type="button" onClick={() => switchMode("signup")} className="text-[var(--rz-text)] underline">
-                  회원가입
+                  {t("signup")}
                 </button>
               </p>
             </>
           ) : mode === "signup" ? (
             <p>
-              이미 계정이 있나요?{" "}
+              {t("haveAccount")}{" "}
               <button type="button" onClick={() => switchMode("login")} className="text-[var(--rz-text)] underline">
-                로그인
+                {t("login")}
               </button>
             </p>
           ) : (
             <p>
               {mode === "findId" ? (
                 <button type="button" onClick={() => switchMode("reset")} className="mr-3 hover:text-[var(--rz-text)]">
-                  비밀번호 찾기
+                  {t("findPassword")}
                 </button>
               ) : (
                 <button type="button" onClick={() => switchMode("findId")} className="mr-3 hover:text-[var(--rz-text)]">
-                  아이디 찾기
+                  {t("findId")}
                 </button>
               )}
               <button type="button" onClick={() => switchMode("login")} className="text-[var(--rz-text)] underline">
-                로그인으로 돌아가기
+                {t("backToLogin")}
               </button>
             </p>
           )}

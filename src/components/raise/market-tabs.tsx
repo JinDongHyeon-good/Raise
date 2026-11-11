@@ -1,16 +1,18 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { MARKETS, type Market } from "@/lib/markets";
 
 export function MarketTabs({ value, onChange }: { value: Market; onChange: (market: Market) => void }) {
+  const t = useTranslations("chart");
   const activeIndex = Math.max(0, MARKETS.findIndex((m) => m.value === value));
   const [pressed, setPressed] = useState<Market | null>(null);
 
   return (
     <div
       role="tablist"
-      aria-label="시장"
+      aria-label={t("marketTabs")}
       className="relative grid w-full grid-cols-2 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-1 sm:w-[240px]"
     >
       <span
@@ -34,7 +36,7 @@ export function MarketTabs({ value, onChange }: { value: Market; onChange: (mark
               active ? "text-[var(--rz-accent-fg)]" : "text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
             } ${pressed === m.value ? "rz-tab-pressed" : ""}`}
           >
-            {m.label}
+            {t(`market.${m.value}`)}
           </button>
         );
       })}

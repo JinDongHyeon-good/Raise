@@ -1,1 +1,28 @@
-{}
+{
+  "menu": "Join Bybit",
+  "headline": "If you enjoy our service, please consider signing up with our referral.",
+  "subline": "Sign up with our Bybit referral code and we can both earn rewards.",
+  "cta": "Sign up for Bybit",
+  "imageAlt": "Bybit referral invite — Join Bybit and share rewards",
+  "cardEyebrow": "Bybit Referral",
+  "inviteCodeLabel": "Invite Code",
+  "copied": "Copied",
+  "copyCode": "Copy code",
+  "pageEyebrow": "Bybit Exchange",
+  "pageTitle": "How to sign up for Bybit · Referral guide",
+  "pageCodeLine": "Bybit invite code",
+  "aboutTitle": "What is the Bybit referral?",
+  "aboutBody1": "Bybit is a global cryptocurrency exchange. When you sign up through a Bybit referral link, invite code <code></code> is applied so you and the referrer can share rewards.",
+  "aboutBody2": "If you enjoy JindongCoin, please sign up with the button above. This is an affiliate (referral) link, not investment advice.",
+  "manual": {
+    "eyebrow": "Signup Manual",
+    "title": "Step-by-step guide to signing up for Bybit",
+    "introBefore": "Based on Bybit's official sign-up guide: apply the referral code → create the account → KYC → security settings. Screens may differ by region and app version, so if you get stuck, also check the",
+    "officialGuide": "official Bybit sign-up guide",
+    "introAfter": ".",
+    "checklist": "Before you sign up",
+    "startCta": "Start sign-up with the referral link →",
+    "faq": "FAQ",
+    "disclaimer": "This manual is based on Bybit's official learning and help content and is not investment advice. Supported countries, benefits, and KYC requirements may change under Bybit's policies."
+  }
+}

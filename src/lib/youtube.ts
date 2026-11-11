@@ -160,8 +160,16 @@ export function normalizeQuery(raw: string) {
 }
 
 /** v3: 라이브 방송·쇼츠 제외 + 페이지 */
-function cacheKey(query: string, page: number) {
-  return `v3:${page}:${query.toLowerCase()}`;
+export type SearchLang = "ko" | "en";
+
+/** 검색 지역·언어 (en: 미국·영어 영상) */
+const SEARCH_LOCALE: Record<SearchLang, { regionCode: string; relevanceLanguage: string }> = {
+  ko: { regionCode: "KR", relevanceLanguage: "ko" },
+  en: { regionCode: "US", relevanceLanguage: "en" },
+};
+
+function cacheKey(query: string, page: number, lang: SearchLang) {
+  return lang === "ko" ? `v3:${page}:${query.toLowerCase()}` : `v3:${lang}:${page}:${query.toLowerCase()}`;
 }
 
 function l1Set(key: string, value: YoutubeSearchResult) {
@@ -265,7 +273,7 @@ async function excludeShorts<T extends { id: string; title: string; duration: st
   return videos.filter((_, i) => !verdicts[i]);
 }
 
-async function fetchFromApi(query: string, page: number, pageToken: string | null): Promise<YoutubeSearchResult> {
+async function fetchFromApi(query: string, page: number, pageToken: string | null, lang: SearchLang): Promise<YoutubeSearchResult> {
   // search.list = 100 units (maxResults와 무관하므로 최대치 50개를 한 번에)
   const { data: search, credential } = await ytGet<{ items?: SearchItem[]; nextPageToken?: string }>("search", {
     ...(pageToken ? { pageToken } : {}),
@@ -274,8 +282,8 @@ async function fetchFromApi(query: string, page: number, pageToken: string | nul
     maxResults: "50",
     q: query,
     order: "relevance",
-    regionCode: "KR",
-    relevanceLanguage: "ko",
+    regionCode: SEARCH_LOCALE[lang].regionCode,
+    relevanceLanguage: SEARCH_LOCALE[lang].relevanceLanguage,
     safeSearch: "moderate",
   });
 
@@ -338,11 +346,12 @@ async function fetchFromApi(query: string, page: number, pageToken: string | nul
  */
 export async function searchYoutube(
   rawQuery: string,
-  options: { allowNetwork?: boolean; page?: number } = {},
+  options: { allowNetwork?: boolean; page?: number; lang?: SearchLang } = {},
 ): Promise<{ result: YoutubeSearchResult; source: CacheSource } | null> {
   const query = normalizeQuery(rawQuery);
   const page = Math.min(MAX_PAGES - 1, Math.max(0, options.page ?? 0));
-  const key = cacheKey(query, page);
+  const lang: SearchLang = options.lang === "en" ? "en" : "ko";
+  const key = cacheKey(query, page, lang);
   const now = Date.now();
 
   let cached: YoutubeSearchResult | null = l1.get(key) ?? null;
@@ -365,11 +374,11 @@ export async function searchYoutube(
       let pageToken: string | null = null;
       if (page > 0) {
         // 다음 페이지 토큰은 앞 페이지 결과에 들어 있다 (앞 페이지도 캐시 우선)
-        const prev = await searchYoutube(query, { page: page - 1 });
+        const prev = await searchYoutube(query, { page: page - 1, lang });
         pageToken = prev?.result.nextPageToken ?? null;
         if (!pageToken) return { query, page, videos: [], nextPageToken: null, fetchedAt: Date.now() };
       }
-      return fetchFromApi(query, page, pageToken);
+      return fetchFromApi(query, page, pageToken, lang);
     })().then(async (fresh) => {
       l1Set(key, fresh);
       await l2Set(key, fresh);

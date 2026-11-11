@@ -23,10 +23,13 @@ export function RaiseHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
 
-  useEffect(() => {
+  // 페이지가 바뀌면 메뉴를 닫고 헤더를 다시 보인다 (렌더 중 조정 — effect 불필요)
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
     setMenuOpen(false);
     setHidden(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -42,10 +45,7 @@ export function RaiseHeader() {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (menuOpen) {
-      setHidden(false);
-      return;
-    }
+    if (menuOpen) return; // 메뉴가 열려 있으면 숨기지 않는다 (아래 headerHidden 참고)
 
     let lastY = window.scrollY;
     let ticking = false;
@@ -76,7 +76,7 @@ export function RaiseHeader() {
     <>
       <header
         className={`sticky top-0 z-40 border-b border-[var(--rz-line)] bg-[var(--rz-bg)]/85 backdrop-blur-xl transition-transform duration-300 ease-out ${
-          hidden ? "-translate-y-full" : "translate-y-0"
+          hidden && !menuOpen ? "-translate-y-full" : "translate-y-0"
         }`}
       >
         <div className="rz-container relative flex h-14 items-stretch justify-between gap-3 sm:h-16">

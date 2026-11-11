@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 import { hydratePostSummaries, isEmptyHtml, requireSessionUser, sanitizePostHtml } from "@/lib/board-server";
 import {
   BOARD_POST_LIST_SELECT,
@@ -11,6 +12,7 @@ import {
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
+  const t = apiTranslator(request);
   const { searchParams } = new URL(request.url);
   const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 20));
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
@@ -39,26 +41,27 @@ export async function GET(request: NextRequest) {
     const items = await hydratePostSummaries(supabase, (data ?? []) as BoardPostRow[], user?.id);
     return NextResponse.json({ items, page, limit, total: count ?? 0 });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "게시글 조회 실패" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postsLoadFailed") }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const t = apiTranslator(request);
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
 
     const body = (await request.json()) as { title?: string; content_html?: string; post_type?: string };
     const title = body.title?.trim() ?? "";
     const contentHtml = sanitizePostHtml(body.content_html ?? "");
     if (!isBoardPostType(body.post_type)) {
-      return NextResponse.json({ error: "게시판을 선택해 주세요." }, { status: 400 });
+      return NextResponse.json({ error: t("board.boardRequired") }, { status: 400 });
     }
     if (!title || isEmptyHtml(contentHtml)) {
-      return NextResponse.json({ error: "제목과 본문을 입력해 주세요." }, { status: 400 });
+      return NextResponse.json({ error: t("board.titleBodyRequired") }, { status: 400 });
     }
     if (contentHtml.length > 100_000) {
-      return NextResponse.json({ error: "본문이 너무 깁니다." }, { status: 400 });
+      return NextResponse.json({ error: t("board.bodyTooLong") }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -76,6 +79,6 @@ export async function POST(request: NextRequest) {
     const [post] = await hydratePostSummaries(supabase, [data], user.id, { includeContent: true });
     return NextResponse.json({ item: post }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "게시글 작성 실패" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postCreateFailed") }, { status: 500 });
   }
 }

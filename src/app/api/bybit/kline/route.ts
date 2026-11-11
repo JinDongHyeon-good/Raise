@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiTranslator } from "@/lib/server-i18n";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -23,6 +24,7 @@ function getInterval(input: string | null) {
 }
 
 export async function GET(request: NextRequest) {
+  const t = apiTranslator(request);
   try {
     const { searchParams } = new URL(request.url);
     const category = getCategory(searchParams.get("category"));
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
     const interval = getInterval(searchParams.get("interval"));
 
     if (!symbol) {
-      return NextResponse.json({ error: "symbol 파라미터가 필요합니다." }, { status: 400 });
+      return NextResponse.json({ error: t("bybit.symbolRequired") }, { status: 400 });
     }
 
     const endpoint = new URL("https://api.bybit.com/v5/market/kline");
@@ -45,12 +47,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: "Bybit kline API 요청 실패" }, { status: 502 });
+      return NextResponse.json({ error: t("bybit.klineRequestFailed") }, { status: 502 });
     }
 
     const data = (await response.json()) as BybitKlineResponse;
     if (data.retCode !== 0 || !data.result?.list) {
-      return NextResponse.json({ error: data.retMsg || "Bybit kline 응답 오류" }, { status: 502 });
+      return NextResponse.json({ error: data.retMsg || t("bybit.klineResponseError") }, { status: 502 });
     }
 
     const candles = data.result.list
@@ -68,6 +70,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ category, symbol, interval, candles });
   } catch {
-    return NextResponse.json({ error: "Bybit API 통신 중 오류가 발생했습니다." }, { status: 500 });
+    return NextResponse.json({ error: t("bybit.networkError") }, { status: 500 });
   }
 }

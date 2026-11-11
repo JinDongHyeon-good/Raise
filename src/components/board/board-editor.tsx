@@ -6,6 +6,7 @@ import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 type BoardEditorProps = {
@@ -15,6 +16,8 @@ type BoardEditorProps = {
 };
 
 export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) {
+  const t = useTranslations("community");
+  const locale = useLocale();
   const [isUploading, setIsUploading] = useState(false);
 
   const editor = useEditor({
@@ -28,7 +31,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
         openOnClick: false,
       }),
       Placeholder.configure({
-        placeholder: "내용을 입력하세요. 근거 없는 리딩·리딩방 홍보는 삭제될 수 있어요.",
+        placeholder: t("editorPlaceholder"),
       }),
     ],
     content: value,
@@ -46,7 +49,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
   const handleInsertLink = () => {
     if (!editor) return;
     const previous = editor.getAttributes("link").href as string | undefined;
-    const href = window.prompt("링크 주소", previous ?? "https://");
+    const href = window.prompt(t("linkPrompt"), previous ?? "https://");
     if (!href) return;
     editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
   };
@@ -65,6 +68,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
       try {
         const response = await fetch("/api/board/upload-image", {
           method: "POST",
+          headers: { "x-ui-locale": locale },
           body: formData,
         });
         if (response.status === 401) {
@@ -73,7 +77,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
         }
         const data = (await response.json()) as { url?: string; error?: string };
         if (!response.ok || !data.url) {
-          alert(data.error ?? "이미지를 올리지 못했어요.");
+          alert(data.error ?? t("imageUploadFailed"));
           return;
         }
         editor.chain().focus().setImage({ src: data.url, alt: "board-image" }).run();
@@ -97,20 +101,20 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
     <div className="overflow-hidden rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]">
       <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--rz-line)] bg-[var(--rz-panel)] p-2">
         <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={toolClass(editor.isActive("bold"))}>
-          {"굵게"}
+          {t("bold")}
         </button>
         <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={toolClass(editor.isActive("italic"))}>
-          {"기울임"}
+          {t("italic")}
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={toolClass(editor.isActive("underline"))}
         >
-          {"밑줄"}
+          {t("underline")}
         </button>
         <button type="button" onClick={handleInsertLink} className={toolClass(false)}>
-          {"링크"}
+          {t("link")}
         </button>
         <button
           type="button"
@@ -118,7 +122,7 @@ export function BoardEditor({ value, onChange, onNeedLogin }: BoardEditorProps) 
           disabled={isUploading}
           className={toolClass(false)}
         >
-          {isUploading ? "올리는 중…" : "이미지"}
+          {isUploading ? t("uploading") : t("image")}
         </button>
       </div>
       <EditorContent editor={editor} />

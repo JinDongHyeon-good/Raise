@@ -1,9 +1,13 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { Link } from "@/navigation";
 
 export function HeaderUser() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const { me, loading, openLogin, signOut, setNickname } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -25,22 +29,22 @@ export function HeaderUser() {
         onClick={openLogin}
         className="rounded-lg border border-[var(--rz-line-strong)] bg-transparent px-3.5 py-2 text-xs font-medium text-white/85 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
       >
-        로그인
+        {t("login")}
       </button>
     );
   }
 
   const changeNickname = async () => {
     setOpen(false);
-    const next = window.prompt("새 닉네임 (2~16자)", me.nickname)?.trim();
+    const next = window.prompt(t("nicknamePrompt"), me.nickname)?.trim();
     if (!next || next === me.nickname) return;
     const res = await fetch("/api/me", {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "x-ui-locale": locale },
       body: JSON.stringify({ nickname: next }),
     });
     const data = (await res.json()) as { nickname?: string; error?: string };
-    if (!res.ok || !data.nickname) return window.alert(data.error ?? "닉네임을 바꾸지 못했어요.");
+    if (!res.ok || !data.nickname) return window.alert(data.error ?? t("nicknameChangeFailed"));
     setNickname(data.nickname);
   };
 
@@ -60,18 +64,19 @@ export function HeaderUser() {
           role="menu"
           className="absolute right-0 top-full z-40 mt-2 w-40 overflow-hidden rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] text-sm shadow-[var(--rz-shadow)]"
         >
-          <a
+          <Link
             href={`/community?author=${me.id}`}
+            onClick={() => setOpen(false)}
             className="block px-3 py-2 hover:bg-[var(--rz-panel-2)]"
             role="menuitem"
           >
-            내가 쓴 글
-          </a>
+            {t("myPosts")}
+          </Link>
           <button type="button" onClick={() => void changeNickname()} className="block w-full px-3 py-2 text-left hover:bg-[var(--rz-panel-2)]" role="menuitem">
-            닉네임 변경
+            {t("changeNickname")}
           </button>
           <button type="button" onClick={signOut} className="block w-full px-3 py-2 text-left text-[var(--rz-muted)] hover:bg-[var(--rz-panel-2)]" role="menuitem">
-            로그아웃
+            {t("logout")}
           </button>
         </div>
       ) : null}

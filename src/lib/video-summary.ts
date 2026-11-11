@@ -41,9 +41,14 @@ type Draft = {
   is_speech: boolean;
 };
 
+export type SummaryLang = "ko" | "en";
+export const isSummaryLang = (v: unknown): v is SummaryLang => v === "ko" || v === "en";
+
 export type SummaryJob = {
   v: 1;
   videoId: string;
+  /** 요약 언어 (없으면 ko). 받아쓰기는 언어와 무관하게 원문 그대로라 언어끼리 공유한다 */
+  lang?: SummaryLang;
   title: string;
   channelTitle: string;
   durationSec: number;
@@ -71,27 +76,30 @@ export type SummaryView = {
 // ── 저장소 ───────────────────────────────────────────────
 
 const memory = new Map<string, SummaryJob>();
-const keyOf = (videoId: string) => `summary:v1:${videoId}`;
+/** ko는 예전 키 그대로, 다른 언어는 접미사 */
+const keyOf = (videoId: string, lang: SummaryLang = "ko") =>
+  lang === "ko" ? `summary:v1:${videoId}` : `summary:v1:${videoId}:${lang}`;
+const memKey = (videoId: string, lang: SummaryLang) => `${videoId}:${lang}`;
 
-async function loadJob(videoId: string): Promise<SummaryJob | null> {
+async function loadJob(videoId: string, lang: SummaryLang): Promise<SummaryJob | null> {
   const admin = getSupabaseAdminClient();
-  if (!admin) return memory.get(videoId) ?? null;
+  if (!admin) return memory.get(memKey(videoId, lang)) ?? null;
   const { data } = await admin
     .from("YOUTUBE_SEARCH_CACHE")
     .select("payload")
-    .eq("query_key", keyOf(videoId))
+    .eq("query_key", keyOf(videoId, lang))
     .maybeSingle<{ payload: SummaryJob }>();
   return data?.payload ?? null;
 }
 
 async function saveJob(job: SummaryJob) {
   job.updatedAt = Date.now();
-  memory.set(job.videoId, job);
+  memory.set(memKey(job.videoId, job.lang ?? "ko"), job);
   const admin = getSupabaseAdminClient();
   if (!admin) return;
   const { error } = await admin
     .from("YOUTUBE_SEARCH_CACHE")
-    .upsert({ query_key: keyOf(job.videoId), payload: job, fetched_at: new Date().toISOString() });
+    .upsert({ query_key: keyOf(job.videoId, job.lang ?? "ko"), payload: job, fetched_at: new Date().toISOString() });
   if (error) console.warn("[video-summary] save failed", error.message);
 }
 
@@ -119,14 +127,14 @@ function toView(job: SummaryJob): SummaryView {
 
 // ── 백그라운드 함수 호출 ─────────────────────────────────
 
-async function kickWorker(videoId: string) {
+async function kickWorker(videoId: string, lang: SummaryLang) {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.VIDEO_SUMMARY_WORKER_SECRET;
   if (!base || !secret) throw new Error("VIDEO_SUMMARY_WORKER_SECRET가 설정되지 않았습니다.");
   const res = await fetch(`${base}/functions/v1/video-summary-worker`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-worker-secret": secret },
-    body: JSON.stringify({ videoId }),
+    body: JSON.stringify({ videoId, lang }),
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok && res.status !== 202) throw new Error(`요약 작업 시작 실패 (${res.status})`);
@@ -135,8 +143,8 @@ async function kickWorker(videoId: string) {
 export class SummaryRejectedError extends Error {}
 
 /** 요약 상태 조회 (없으면 null) */
-export async function getSummary(videoId: string): Promise<SummaryView | null> {
-  const job = await loadJob(videoId);
+export async function getSummary(videoId: string, lang: SummaryLang = "ko"): Promise<SummaryView | null> {
+  const job = await loadJob(videoId, lang);
   return job ? toView(job) : null;
 }
 
@@ -144,35 +152,61 @@ export async function getSummary(videoId: string): Promise<SummaryView | null> {
  * 작업이 없으면 만들고 워커를 깨운다. 진행 중인데 멈춘 것 같으면 다시 깨운다.
  * 현재 상태를 바로 돌려준다 (요약을 기다리지 않음).
  */
-export async function ensureSummary(videoId: string): Promise<SummaryView> {
-  let job = await loadJob(videoId);
+export async function ensureSummary(videoId: string, lang: SummaryLang = "ko"): Promise<SummaryView> {
+  let job = await loadJob(videoId, lang);
   let kick = false;
 
   if (!job) {
-    const meta = await getVideoMeta(videoId);
-    if (!meta) throw new SummaryRejectedError("영상을 찾을 수 없어요.");
-    if (meta.isLive) throw new SummaryRejectedError("라이브 방송은 요약할 수 없어요.");
-    if (meta.durationSec > MAX_VIDEO_SEC) throw new SummaryRejectedError("60분이 넘는 영상은 요약하지 않아요.");
-    const chunks: SummaryJob["chunks"] = [];
-    for (let start = 0; start < meta.durationSec; start += CHUNK_SEC) {
-      chunks.push({ start, end: Math.min(meta.durationSec, start + CHUNK_SEC), segments: null, attempts: 0 });
+    // 다른 언어 요약이 이미 받아쓰기를 끝냈으면 그 받아쓰기를 그대로 쓴다 (영상 처리 비용·시간 절약)
+    for (const other of (["ko", "en"] as const).filter((l) => l !== lang)) {
+      const sibling = await loadJob(videoId, other);
+      if (sibling && sibling.chunks.length > 0 && sibling.chunks.every((c) => c.segments)) {
+        job = {
+          ...sibling,
+          lang,
+          status: "summarizing",
+          chunks: sibling.chunks.map((c) => ({ ...c, attempts: 0 })),
+          draft: null,
+          attempts: 0,
+          summary: null,
+          error: null,
+          lockedUntil: 0,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+        break;
+      }
     }
-    job = {
-      v: 1,
-      videoId,
-      title: meta.title,
-      channelTitle: meta.channelTitle,
-      durationSec: meta.durationSec,
-      status: "transcribing",
-      chunks,
-      draft: null,
-      attempts: 0,
-      summary: null,
-      error: null,
-      lockedUntil: 0,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+
+    if (!job) {
+      const meta = await getVideoMeta(videoId);
+      // 메시지는 라우트에서 언어에 맞게 바꾼다 (코드만 던짐)
+      if (!meta) throw new SummaryRejectedError("notFound");
+      if (meta.isLive) throw new SummaryRejectedError("live");
+      if (meta.durationSec > MAX_VIDEO_SEC) throw new SummaryRejectedError("tooLong");
+      const chunks: SummaryJob["chunks"] = [];
+      for (let start = 0; start < meta.durationSec; start += CHUNK_SEC) {
+        chunks.push({ start, end: Math.min(meta.durationSec, start + CHUNK_SEC), segments: null, attempts: 0 });
+      }
+      job = {
+        v: 1,
+        videoId,
+        lang,
+        title: meta.title,
+        channelTitle: meta.channelTitle,
+        durationSec: meta.durationSec,
+        status: "transcribing",
+        chunks,
+        draft: null,
+        attempts: 0,
+        summary: null,
+        error: null,
+        lockedUntil: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+    }
+
     await saveJob(job);
     kick = true;
   } else if (job.status !== "done" && job.status !== "failed") {
@@ -180,15 +214,15 @@ export async function ensureSummary(videoId: string): Promise<SummaryView> {
     kick = job.lockedUntil < now && now - job.updatedAt > STALE_MS;
   }
 
-  if (kick) await kickWorker(videoId);
+  if (kick) await kickWorker(videoId, lang);
   return toView(job);
 }
 
 /** 실패한 요약을 지우고 다시 시도할 수 있게 */
-export async function resetFailedSummary(videoId: string) {
-  const job = await loadJob(videoId);
+export async function resetFailedSummary(videoId: string, lang: SummaryLang = "ko") {
+  const job = await loadJob(videoId, lang);
   if (!job || job.status !== "failed") return;
-  memory.delete(videoId);
+  memory.delete(memKey(videoId, lang));
   const admin = getSupabaseAdminClient();
-  if (admin) await admin.from("YOUTUBE_SEARCH_CACHE").delete().eq("query_key", keyOf(videoId));
+  if (admin) await admin.from("YOUTUBE_SEARCH_CACHE").delete().eq("query_key", keyOf(videoId, lang));
 }

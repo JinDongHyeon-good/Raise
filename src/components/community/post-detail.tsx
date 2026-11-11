@@ -1,24 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { PostTypeBadge } from "@/components/community/post-type-badge";
 import { formatDateTime, formatNumber, timeAgo } from "@/lib/community-format";
 import {
-  BOARD_POST_TYPE_LABELS,
+  boardPostTypeLabelKey,
   buildCommentThreads,
   type BoardCommentView,
   type BoardPostSummary,
 } from "@/lib/board-types";
+import { Link, useRouter } from "@/navigation";
 
 type Detail = { item: BoardPostSummary; comments: BoardCommentView[] };
 
-async function jsonFetch<T>(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: T }> {
+async function jsonFetch<T>(url: string, locale: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: T }> {
   const res = await fetch(url, {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "content-type": "application/json", "x-ui-locale": locale, ...(init?.headers ?? {}) },
   });
   const data = (await res.json().catch(() => ({}))) as T;
   return { ok: res.ok, status: res.status, data };
@@ -33,6 +33,8 @@ function HeartIcon({ filled }: { filled: boolean }) {
 }
 
 export function PostDetail({ postId }: { postId: string }) {
+  const t = useTranslations("community");
+  const locale = useLocale();
   const router = useRouter();
   const { me, requireLogin } = useAuth();
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -44,26 +46,26 @@ export function PostDetail({ postId }: { postId: string }) {
   const [registeredViews, setRegisteredViews] = useState<number | null>(null);
 
   const load = async () => {
-    const { ok, data } = await jsonFetch<Detail & { error?: string }>(`/api/board/posts/${postId}`, { cache: "no-store" });
-    if (!ok) return setError(data.error ?? "글을 불러오지 못했어요.");
+    const { ok, data } = await jsonFetch<Detail & { error?: string }>(`/api/board/posts/${postId}`, locale, { cache: "no-store" });
+    if (!ok) return setError(data.error ?? t("loadPostFailed"));
     setDetail({ item: data.item, comments: data.comments });
   };
 
   // 글 + 조회수 등록 (조회수는 서버가 사람당 하루 1회만 올림)
   useEffect(() => {
     let alive = true;
-    fetch(`/api/board/posts/${postId}`, { cache: "no-store" })
+    fetch(`/api/board/posts/${postId}`, { cache: "no-store", headers: { "x-ui-locale": locale } })
       .then(async (res) => {
         const data = (await res.json()) as Detail & { error?: string };
         if (!alive) return;
-        if (!res.ok) return setError(data.error ?? "글을 불러오지 못했어요.");
+        if (!res.ok) return setError(data.error ?? t("loadPostFailed"));
         setDetail({ item: data.item, comments: data.comments });
       })
-      .catch(() => alive && setError("글을 불러오지 못했어요."));
+      .catch(() => alive && setError(t("loadPostFailed")));
 
     if (!viewSent.current) {
       viewSent.current = true;
-      fetch(`/api/board/posts/${postId}/view`, { method: "POST" })
+      fetch(`/api/board/posts/${postId}/view`, { method: "POST", headers: { "x-ui-locale": locale } })
         .then((res) => (res.ok ? res.json() : null))
         .then((data: { view_count?: number } | null) => {
           if (alive && typeof data?.view_count === "number") setRegisteredViews(data.view_count);
@@ -73,6 +75,8 @@ export function PostDetail({ postId }: { postId: string }) {
     return () => {
       alive = false;
     };
+    // 언어가 바뀌어도 글을 다시 받을 필요는 없다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   // 로그인 상태가 바뀌면 내 좋아요 여부 다시 받기
@@ -94,7 +98,7 @@ export function PostDetail({ postId }: { postId: string }) {
       <main className="rz-container py-16 text-center">
         <p className="text-sm text-[var(--rz-muted)]">{error}</p>
         <Link href="/community" className="mt-4 inline-block text-sm underline">
-          목록으로
+          {t("backToList")}
         </Link>
       </main>
     );
@@ -124,7 +128,7 @@ export function PostDetail({ postId }: { postId: string }) {
     if (!requireLogin()) return;
     const liked = !post.liked_by_me;
     patchPost({ liked_by_me: liked, like_count: post.like_count + (liked ? 1 : -1) });
-    const { ok, data } = await jsonFetch<{ like_count?: number; error?: string }>(`/api/board/posts/${postId}/like`, {
+    const { ok, data } = await jsonFetch<{ like_count?: number; error?: string }>(`/api/board/posts/${postId}/like`, locale, {
       method: liked ? "POST" : "DELETE",
     });
     if (ok && typeof data.like_count === "number") patchPost({ liked_by_me: liked, like_count: data.like_count });
@@ -132,9 +136,9 @@ export function PostDetail({ postId }: { postId: string }) {
   };
 
   const deletePost = async () => {
-    if (!window.confirm("이 글을 삭제할까요?")) return;
-    const { ok, data } = await jsonFetch<{ error?: string }>(`/api/board/posts/${postId}`, { method: "DELETE" });
-    if (!ok) return window.alert(data.error ?? "삭제하지 못했어요.");
+    if (!window.confirm(t("confirmDeletePost"))) return;
+    const { ok, data } = await jsonFetch<{ error?: string }>(`/api/board/posts/${postId}`, locale, { method: "DELETE" });
+    if (!ok) return window.alert(data.error ?? t("deleteFailed"));
     router.push(`/community?type=${post.post_type}`);
   };
 
@@ -144,10 +148,11 @@ export function PostDetail({ postId }: { postId: string }) {
     if (!trimmed) return false;
     const { ok, data } = await jsonFetch<{ item?: BoardCommentView; error?: string }>(
       `/api/board/posts/${postId}/comments`,
+      locale,
       { method: "POST", body: JSON.stringify({ content: trimmed, parent_id: parentId }) },
     );
     if (!ok || !data.item) {
-      window.alert(data.error ?? "댓글을 남기지 못했어요.");
+      window.alert(data.error ?? t("commentFailed"));
       return false;
     }
     const created = data.item;
@@ -170,12 +175,12 @@ export function PostDetail({ postId }: { postId: string }) {
   };
 
   const editComment = async (comment: BoardCommentView, content: string) => {
-    const { ok, data } = await jsonFetch<{ item?: BoardCommentView; error?: string }>(`/api/board/comments/${comment.id}`, {
+    const { ok, data } = await jsonFetch<{ item?: BoardCommentView; error?: string }>(`/api/board/comments/${comment.id}`, locale, {
       method: "PATCH",
       body: JSON.stringify({ content }),
     });
     if (!ok || !data.item) {
-      window.alert(data.error ?? "수정하지 못했어요.");
+      window.alert(data.error ?? t("editFailed"));
       return false;
     }
     patchComment(comment.id, { content: data.item.content, updated_at: data.item.updated_at });
@@ -183,9 +188,9 @@ export function PostDetail({ postId }: { postId: string }) {
   };
 
   const deleteComment = async (comment: BoardCommentView) => {
-    if (!window.confirm("댓글을 삭제할까요?")) return;
-    const { ok, data } = await jsonFetch<{ error?: string }>(`/api/board/comments/${comment.id}`, { method: "DELETE" });
-    if (!ok) return window.alert(data.error ?? "삭제하지 못했어요.");
+    if (!window.confirm(t("confirmDeleteComment"))) return;
+    const { ok, data } = await jsonFetch<{ error?: string }>(`/api/board/comments/${comment.id}`, locale, { method: "DELETE" });
+    if (!ok) return window.alert(data.error ?? t("deleteFailed"));
     setDetail((prev) =>
       prev
         ? {
@@ -200,7 +205,7 @@ export function PostDetail({ postId }: { postId: string }) {
     if (!requireLogin()) return;
     const liked = !comment.liked_by_me;
     patchComment(comment.id, { liked_by_me: liked, like_count: comment.like_count + (liked ? 1 : -1) });
-    const { ok, data } = await jsonFetch<{ like_count?: number }>(`/api/board/comments/${comment.id}/like`, {
+    const { ok, data } = await jsonFetch<{ like_count?: number }>(`/api/board/comments/${comment.id}/like`, locale, {
       method: liked ? "POST" : "DELETE",
     });
     if (ok && typeof data.like_count === "number") patchComment(comment.id, { liked_by_me: liked, like_count: data.like_count });
@@ -210,7 +215,7 @@ export function PostDetail({ postId }: { postId: string }) {
   return (
     <main className="rz-container max-w-3xl py-6">
       <Link href={`/community?type=${post.post_type}`} className="text-xs text-[var(--rz-muted)] hover:text-[var(--rz-text)]">
-        ← {BOARD_POST_TYPE_LABELS[post.post_type]}
+        ← {t(boardPostTypeLabelKey(post.post_type))}
       </Link>
 
       <article className="mt-3 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)]">
@@ -221,12 +226,12 @@ export function PostDetail({ postId }: { postId: string }) {
           <h1 className="mt-2 text-lg font-bold leading-snug sm:text-xl">{post.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--rz-muted)]">
             <span className="text-[var(--rz-text)]">{post.author_nickname}</span>
-            <span>{formatDateTime(post.created_at)}</span>
-            {post.updated_at !== post.created_at ? <span>(수정됨)</span> : null}
+            <span>{formatDateTime(post.created_at, locale)}</span>
+            {post.updated_at !== post.created_at ? <span>{t("edited")}</span> : null}
             <span className="ml-auto flex gap-3">
-              <span>조회 {formatNumber(post.view_count)}</span>
-              <span>추천 {formatNumber(post.like_count)}</span>
-              <span>댓글 {formatNumber(post.comment_count)}</span>
+              <span>{t("views", { count: formatNumber(post.view_count, locale) })}</span>
+              <span>{t("likes", { count: formatNumber(post.like_count, locale) })}</span>
+              <span>{t("comments", { count: formatNumber(post.comment_count, locale) })}</span>
             </span>
           </div>
         </header>
@@ -245,15 +250,15 @@ export function PostDetail({ postId }: { postId: string }) {
             }`}
           >
             <HeartIcon filled={post.liked_by_me} />
-            추천 {formatNumber(post.like_count)}
+            {t("likes", { count: formatNumber(post.like_count, locale) })}
           </button>
           {isMine ? (
             <div className="flex gap-2 text-xs">
               <Link href={`/community/write?edit=${post.id}`} className="rounded-md border border-[var(--rz-line)] px-3 py-1.5 text-[var(--rz-muted)] hover:text-[var(--rz-text)]">
-                수정
+                {t("edit")}
               </Link>
               <button type="button" onClick={() => void deletePost()} className="rounded-md border border-[var(--rz-line)] px-3 py-1.5 text-[var(--rz-muted)] hover:text-[var(--rz-up)]">
-                삭제
+                {t("delete")}
               </button>
             </div>
           ) : null}
@@ -261,9 +266,9 @@ export function PostDetail({ postId }: { postId: string }) {
       </article>
 
       {/* 댓글 */}
-      <section className="mt-6" aria-label="댓글">
+      <section className="mt-6" aria-label={t("commentsTitle")}>
         <h2 className="mb-3 text-sm font-semibold">
-          댓글 <span className="text-[var(--rz-accent)]">{formatNumber(post.comment_count)}</span>
+          {t("commentsTitle")} <span className="text-[var(--rz-accent)]">{formatNumber(post.comment_count, locale)}</span>
         </h2>
 
         <form onSubmit={submitRoot} className="mb-4">
@@ -273,7 +278,7 @@ export function PostDetail({ postId }: { postId: string }) {
             onFocus={() => {
               if (!me) requireLogin();
             }}
-            placeholder={me ? "댓글을 남겨 주세요" : "로그인하고 댓글을 남겨 주세요"}
+            placeholder={me ? t("commentPlaceholder") : t("commentPlaceholderLogin")}
             maxLength={1000}
             rows={3}
             className="w-full resize-y rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] px-3 py-2 text-sm outline-none focus:border-[var(--rz-accent)]"
@@ -285,14 +290,14 @@ export function PostDetail({ postId }: { postId: string }) {
               disabled={submitting || !commentDraft.trim()}
               className="rounded-md bg-[var(--rz-accent)] px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
             >
-              등록
+              {t("submit")}
             </button>
           </div>
         </form>
 
         {threads.length === 0 ? (
           <p className="rounded-lg border border-dashed border-[var(--rz-line)] py-8 text-center text-sm text-[var(--rz-muted)]">
-            첫 댓글을 남겨 보세요.
+            {t("noComments")}
           </p>
         ) : (
           <ul className="divide-y divide-[var(--rz-line)] rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)]">
@@ -363,18 +368,20 @@ function CommentItem({
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(comment.content);
   const [busy, setBusy] = useState(false);
+  const t = useTranslations("community");
+  const locale = useLocale();
 
   if (comment.deleted) {
-    return <p className="text-sm text-[var(--rz-muted)]">삭제된 댓글입니다.</p>;
+    return <p className="text-sm text-[var(--rz-muted)]">{t("deletedComment")}</p>;
   }
 
   return (
     <div>
       <div className="flex items-center gap-2 text-xs">
         <span className="font-medium text-[var(--rz-text)]">{comment.author_nickname}</span>
-        {isPostAuthor ? <span className="rounded bg-[var(--rz-accent)]/15 px-1 text-[10px] text-[var(--rz-accent)]">작성자</span> : null}
-        <span className="text-[var(--rz-muted)]">{timeAgo(comment.created_at)}</span>
-        {comment.updated_at !== comment.created_at ? <span className="text-[var(--rz-muted)]">(수정됨)</span> : null}
+        {isPostAuthor ? <span className="rounded bg-[var(--rz-accent)]/15 px-1 text-[10px] text-[var(--rz-accent)]">{t("authorBadge")}</span> : null}
+        <span className="text-[var(--rz-muted)]">{timeAgo(comment.created_at, locale)}</span>
+        {comment.updated_at !== comment.created_at ? <span className="text-[var(--rz-muted)]">{t("edited")}</span> : null}
       </div>
 
       {editing ? (
@@ -388,7 +395,7 @@ function CommentItem({
           />
           <div className="mt-1 flex justify-end gap-2 text-xs">
             <button type="button" onClick={() => { setEditing(false); setEditDraft(comment.content); }} className="text-[var(--rz-muted)]">
-              취소
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -400,7 +407,7 @@ function CommentItem({
               }}
               className="rounded bg-[var(--rz-accent)] px-3 py-1 text-white disabled:opacity-40"
             >
-              저장
+              {t("save")}
             </button>
           </div>
         </div>
@@ -417,7 +424,7 @@ function CommentItem({
             className={`flex items-center gap-1 ${comment.liked_by_me ? "text-[var(--rz-up)]" : "hover:text-[var(--rz-text)]"}`}
           >
             <HeartIcon filled={comment.liked_by_me} />
-            {comment.like_count > 0 ? formatNumber(comment.like_count) : "좋아요"}
+            {comment.like_count > 0 ? formatNumber(comment.like_count, locale) : t("like")}
           </button>
           {canReply ? (
             <button
@@ -428,16 +435,16 @@ function CommentItem({
               }}
               className="hover:text-[var(--rz-text)]"
             >
-              답글
+              {t("reply")}
             </button>
           ) : null}
           {isMine ? (
             <>
               <button type="button" onClick={() => setEditing(true)} className="hover:text-[var(--rz-text)]">
-                수정
+                {t("edit")}
               </button>
               <button type="button" onClick={onDelete} className="hover:text-[var(--rz-up)]">
-                삭제
+                {t("delete")}
               </button>
             </>
           ) : null}
@@ -462,11 +469,11 @@ function CommentItem({
             value={replyDraft}
             onChange={(e) => setReplyDraft(e.target.value)}
             maxLength={1000}
-            placeholder={`${comment.author_nickname}님에게 답글`}
+            placeholder={t("replyPlaceholder", { name: comment.author_nickname })}
             className="min-w-0 flex-1 rounded-lg border border-[var(--rz-line)] bg-[var(--rz-bg)] px-3 py-1.5 text-sm outline-none focus:border-[var(--rz-accent)]"
           />
           <button type="submit" disabled={busy || !replyDraft.trim()} className="rounded-lg bg-[var(--rz-accent)] px-3 text-sm text-white disabled:opacity-40">
-            등록
+            {t("submit")}
           </button>
         </form>
       ) : null}
