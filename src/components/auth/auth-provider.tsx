@@ -65,10 +65,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(() => {
     const supabase = getSupabaseBrowserClientSafe();
-    // /auth/signout 은 언어 라우팅 밖의 라우트 핸들러 — 끝나면 "/" 로 보낸다
-    void supabase?.auth.signOut().finally(() => {
-      window.location.assign("/auth/signout");
-    });
+    // 서버 쿠키도 지우도록 /auth/signout 에 POST (GET 으로는 로그아웃되지 않음) — 끝나면 "/" 로
+    void (supabase?.auth.signOut() ?? Promise.resolve())
+      .then(() => fetch("/auth/signout", { method: "POST", credentials: "same-origin" }))
+      .catch(() => undefined)
+      .finally(() => {
+        window.location.assign("/");
+      });
   }, []);
 
   const setNickname = useCallback((nickname: string) => {

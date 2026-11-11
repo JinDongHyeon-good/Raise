@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import {
   hydrateComments,
   hydratePostSummaries,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postLoadFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.postLoadFailed")) }, { status: 500 });
   }
 }
 
@@ -77,13 +77,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .select(BOARD_POST_SELECT)
       .maybeSingle<BoardPostRow>();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
     if (!data) return NextResponse.json({ error: t("board.noEditPermission") }, { status: 403 });
 
     const [item] = await hydratePostSummaries(supabase, [data], user.id, { includeContent: true });
     return NextResponse.json({ item });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postUpdateFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.postUpdateFailed")) }, { status: 500 });
   }
 }
 
@@ -101,10 +101,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .is("deleted_at", null)
       .select("id");
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
     if (!data?.length) return NextResponse.json({ error: t("board.noDeletePermission") }, { status: 403 });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postDeleteFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.postDeleteFailed")) }, { status: 500 });
   }
 }

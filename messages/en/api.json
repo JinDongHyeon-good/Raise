@@ -92,5 +92,20 @@
     "emptyResponse": "Gemini returned an empty response. ({model})",
     "timeout": "AI analysis timed out. Please try again in a moment.",
     "unexpected": "An error occurred during Gemini analysis."
+  },
+  "searchKeywords": {
+    "loginRequired": "Sign in to add keywords.",
+    "empty": "Enter a keyword.",
+    "duplicate": "You already added this keyword.",
+    "full": "You can add up to {max} keywords.",
+    "failed": "Couldn't save the keyword. Please try again."
+  },
+  "common": {
+    "serverError": "Something went wrong. Please try again shortly."
+  },
+  "preferences": {
+    "loginRequired": "Please sign in.",
+    "invalid": "Invalid settings.",
+    "saveFailed": "Couldn't save your settings."
   }
 }

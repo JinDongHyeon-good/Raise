@@ -2,10 +2,18 @@ import { NextResponse } from "next/server";
 import { ensureUserProfileOnAuth } from "@/lib/ensure-user-profile-server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 
-function getSafeNextPath(raw: string | null) {
+function getSafeNextPath(raw: string | null | undefined) {
   if (!raw) return "/";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
-  return raw;
+  // "/" 로 시작하는 같은 사이트 경로만. "//", "/\\", 제어문자는 다른 사이트로 해석될 수 있어 거절
+  if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(raw)) return "/";
+  try {
+    const base = "https://same-origin.invalid";
+    const url = new URL(raw, base);
+    if (url.origin !== base) return "/";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/";
+  }
 }
 
 function buildAbsoluteRedirectUrl(request: Request, pathWithQuery: string) {

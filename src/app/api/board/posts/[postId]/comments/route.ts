@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { hydrateComments, requireSessionUser } from "@/lib/board-server";
 import { BOARD_COMMENT_SELECT, type BoardCommentRow } from "@/lib/board-types";
 
@@ -51,10 +51,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .select(BOARD_COMMENT_SELECT)
       .single<BoardCommentRow>();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
     const [item] = await hydrateComments(supabase, [data], user.id);
     return NextResponse.json({ item }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.commentCreateFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.commentCreateFailed")) }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { hydratePostSummaries, isEmptyHtml, requireSessionUser, sanitizePostHtml } from "@/lib/board-server";
 import {
   BOARD_POST_LIST_SELECT,
@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
     query = query.order("created_at", { ascending: false }).range(from, to);
 
     const { data, error, count } = await query;
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
 
     const items = await hydratePostSummaries(supabase, (data ?? []) as BoardPostRow[], user?.id);
     return NextResponse.json({ items, page, limit, total: count ?? 0 });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postsLoadFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.postsLoadFailed")) }, { status: 500 });
   }
 }
 
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
       .select(BOARD_POST_SELECT)
       .single<BoardPostRow>();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
     const [post] = await hydratePostSummaries(supabase, [data], user.id, { includeContent: true });
     return NextResponse.json({ item: post }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.postCreateFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.postCreateFailed")) }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 import { getChannelVideos, YoutubeQuotaError, type YoutubeVideo } from "@/lib/youtube";
 
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
   const only = new URL(request.url).searchParams.get("channelId");
   const { data, error } = await supabase.from("FAVORITE_CHANNELS").select("channel_id").eq("user_auth_id", user.id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
   const channelIds = ((data ?? []) as Array<{ channel_id: string }>)
     .map((r) => r.channel_id)
     .filter((id) => !only || id === only);

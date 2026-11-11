@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 import { getChannelMeta, isChannelId } from "@/lib/youtube";
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     .select("channel_id, channel_title, thumbnail, created_at")
     .eq("user_auth_id", user.id)
     .order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
   const items = ((data ?? []) as FavoriteRow[]).map((r) => ({ id: r.channel_id, title: r.channel_title, thumbnail: r.thumbnail }));
   return NextResponse.json({ items }, { headers: { "Cache-Control": "no-store" } });
 }
@@ -55,6 +55,6 @@ export async function DELETE(request: NextRequest) {
   const channelId = new URL(request.url).searchParams.get("channelId") ?? "";
   if (!isChannelId(channelId)) return NextResponse.json({ error: t("youtubeFavorites.invalidChannel") }, { status: 400 });
   const { error } = await supabase.from("FAVORITE_CHANNELS").delete().eq("user_auth_id", user.id).eq("channel_id", channelId);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

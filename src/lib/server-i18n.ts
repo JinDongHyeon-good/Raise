@@ -52,3 +52,13 @@ export function apiTranslator(request: Request | NextRequest) {
   const t = (key: string, vars?: Record<string, string | number>) => apiT(locale, key, vars);
   return Object.assign(t, { locale });
 }
+
+/**
+ * 내부 오류 내용(DB 제약 이름, 외부 API 응답 등)은 서버 로그에만 남기고, 화면에는 일반 문구만 보낸다.
+ * 예: NextResponse.json({ error: hideError(error, t("board.postCreateFailed")) }, { status: 500 })
+ */
+export function hideError(detail: unknown, message: string) {
+  const text = detail instanceof Error ? detail.message : typeof detail === "object" && detail && "message" in detail ? String((detail as { message: unknown }).message) : String(detail);
+  console.error("[api]", text);
+  return message;
+}

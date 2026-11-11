@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 
 export const runtime = "nodejs";
@@ -40,6 +40,6 @@ export async function POST(request: NextRequest) {
     const { data } = supabase.storage.from("board-images").getPublicUrl(objectPath);
     return NextResponse.json({ url: data.publicUrl, path: objectPath });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : t("board.imageUploadFailed") }, { status: 500 });
+    return NextResponse.json({ error: hideError(e, t("board.imageUploadFailed")) }, { status: 500 });
   }
 }

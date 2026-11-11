@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiTranslator } from "@/lib/server-i18n";
+import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 import { ensureUserProfileOnAuth } from "@/lib/ensure-user-profile-server";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
@@ -47,6 +47,6 @@ export async function PATCH(request: NextRequest) {
     .from("USER_MST")
     .update({ nickname, updated_at: new Date().toISOString() })
     .eq("auth_id", user.id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
   return NextResponse.json({ nickname });
 }

@@ -264,7 +264,8 @@ export async function POST(request: NextRequest) {
 
     // 출처·로그인·이메일 인증·하루 한도(사용자/IP/전체)·차단 목록 (같은 날 같은 코인·주기는 한 번만 셈)
     const { user } = await requireSessionUser();
-    const guard = await guardAiRequest(request, user, "chart-analysis", `${body.market}:${body.symbol}:${body.interval}`);
+    // 캔들을 요청에서 받으므로 "같은 날 같은 대상은 다시 세지 않음" 규칙을 쓰면 캔들만 바꿔 무제한 호출이 된다 → 매 호출을 센다
+    const guard = await guardAiRequest(request, user, "chart-analysis", `${body.market}:${body.symbol}:${body.interval}:${crypto.randomUUID()}`);
     if (!guard.ok) return guard.response;
 
     cleanupCaches();

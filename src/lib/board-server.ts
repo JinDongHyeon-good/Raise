@@ -74,7 +74,7 @@ export async function hydratePostSummaries(
 
   return posts.map(({ content_html, ...post }) => ({
     ...post,
-    ...(options.includeContent ? { content_html } : {}),
+    ...(options.includeContent ? { content_html: sanitizePostHtml(content_html ?? "") } : {}),
     post_type: parseBoardPostType(post.post_type),
     view_count: Number(post.view_count ?? 0),
     like_count: Number(post.like_count ?? 0),

@@ -92,5 +92,20 @@
     "emptyResponse": "Gemini 응답이 비어 있습니다. ({model})",
     "timeout": "AI 분석 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.",
     "unexpected": "Gemini 분석 중 오류가 발생했습니다."
+  },
+  "searchKeywords": {
+    "loginRequired": "로그인하고 키워드를 추가할 수 있어요.",
+    "empty": "키워드를 입력해 주세요.",
+    "duplicate": "이미 추가한 키워드예요.",
+    "full": "키워드는 최대 {max}개까지 추가할 수 있어요.",
+    "failed": "키워드를 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
+  },
+  "common": {
+    "serverError": "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
+  },
+  "preferences": {
+    "loginRequired": "로그인이 필요해요.",
+    "invalid": "잘못된 설정이에요.",
+    "saveFailed": "설정을 저장하지 못했어요."
   }
 }

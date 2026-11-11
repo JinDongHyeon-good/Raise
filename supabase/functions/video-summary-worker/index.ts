@@ -716,7 +716,8 @@ Deno.serve(async (req) => {
   const videoId = body.videoId ?? "";
   if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return new Response("Bad Request", { status: 400 });
 
-  const work = run(videoId, lang, Number(body.hop) || 0).catch((error) => console.error("run failed", videoId, String(error)));
+  const hop = Math.min(Math.max(0, Math.floor(Number(body.hop) || 0)), 40);
+  const work = run(videoId, lang, hop).catch((error) => console.error("run failed", videoId, String(error)));
   if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work);
   else await work;
   return new Response(JSON.stringify({ accepted: true }), { status: 202, headers: { "content-type": "application/json" } });

@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
 
   try {
     // 출처·로그인·이메일 인증·하루 한도(사용자/IP/전체)·차단 목록
-    const guard = await guardAiRequest(request, user, "video-summary", videoId);
+    // 실패한 요약 "다시 시도"는 받아쓰기부터 다시 하므로 새 사용으로 센다 (같은 영상 재조회는 세지 않음)
+    const guard = await guardAiRequest(request, user, "video-summary", body.retry ? `${videoId}:retry:${crypto.randomUUID()}` : videoId);
     if (!guard.ok) return guard.response;
     const quota = guard.quota;
 
