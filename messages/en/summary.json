@@ -22,7 +22,6 @@
   "levelsTitle": "Price levels mentioned",
   "disclaimerMethod": "AI transcribed the video, summarized only that content, and double-checked each item against the transcript.",
   "disclaimerDropped": "{count, plural, one {# item} other {# items}} that couldn't be verified against the transcript were removed.",
-  "disclaimerTail": "Tap a timestamp to jump to that scene. The summary reflects the speaker's claims and is not investment advice.",
   "hideTranscript": "Hide transcript",
   "showTranscript": "Show transcript ({count, plural, one {# paragraph} other {# paragraphs}})",
   "quotaBonusCta": "Sign up on Bybit with our code for 20 summaries a day",
@@ -38,5 +37,7 @@
   },
   "overviewTitleInfo": "Summary",
   "pointsTitleAnalysis": "Speaker's claims and reasons",
-  "pointsTitleInfo": "Key points"
+  "pointsTitleInfo": "Key points",
+  "disclaimerSeek": "Tap a timestamp to jump to that scene.",
+  "disclaimerNotice": "The summary reflects the speaker's claims and is not investment advice."
 }

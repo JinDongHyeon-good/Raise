@@ -380,8 +380,10 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
           ) : null}
 
           <div className="rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)]/70 p-3 text-[11px] leading-5 text-[var(--rz-muted)]">
-            {t("disclaimerMethod")}
-            {summary.dropped > 0 ? ` ${t("disclaimerDropped", { count: summary.dropped })}` : ""} {t("disclaimerTail")}
+            <p>{t("disclaimerMethod")}</p>
+            {summary.dropped > 0 ? <p>{t("disclaimerDropped", { count: summary.dropped })}</p> : null}
+            <p>{t("disclaimerSeek")}</p>
+            <p>{t("disclaimerNotice")}</p>
           </div>
 
         </div>

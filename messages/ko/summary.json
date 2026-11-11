@@ -22,7 +22,6 @@
   "levelsTitle": "영상에서 언급된 가격대",
   "disclaimerMethod": "AI가 영상을 받아쓴 뒤 그 내용만으로 요약했고, 각 항목이 받아쓴 원문과 맞는지 한 번 더 확인했어요.",
   "disclaimerDropped": "원문으로 확인되지 않은 {count}개 항목은 뺐어요.",
-  "disclaimerTail": "시간을 누르면 그 장면부터 볼 수 있어요. 요약은 영상 화자의 주장이며 투자 권유가 아니에요.",
   "hideTranscript": "받아쓴 원문 접기",
   "showTranscript": "받아쓴 원문 보기 ({count}문단)",
   "quotaBonusCta": "바이비트 추천인 가입하고 하루 20회로 늘리기",
@@ -38,5 +37,7 @@
   },
   "overviewTitleInfo": "핵심 요약",
   "pointsTitleAnalysis": "화자의 주장과 근거",
-  "pointsTitleInfo": "주요 내용"
+  "pointsTitleInfo": "주요 내용",
+  "disclaimerSeek": "시간을 누르면 그 장면부터 볼 수 있어요.",
+  "disclaimerNotice": "요약은 영상 화자의 주장이며 투자 권유가 아니에요."
 }
