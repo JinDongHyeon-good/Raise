@@ -9,7 +9,7 @@
   "copied": "Copied",
   "copyCode": "Copy",
   "pageEyebrow": "Bybit Exchange",
-  "pageTitle": "Bybit Referral Code XQZZ6O",
+  "pageTitle": "Bybit Referral Code XQZZ6O – How to Sign Up",
   "pageCodeLine": "Bybit referral code",
   "aboutTitle": "What is the Bybit referral?",
   "aboutBody1": "Bybit is a global crypto exchange. Sign up with invite code <code></code> via a referral link to share rewards with the referrer.",
@@ -42,5 +42,24 @@
   "promoTitle": "Trade while you watch charts?",
   "promoBody": "Bybit sign-up guide with referral code XQZZ6O.",
   "promoCta": "View sign-up guide",
-  "breadcrumbHome": "Home"
+  "breadcrumbHome": "Home",
+  "bonus": {
+    "eyebrow": "Referral bonus",
+    "title": "Sign up with our referral and get 20 AI summaries a day",
+    "lead": "Sign up for Bybit with our referral code, then send us the email you signed up with. Once we've confirmed it, we'll raise your JindongCoin AI video summary limit.",
+    "limitLabel": "AI summaries per day",
+    "limitFrom": "5",
+    "limitTo": "20",
+    "step1": "Sign up for Bybit with the button above or referral code {code}.",
+    "step2": "Use the button below to send us your Bybit sign-up email and your JindongCoin login email.",
+    "step3": "We check your sign-up by email, then raise your AI summary limit to 20 a day.",
+    "cta": "Send my sign-up email",
+    "ctaHint": "If your mail app doesn't open, send it to:",
+    "mailSubject": "[20 AI summaries request] Bybit referral sign-up",
+    "mailBody": "Hi, I signed up for Bybit with your referral (code {code}).\n\nBybit sign-up email: \nJindongCoin login email: \n\nPlease raise my AI summaries to 20 a day.",
+    "note": "We review requests by hand, which can take 1–3 business days. Only accounts created with our referral code qualify, and the offer may change. We use your email only to confirm your sign-up."
+  },
+  "pageTitleLine1": "Bybit Referral Code XQZZ6O",
+  "pageTitleLine2": "How to Sign Up",
+  "availabilityLink": "See Bybit's official list of restricted countries →"
 }

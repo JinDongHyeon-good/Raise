@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { BybitAiBonus } from "@/components/raise/bybit-ai-bonus";
 import { BybitReferralCard } from "@/components/raise/bybit-referral-card";
 import { BybitSignupManual } from "@/components/raise/bybit-signup-manual";
 import { BybitStickyCta } from "@/components/raise/bybit-sticky-cta";
@@ -8,7 +9,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { localizedPath } from "@/i18n/routing";
 import { getLocalizedBrandName, getSiteUrl } from "@/lib/brand";
 import { BYBIT_REFERRAL, BYBIT_REFERRAL_KEYWORDS_EN, BYBIT_REFERRAL_KEYWORDS_KO } from "@/lib/bybit-referral";
-import { getBybitSignupManual } from "@/lib/bybit-signup-manual";
+import { BYBIT_RESTRICTED_COUNTRIES_URL, getBybitSignupManual } from "@/lib/bybit-signup-manual";
 import { buildPageMetadata } from "@/lib/seo";
 import { toRoutedLocale } from "@/lib/seo-i18n";
 
@@ -99,7 +100,13 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
                 isEn ? "text-[1.45rem] leading-snug sm:text-[1.85rem] sm:leading-tight" : "text-[1.65rem] sm:text-3xl"
               }`}
             >
-              {t("pageTitle")}
+              {t("pageTitleLine1")}
+              {t("pageTitleLine2") ? (
+                <>
+                  <br />
+                  {t("pageTitleLine2")}
+                </>
+              ) : null}
             </h1>
             <p className={`text-sm text-[var(--rz-muted)] ${isEn ? "leading-snug sm:leading-relaxed" : "leading-relaxed"}`}>
               {t("pageLead")}
@@ -132,6 +139,8 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
 
           <BybitReferralCard />
 
+          <BybitAiBonus locale={locale} />
+
           <section
             aria-labelledby="bybit-availability"
             className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-4 text-sm leading-6 text-[var(--rz-muted)] sm:p-5"
@@ -140,6 +149,14 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
               {t("availabilityTitle")}
             </h2>
             <p>{t("availabilityBody")}</p>
+            <a
+              href={BYBIT_RESTRICTED_COUNTRIES_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-xs font-medium text-amber-200 underline-offset-2 hover:underline"
+            >
+              {t("availabilityLink")}
+            </a>
           </section>
 
           <BybitSignupManual />

@@ -14,7 +14,7 @@ export const BYBIT_SIGNUP_PREP = [
   "계속 사용할 이메일(권장) 또는 휴대폰 번호를 준비하세요.",
   "실제 거주 국가를 선택하세요. 서비스 제한 국가면 가입이 막힐 수 있습니다.",
   `추천인(레퍼럴) 코드 ${BYBIT_REFERRAL.code}는 계정 생성 전에 입력·확인하세요.`,
-  "KYC용 본인 명의 신분증 실물을 준비하세요. (캡처본·편집본은 거절될 수 있음)",
+  "KYC용 본인 명의 신분증 실물을 준비하세요. Bybit는 실물 신분증 촬영만 받으며 스캔본·사본·캡처본은 받지 않습니다.",
 ] as const;
 
 export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
@@ -58,7 +58,7 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
     summary: "이메일/SMS 인증 후 비밀번호를 만듭니다.",
     details: [
       "이메일 또는 휴대폰으로 온 인증 코드를 입력합니다. (스팸함도 확인)",
-      "비밀번호는 보통 8–30자, 대문자·소문자·숫자 조합을 요구합니다.",
+      "화면에 표시되는 비밀번호 조건(길이, 대문자·소문자·숫자 조합 등)에 맞게 만듭니다.",
       "다른 사이트와 다른 비밀번호를 쓰고, 비밀번호 관리자를 활용하세요.",
     ],
   },
@@ -70,8 +70,8 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
       "대시보드의 Get Verified / 신원 인증에서 진행합니다.",
       "정부 발급 신분증 촬영 + 얼굴(셀피) 인증이 일반적입니다.",
       "이름·생년월일 등 입력값이 신분증과 일치해야 합니다.",
-      "Bybit는 Standard / Advanced / Pro 등 단계로 안내할 수 있습니다. 기본(Standard)만으로도 입출금·거래가 가능한 경우가 많습니다.",
-      "심사는 보통 수분~수십 분, 복잡한 경우 더 걸릴 수 있습니다.",
+      "인증은 Standard / Advanced (지역에 따라 Pro) 단계로 나뉘며, Bybit의 모든 상품·서비스를 쓰려면 최소 Standard 인증이 필요합니다.",
+      "심사는 보통 약 15분 걸리며, 경우에 따라 최대 48시간까지 걸릴 수 있습니다.",
     ],
     tip: "빛 반사·흐림 없이 신분증 네 모서리가 나오게 촬영하세요.",
   },
@@ -107,8 +107,12 @@ export const BYBIT_SIGNUP_FAQ = [
     a: "신규 가입자 보상·이벤트는 Bybit 정책에 따라 수시로 바뀝니다. 가입 화면과 Bybit 이벤트(Rewards Hub) 페이지에서 현재 혜택을 확인하세요. 추천인 코드를 넣어도 이용자에게 추가 수수료는 붙지 않습니다.",
   },
   {
+    q: "레퍼럴로 가입하면 찐동코인 AI 요약이 늘어나나요?",
+    a: `네. 추천인 코드 ${BYBIT_REFERRAL.code}로 Bybit에 가입한 뒤, 이 페이지의 '가입 이메일 보내기'로 Bybit 가입 이메일과 찐동코인 로그인 이메일을 보내 주세요. 운영자가 확인한 뒤 AI 요약 한도를 하루 5회에서 20회로 늘려 드립니다(영업일 1~3일).`,
+  },
+  {
     q: "한국에서도 바이비트에 가입할 수 있나요?",
-    a: "이용 가능 여부는 국가·지역마다 다르고, Bybit는 일부 국가에서 서비스를 제공하지 않습니다. 거주 국가의 규제나 금융당국 안내에 따라 이용이 제한될 수 있으니, 가입 전 Bybit의 이용 제한 국가 목록과 관련 안내를 확인하세요.",
+    a: "이용 가능 여부는 국가·지역마다 다르고, Bybit는 미국·캐나다·중국 본토 등 일부 국가에서 서비스를 제공하지 않습니다. 거주 국가의 규제나 금융당국 안내에 따라 이용이 제한될 수 있으니, 가입 전 Bybit 공식 '서비스 제한 국가' 안내와 거주 국가의 관련 안내를 확인하세요.",
   },
   {
     q: "가입 후에 추천인 코드를 넣을 수 있나요?",
@@ -120,13 +124,15 @@ export const BYBIT_SIGNUP_FAQ = [
   },
   {
     q: "KYC 없이도 쓸 수 있나요?",
-    a: "미인증 계정은 입금·거래·출금이 크게 제한됩니다. 실사용을 위해서는 KYC 완료를 권장합니다.",
+    a: "Bybit는 모든 상품·서비스 이용에 최소 Standard 본인인증(KYC)을 요구합니다. 가입 후 신분증 촬영과 얼굴 인증을 마쳐야 입금·거래·출금을 제대로 쓸 수 있어요.",
   },
   {
     q: "이 페이지의 링크는 뭔가요?",
     a: `제휴(레퍼럴) 링크입니다. 코드 ${BYBIT_REFERRAL.code}로 가입하면 추천 보상이 적용될 수 있으며, 이용자에게 별도 수수료가 붙지는 않습니다. 투자 권유가 아닙니다.`,
   },
 ] as const;
+
+export const BYBIT_RESTRICTED_COUNTRIES_URL = "https://www.bybit.com/en/help-center/article/Service-Restricted-Countries";
 
 export const BYBIT_OFFICIAL_GUIDE_URL =
   "https://www.bybit.com/en/learn/bybit-guide/create-a-bybit-account";
@@ -138,7 +144,7 @@ export const BYBIT_SIGNUP_PREP_EN = [
   "Have an email (recommended) or phone you'll keep using.",
   "Choose the country you actually live in. Restricted countries may block sign-up.",
   `Enter and double-check referral code ${BYBIT_REFERRAL.code} before creating the account.`,
-  "Have a physical government ID ready for KYC. (Screenshots/edits may be rejected.)",
+  "Have a physical government ID ready for KYC. Bybit accepts photos of physical documents only — no scans, copies or screenshots.",
 ] as const;
 
 export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
@@ -182,7 +188,7 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
     summary: "Verify via email/SMS, then create a password.",
     details: [
       "Enter the code sent to email or phone. (Check spam too.)",
-      "Passwords usually need 8–30 chars with upper, lower, and numbers.",
+      "Create a password that meets the rules shown on screen (length, upper/lowercase, numbers, etc.).",
       "Don't reuse passwords; a password manager helps.",
     ],
   },
@@ -194,8 +200,8 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
       "Start from Get Verified on the dashboard.",
       "Usually a government ID photo plus a selfie check.",
       "Name, DOB, and details must match your ID.",
-      "Levels may include Standard / Advanced / Pro. Standard often allows deposits, withdrawals, and trading.",
-      "Review is often minutes to tens of minutes; complex cases take longer.",
+      "Levels are Standard / Advanced (plus Pro in some regions); at least Standard is required for any Bybit product or service.",
+      "Review usually takes about 15 minutes, but can take up to 48 hours.",
     ],
     tip: "Shoot ID with all four corners visible — no glare or blur.",
   },
@@ -231,8 +237,12 @@ export const BYBIT_SIGNUP_FAQ_EN = [
     a: "New-user rewards change under Bybit policy. Check the sign-up screen and Rewards Hub. Referral adds no extra fees for you.",
   },
   {
+    q: "Do I get more AI summaries for signing up?",
+    a: `Yes. Sign up for Bybit with referral code ${BYBIT_REFERRAL.code}, then use 'Send my sign-up email' on this page to send your Bybit sign-up email and JindongCoin login email. Once we confirm it, we'll raise your AI summary limit from 5 to 20 a day (1–3 business days).`,
+  },
+  {
     q: "Is Bybit available in my country?",
-    a: "Depends on region. Some places (e.g. US) aren't served. Check Bybit's restricted list and local rules before signing up.",
+    a: "Depends on region. Bybit doesn't serve some places, including the US, Canada and mainland China. Check Bybit's official Service Restricted Countries page and local rules before signing up.",
   },
   {
     q: "Can I add a code after sign-up?",
@@ -244,7 +254,7 @@ export const BYBIT_SIGNUP_FAQ_EN = [
   },
   {
     q: "Can I use it without KYC?",
-    a: "Unverified accounts are heavily limited for deposits, trading, and withdrawals. Complete KYC for real use.",
+    a: "Bybit requires at least Standard identity verification (KYC) for all products and services. Finish the ID photo and face check to deposit, trade and withdraw.",
   },
   {
     q: "What is the link on this page?",
