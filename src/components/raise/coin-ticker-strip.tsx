@@ -18,10 +18,10 @@ export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }:
   const locale = useLocale();
   const { setNode: rowRef, update: onRowScroll, edge: rowEdge, slide: slideRow } = useHScroll([coins]);
   return (
-    <div className="border-b border-[var(--rz-line)] bg-[var(--rz-bg-elevated)]">
+    <div className="bg-[var(--rz-bg-elevated)]">
       <div className="rz-container">
         {toolbar ? <div className="w-full pt-3">{toolbar}</div> : null}
-        <ScrollArrows edge={rowEdge} onSlide={slideRow} className="flex items-center justify-end gap-2 pt-2.5 sm:hidden" />
+        <div className="relative">
         <div
           ref={rowRef}
           onScroll={onRowScroll}
@@ -57,6 +57,8 @@ export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }:
               </button>
             );
           })}
+        </div>
+        <ScrollArrows edge={rowEdge} onSlide={slideRow} />
         </div>
       </div>
     </div>

@@ -355,11 +355,11 @@ export function VideoSection({
         }}
       />
 
-      <ScrollArrows edge={chipEdge} onSlide={slideChips} className="mb-2 flex items-center justify-end gap-2 sm:hidden" />
+      <div className="relative mb-4">
       <div
         ref={chipRowRef}
         onScroll={onChipScroll}
-        className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           onClick={() => {
@@ -442,6 +442,8 @@ export function VideoSection({
             </button>
           );
         })}
+      </div>
+      <ScrollArrows edge={chipEdge} onSlide={slideChips} />
       </div>
 
 

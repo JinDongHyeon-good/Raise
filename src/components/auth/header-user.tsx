@@ -20,14 +20,14 @@ export function HeaderUser() {
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  if (loading) return <span className="h-8 w-14" aria-hidden />;
+  if (loading) return <span className="block h-10 w-16" aria-hidden />;
 
   if (!me) {
     return (
       <button
         type="button"
         onClick={openLogin}
-        className="rounded-lg border border-[var(--rz-line-strong)] bg-transparent px-3.5 py-2 text-xs font-medium text-white/85 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
+        className="inline-flex h-10 min-w-16 items-center justify-center rounded-lg border border-[var(--rz-line-strong)] bg-transparent px-3.5 text-xs font-medium text-white/85 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
       >
         {t("login")}
       </button>
@@ -57,7 +57,7 @@ export function HeaderUser() {
         aria-expanded={open}
         aria-label={me.nickname}
         title={me.nickname}
-        className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] text-[var(--rz-text)] transition hover:border-[var(--rz-line-strong)] hover:bg-[var(--rz-panel-2)]"
+        className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] text-[var(--rz-text)] transition hover:border-[var(--rz-line-strong)] hover:bg-[var(--rz-panel-2)]"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
           <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.8" />

@@ -57,29 +57,36 @@ function Arrow({ dir }: { dir: "left" | "right" }) {
 }
 
 /**
- * 좌우 버튼 한 쌍. 끝에 닿은 쪽은 흐리게. 기본은 모바일에서만 (sm 이상 숨김)
- * 레이아웃이 흔들리지 않도록 넘칠 게 없어도 자리는 항상 차지한다 (버튼만 비활성)
+ * 슬라이더 위에 떠 있는 좌우 버튼 (흰 원 + 검은 화살표). 모바일에서만 (sm 이상 숨김)
+ * 감싸는 요소에 relative 를 주고 슬라이더와 같은 곳에 둔다. 끝에 닿은 쪽 버튼은 사라진다.
+ * 떠 있는 요소라 나타나거나 사라져도 레이아웃이 움직이지 않는다.
  */
-export function ScrollArrows({
-  edge,
-  onSlide,
-  className = "flex items-center justify-end gap-2 sm:hidden",
-}: {
-  edge: { left: boolean; right: boolean };
-  onSlide: (dir: -1 | 1) => void;
-  className?: string;
-}) {
+export function ScrollArrows({ edge, onSlide }: { edge: { left: boolean; right: boolean }; onSlide: (dir: -1 | 1) => void }) {
   const t = useTranslations("common");
   const cls =
-    "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--rz-line-strong)] bg-[var(--rz-panel)] text-[var(--rz-text)] transition active:scale-95 disabled:opacity-30";
+    "absolute top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_14px_rgb(0_0_0_/_0.45)] transition-opacity duration-200 active:scale-95 sm:hidden";
   return (
-    <div className={className}>
-      <button type="button" onClick={() => onSlide(-1)} disabled={edge.left} aria-label={t("slidePrev")} className={cls}>
+    <>
+      <button
+        type="button"
+        onClick={() => onSlide(-1)}
+        aria-label={t("slidePrev")}
+        aria-hidden={edge.left}
+        tabIndex={edge.left ? -1 : 0}
+        className={`${cls} left-1 ${edge.left ? "pointer-events-none opacity-0" : "opacity-100"}`}
+      >
         <Arrow dir="left" />
       </button>
-      <button type="button" onClick={() => onSlide(1)} disabled={edge.right} aria-label={t("slideNext")} className={cls}>
+      <button
+        type="button"
+        onClick={() => onSlide(1)}
+        aria-label={t("slideNext")}
+        aria-hidden={edge.right}
+        tabIndex={edge.right ? -1 : 0}
+        className={`${cls} right-1 ${edge.right ? "pointer-events-none opacity-0" : "opacity-100"}`}
+      >
         <Arrow dir="right" />
       </button>
-    </div>
+    </>
   );
 }

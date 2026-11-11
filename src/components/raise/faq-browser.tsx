@@ -85,15 +85,7 @@ export function FaqBrowser({ categories, items, labels }: { categories: FaqCateg
         const shown = catItems.some((item) => visible.has(item.id));
         return (
           <section key={cat.id} id={`faq-${cat.id}`} hidden={!shown} className="scroll-mt-24">
-            <h2 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-[var(--rz-text)]">
-              <span
-                aria-hidden
-                className="grid h-6 w-6 place-items-center rounded-lg bg-[var(--rz-accent-soft)] text-xs text-[var(--rz-accent)]"
-              >
-                {cat.icon}
-              </span>
-              {cat.label}
-            </h2>
+            <h2 className="mb-2.5 text-sm font-semibold text-[var(--rz-text)]">{cat.label}</h2>
             <div className="divide-y divide-[var(--rz-line)] overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)]">
               {catItems.map((item) => (
                 <details
