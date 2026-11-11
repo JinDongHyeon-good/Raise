@@ -119,6 +119,10 @@ export const BYBIT_SIGNUP_FAQ = [
     a: "Bybit 공식 안내 기준으로, 일반 Referral 코드는 계정 생성 후 추가·변경이 불가합니다. 가입 제출 전에 반드시 확인하세요. (일부 Affiliate 프로그램 코드만, 조건 충족 시 가입 후 14일 이내 예외가 있을 수 있음)",
   },
   {
+    q: "바이비트 가입이 안 되거나 인증 코드가 안 와요.",
+    a: "인증 메일은 스팸함도 확인하고, 잠시 뒤 '코드 재전송'을 눌러 보세요. 거주 국가가 서비스 제한 국가로 선택돼 있으면 가입이 막힐 수 있고, 다른 사람 명의나 이미 쓰인 이메일·휴대폰 번호로는 가입할 수 없습니다. 계속 안 되면 Bybit 고객센터(라이브 채팅)로 문의하세요.",
+  },
+  {
     q: "웹과 앱 중 어디가 좋나요?",
     a: "둘 다 가능합니다. 앱스토어/구글플레이의 공식 Bybit 앱인지 확인하고, 앱에서도 가입 전 추천 코드 칸을 다시 확인하세요.",
   },
@@ -131,6 +135,9 @@ export const BYBIT_SIGNUP_FAQ = [
     a: `제휴(레퍼럴) 링크입니다. 코드 ${BYBIT_REFERRAL.code}로 가입하면 추천 보상이 적용될 수 있으며, 이용자에게 별도 수수료가 붙지는 않습니다. 투자 권유가 아닙니다.`,
   },
 ] as const;
+
+/** 가이드 내용을 공식 안내와 마지막으로 대조한 날짜 (페이지에 표시·구조화 데이터 dateModified) */
+export const BYBIT_GUIDE_UPDATED = "2026-11-11";
 
 export const BYBIT_RESTRICTED_COUNTRIES_URL = "https://www.bybit.com/en/help-center/article/Service-Restricted-Countries";
 
@@ -247,6 +254,10 @@ export const BYBIT_SIGNUP_FAQ_EN = [
   {
     q: "Can I add a code after sign-up?",
     a: "Regular referral codes can't be added or changed after account creation — check before submit. (Some affiliate codes may allow a 14-day exception if conditions are met.)",
+  },
+  {
+    q: "Sign-up fails or the code never arrives",
+    a: "Check your spam folder and tap 'Resend code' after a moment. Sign-up is blocked if your country of residence is restricted, and you can't use someone else's identity or an email/phone already linked to another account. If it still fails, contact Bybit support via live chat.",
   },
   {
     q: "Web or app — which is better?",

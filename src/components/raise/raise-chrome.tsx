@@ -14,6 +14,7 @@ const NAV = [
   { href: "/", key: "navVideos", match: (path: string) => path === "/" },
   { href: "/chart", key: "navChart", match: (path: string) => path.startsWith("/chart") },
   { href: "/community", key: "navCommunity", match: (path: string) => path.startsWith("/community") },
+  { href: "/faq", key: "navFaq", match: (path: string) => path.startsWith("/faq") },
 ] as const;
 
 export function RaiseHeader() {
@@ -202,6 +203,8 @@ export function RaiseHeader() {
 }
 
 const FOOTER_LINKS = [
+  { href: "/bybit", key: "footerBybit" },
+  { href: "/faq", key: "footerFaq" },
   { href: "/about", key: "footerAbout" },
   { href: "/contact", key: "footerContact" },
   { href: "/privacy", key: "footerPrivacy" },

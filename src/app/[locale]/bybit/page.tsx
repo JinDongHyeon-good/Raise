@@ -9,7 +9,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { localizedPath } from "@/i18n/routing";
 import { getLocalizedBrandName, getSiteUrl } from "@/lib/brand";
 import { BYBIT_REFERRAL, BYBIT_REFERRAL_KEYWORDS_EN, BYBIT_REFERRAL_KEYWORDS_KO } from "@/lib/bybit-referral";
-import { BYBIT_RESTRICTED_COUNTRIES_URL, getBybitSignupManual } from "@/lib/bybit-signup-manual";
+import { BYBIT_GUIDE_UPDATED, BYBIT_RESTRICTED_COUNTRIES_URL, getBybitSignupManual } from "@/lib/bybit-signup-manual";
 import { buildPageMetadata } from "@/lib/seo";
 import { toRoutedLocale } from "@/lib/seo-i18n";
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: t("description"),
     keywords: locale === "en" ? BYBIT_REFERRAL_KEYWORDS_EN : BYBIT_REFERRAL_KEYWORDS_KO,
     path: "/bybit",
-    image: "/bybit-referral.png",
+    image: "/og-bybit.png",
     imageAlt: locale === "en" ? "Bybit referral code XQZZ6O sign-up guide" : "바이비트 추천인 코드 XQZZ6O 가입 가이드",
     socialTitle: t("socialTitle", { brand }),
     socialDescription: t("socialDescription"),
@@ -60,6 +60,18 @@ function bybitJsonLd(locale: "ko" | "en", pageTitle: string, description: string
       "@id": `${url}#faq`,
       inLanguage,
       mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${url}#webpage`,
+      url,
+      name: pageTitle,
+      description,
+      inLanguage,
+      dateModified: BYBIT_GUIDE_UPDATED,
+      about: { "@type": "Organization", name: "Bybit", url: "https://www.bybit.com" },
+      primaryImageOfPage: `${site}${locale === "en" ? "/og-bybit-en.png" : "/og-bybit.png"}`,
     },
     {
       "@context": "https://schema.org",
@@ -110,6 +122,9 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
             </h1>
             <p className={`text-sm text-[var(--rz-muted)] ${isEn ? "leading-snug sm:leading-relaxed" : "leading-relaxed"}`}>
               {t("pageLead")}
+            </p>
+            <p className="text-[11px] text-[var(--rz-muted)]">
+              <time dateTime={BYBIT_GUIDE_UPDATED}>{t("updated", { date: BYBIT_GUIDE_UPDATED })}</time>
             </p>
           </header>
 

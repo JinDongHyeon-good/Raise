@@ -6,7 +6,7 @@ import { getSiteUrl } from "@/lib/brand";
 /** 1시간마다 다시 생성 (새 글 반영) */
 export const revalidate = 3600;
 
-const STATIC_PATHS = ["/", "/chart", "/community", "/bybit", "/about", "/contact", "/privacy", "/terms"] as const;
+const STATIC_PATHS = ["/", "/chart", "/community", "/bybit", "/faq", "/about", "/contact", "/privacy", "/terms"] as const;
 
 async function fetchCommunityPosts() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -53,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     localizedEntries(siteUrl, path, {
       lastModified: now,
       changeFrequency: path === "/" || path === "/chart" || path === "/community" ? "hourly" : "monthly",
-      priority: path === "/" ? 1 : path === "/chart" || path === "/community" ? 0.9 : path === "/bybit" ? 0.8 : 0.4,
+      priority: path === "/" ? 1 : path === "/chart" || path === "/community" ? 0.9 : path === "/bybit" ? 0.8 : path === "/faq" ? 0.6 : 0.4,
     }),
   );
 

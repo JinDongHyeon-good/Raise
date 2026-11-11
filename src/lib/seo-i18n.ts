@@ -144,6 +144,7 @@ export function getAlternateOpenGraphLocales(locale: AppLocale | string) {
 
 /** 영어 페이지는 영어 문구가 들어간 OG 이미지(-en)를 쓴다 */
 const EN_OG_IMAGES: Record<string, string> = {
+  "/og-bybit.png": "/og-bybit-en.png",
   "/ogImage.png": "/ogImage-en.png",
   "/og-chart.png": "/og-chart-en.png",
   "/og-community.png": "/og-community-en.png",

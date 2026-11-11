@@ -1,7 +1,12 @@
 import type { NextRequest } from "next/server";
 import { LOCALE_COOKIE, isRoutedLocale, type RoutedLocale } from "./routing";
 
-const BOT_UA = /bot|crawl|spider|slurp|facebookexternalhit|embedly|preview|lighthouse|headless/i;
+/**
+ * 검색엔진·링크 미리보기 봇 — 이들은 언어 자동 이동을 하지 않는다 (각 언어 주소를 hreflang으로 따로 수집)
+ * 네이버(Yeti)·다음(Daum/Daumoa)·카카오톡 미리보기처럼 이름에 "bot"이 없는 국내 크롤러도 포함해야 한다.
+ */
+const BOT_UA =
+  /bot|crawl|spider|slurp|yeti|naver|daum|kakaotalk-scrap|kakao|facebookexternalhit|embedly|preview|lighthouse|headless|google-inspectiontool|mediapartners|adsbot|bingpreview|duckduck|yandex|baidu|petalsearch|applebot|seznam|sogou|360spider/i;
 
 /** 검색엔진·미리보기 봇은 언어를 바꾸지 않는다 (hreflang으로 각 언어 주소를 따로 알려 줌) */
 export function isBot(request: NextRequest) {

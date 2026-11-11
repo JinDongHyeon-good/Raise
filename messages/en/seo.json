@@ -36,10 +36,14 @@
       "description": "{brand} Terms of Service — nature of the service, investment disclaimer, third-party content, and advertising"
     },
     "bybit": {
-      "title": "Bybit Referral Code XQZZ6O – How to Sign Up for Bybit (Step-by-Step)",
-      "description": "Bybit referral code: XQZZ6O. A step-by-step guide to signing up for Bybit — where to enter the referral (invite) code, creating your account, KYC verification, 2FA security and your first deposit.",
+      "title": "Bybit Referral Code XQZZ6O: How to Sign Up",
+      "description": "Bybit referral code XQZZ6O. Step-by-step guide: where to enter the invite code, account setup, KYC, 2FA and your first deposit.",
       "socialTitle": "Bybit Referral Code XQZZ6O – Sign-Up Guide | {brand}",
       "socialDescription": "Use Bybit referral code XQZZ6O before you create your account. Step-by-step sign-up, KYC and security guide."
+    },
+    "faq": {
+      "title": "FAQ – Frequently Asked Questions",
+      "description": "Answers about JindongCoin: AI YouTube summary limits, chart data sources, community boards, sign-in and accounts, and the Bybit referral code."
     }
   }
 }
