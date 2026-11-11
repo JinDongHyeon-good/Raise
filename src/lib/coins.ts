@@ -13,6 +13,10 @@ export const COINS: Coin[] = [
   { symbol: "ETHUSDT", ticker: "ETH", name: "이더리움", nameEn: "Ethereum" },
   { symbol: "XRPUSDT", ticker: "XRP", name: "리플", nameEn: "XRP" },
   { symbol: "SOLUSDT", ticker: "SOL", name: "솔라나", nameEn: "Solana" },
+  { symbol: "BNBUSDT", ticker: "BNB", name: "바이낸스코인", nameEn: "BNB" },
+  { symbol: "DOGEUSDT", ticker: "DOGE", name: "도지코인", nameEn: "Dogecoin" },
+  { symbol: "ADAUSDT", ticker: "ADA", name: "에이다", nameEn: "Cardano" },
+  { symbol: "TRXUSDT", ticker: "TRX", name: "트론", nameEn: "TRON" },
 ];
 
 /** 현재 언어의 종목 이름 (ko 외에는 영어) */

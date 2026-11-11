@@ -13,6 +13,10 @@ export const US_INDICES: StockIndex[] = [
   { symbol: "^NDX", ticker: "NDX", name: "나스닥100", fullName: "나스닥 100" },
   { symbol: "^GSPC", ticker: "SPX", name: "S&P500", fullName: "S&P 500" },
   { symbol: "^DJI", ticker: "DJI", name: "다우존스", fullName: "다우존스 산업평균" },
+  { symbol: "^RUT", ticker: "RUT", name: "러셀2000", fullName: "러셀 2000" },
+  { symbol: "^SOX", ticker: "SOX", name: "필라델피아 반도체", fullName: "필라델피아 반도체지수" },
+  { symbol: "^VIX", ticker: "VIX", name: "VIX 공포지수", fullName: "VIX 변동성지수" },
+  { symbol: "^TNX", ticker: "TNX", name: "미국 10년물 금리", fullName: "미국 10년 국채금리" },
 ];
 
 /** 한국 주식 — markets.ts KR_ASSETS 와 심볼 동기화 */

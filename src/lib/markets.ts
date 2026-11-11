@@ -33,6 +33,10 @@ export const US_ASSETS: Asset[] = [
   { symbol: "^NDX", ticker: "NDX", name: "나스닥100", nameEn: "Nasdaq 100", market: "us", label: "나스닥 100", labelEn: "Nasdaq 100" },
   { symbol: "^GSPC", ticker: "SPX", name: "S&P500", nameEn: "S&P 500", market: "us", label: "S&P 500", labelEn: "S&P 500" },
   { symbol: "^DJI", ticker: "DJI", name: "다우존스", nameEn: "Dow Jones", market: "us", label: "다우존스 산업평균", labelEn: "Dow Jones Industrial Average" },
+  { symbol: "^RUT", ticker: "RUT", name: "러셀2000", nameEn: "Russell 2000", market: "us", label: "러셀 2000", labelEn: "Russell 2000" },
+  { symbol: "^SOX", ticker: "SOX", name: "필라델피아 반도체", nameEn: "PHLX Semiconductor", market: "us", label: "필라델피아 반도체지수", labelEn: "PHLX Semiconductor Index" },
+  { symbol: "^VIX", ticker: "VIX", name: "VIX 공포지수", nameEn: "VIX", market: "us", label: "VIX 변동성지수", labelEn: "CBOE Volatility Index" },
+  { symbol: "^TNX", ticker: "TNX", name: "미국 10년물 금리", nameEn: "US 10Y Yield", market: "us", label: "미국 10년 국채금리 (%)", labelEn: "US 10-Year Treasury Yield (%)" },
 ];
 
 /** 한국 주식 (Yahoo .KS) — stocks.ts 허용 목록과 심볼 맞출 것 */
