@@ -55,9 +55,19 @@ export function HeaderUser() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="max-w-[120px] truncate rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] px-2.5 py-2 text-xs text-[var(--rz-text)] transition hover:border-[var(--rz-line-strong)]"
+        aria-label={me.nickname}
+        title={me.nickname}
+        className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] text-[var(--rz-text)] transition hover:border-[var(--rz-line-strong)] hover:bg-[var(--rz-panel-2)]"
       >
-        {me.nickname}
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.8" />
+          <path
+            d="M5.5 19.2c1.4-3.1 3.7-4.7 6.5-4.7s5.1 1.6 6.5 4.7"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+        </svg>
       </button>
       {open ? (
         <div
