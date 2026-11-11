@@ -4,6 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VideoSummaryPanel } from "@/components/raise/video-summary-panel";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useFavoriteChannels } from "@/hooks/use-favorite-channels";
+import { VideoFilterModal } from "@/components/raise/video-filter-modal";
+import {
+  LENGTH_OPTIONS,
+  ORDER_OPTIONS,
+  UPLOADED_OPTIONS,
+  activeFilterCount,
+  applyVideoFilters,
+  useSavedVideoFilters,
+  type VideoFilters,
+} from "@/lib/video-filters";
 
 export type Video = {
   id: string;
@@ -18,11 +28,6 @@ export type Video = {
 
 type Page = { videos: Video[]; nextPageToken: string | null };
 
-const ORDERS = [
-  { value: "relevance", label: "관련도" },
-  { value: "date", label: "최신" },
-  { value: "viewCount", label: "조회수" },
-];
 
 /** 한 번에 더 보여줄 개수 / 서버에서 받을 수 있는 최대 페이지 (서버 MAX_PAGES와 맞춤) */
 const REVEAL_STEP = 12;
@@ -66,7 +71,12 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
   const presets = useMemo(() => presetQueries(coinName), [coinName]);
   const [query, setQuery] = useState(presets[0]);
   const [queryInput, setQueryInput] = useState(presets[0]);
-  const [order, setOrder] = useState("relevance");
+  // 필터 (정렬·업로드 날짜·길이). 저장된 기본값 위에 이번 화면에서 바꾼 값을 덮어쓴다
+  const savedFilters = useSavedVideoFilters();
+  const [filterOverride, setFilterOverride] = useState<VideoFilters | null>(null);
+  const filters = filterOverride ?? savedFilters;
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterCount = activeFilterCount(filters);
   const [pages, setPages] = useState<{ key: string; list: Page[]; error: string | null }>({ key: "", list: [], error: null });
   const [loadingMore, setLoadingMore] = useState(false);
   const [visible, setVisible] = useState(REVEAL_STEP);
@@ -136,10 +146,9 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
     const seen = new Set<string>();
     const source = inFavorites ? favFeed.videos : pages.list.flatMap((p) => p.videos);
     const merged = source.filter((v) => (seen.has(v.id) ? false : (seen.add(v.id), true)));
-    if (order === "date") merged.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-    if (order === "viewCount") merged.sort((a, b) => (b.viewCount ?? -1) - (a.viewCount ?? -1));
-    return merged;
-  }, [pages.list, favFeed.videos, inFavorites, order]);
+    return applyVideoFilters(merged, filters);
+  }, [pages.list, favFeed.videos, inFavorites, filters]);
+  const loadedCount = inFavorites ? favFeed.videos.length : pages.list.reduce((n, p) => n + p.videos.length, 0);
   const shown = all.slice(0, visible);
   const lastPage = pages.list[pages.list.length - 1];
   const canFetchMore = !inFavorites && !loading && !!lastPage?.nextPageToken && pages.list.length < MAX_PAGES;
@@ -206,23 +215,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
 
   return (
     <section id="videos" className="scroll-mt-20">
-      <div className={`mb-3 flex flex-wrap items-center gap-3 ${hideTitle ? "justify-end" : "justify-between"}`}>
-        {hideTitle ? null : <h2 className="text-lg font-semibold">관련 영상</h2>}
-        <div className="flex rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-0.5 text-xs">
-          {ORDERS.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => setOrder(o.value)}
-              className={`rounded-lg px-3 py-2 transition sm:py-1.5 ${
-                order === o.value ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {hideTitle ? null : <h2 className="mb-3 text-lg font-semibold">관련 영상</h2>}
 
       <form
         className="mb-3 flex gap-2"
@@ -244,7 +237,64 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
         >
           검색
         </button>
+        <button
+          type="button"
+          onClick={() => setFilterOpen(true)}
+          aria-label={`필터${filterCount ? ` (${filterCount}개 적용됨)` : ""}`}
+          aria-haspopup="dialog"
+          className={`relative flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
+            filterCount
+              ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
+              : "border-[var(--rz-line)] bg-[var(--rz-panel)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
+          }`}
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+            <path d="M4 6h16M7 12h10M10 18h4" strokeLinecap="round" />
+          </svg>
+          <span className="hidden sm:inline">필터</span>
+          {filterCount ? (
+            <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[var(--rz-accent)] px-1 text-[10px] font-semibold text-[var(--rz-accent-fg)]">
+              {filterCount}
+            </span>
+          ) : null}
+        </button>
       </form>
+
+      {filterCount ? (
+        <div className="-mt-1 mb-3 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--rz-muted)]">
+          <span>필터</span>
+          {filters.order !== "relevance" ? (
+            <span className="rounded-md bg-[var(--rz-panel-2)] px-1.5 py-0.5 text-[var(--rz-text)]">
+              {ORDER_OPTIONS.find((o) => o.value === filters.order)?.label}순
+            </span>
+          ) : null}
+          {filters.uploaded !== "any" ? (
+            <span className="rounded-md bg-[var(--rz-panel-2)] px-1.5 py-0.5 text-[var(--rz-text)]">
+              {UPLOADED_OPTIONS.find((o) => o.value === filters.uploaded)?.label}
+            </span>
+          ) : null}
+          {filters.length !== "any" ? (
+            <span className="rounded-md bg-[var(--rz-panel-2)] px-1.5 py-0.5 text-[var(--rz-text)]">
+              {LENGTH_OPTIONS.find((o) => o.value === filters.length)?.label}
+            </span>
+          ) : null}
+          <button type="button" onClick={() => setFilterOpen(true)} className="underline">
+            변경
+          </button>
+        </div>
+      ) : null}
+
+      <VideoFilterModal
+        open={filterOpen}
+        value={filters}
+        savedDefault={savedFilters}
+        onClose={() => setFilterOpen(false)}
+        onApply={(next) => {
+          setFilterOverride(next);
+          setFilterOpen(false);
+          setVisible(REVEAL_STEP);
+        }}
+      />
 
       <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
         <button
@@ -257,7 +307,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
               : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
           }`}
         >
-          ★ 내 채널{favorites.channels.length ? ` ${favorites.channels.length}` : ""}
+          ★ 내 채널 추가하기{favorites.channels.length ? ` ${favorites.channels.length}` : ""}
         </button>
         {presets.map((p) => (
           <button
@@ -428,7 +478,13 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
               ))}
           {!loading && all.length === 0 ? (
             <p className="col-span-full py-10 text-center text-sm text-[var(--rz-muted)]">
-              {inFavorites ? (favorites.channels.length ? "즐겨찾기 채널에 새 영상이 없어요." : "") : "검색 결과가 없어요."}
+              {loadedCount > 0 && filterCount
+                ? "필터 조건에 맞는 영상이 없어요. 필터를 바꿔 보세요."
+                : inFavorites
+                  ? favorites.channels.length
+                    ? "즐겨찾기 채널에 새 영상이 없어요."
+                    : ""
+                  : "검색 결과가 없어요."}
             </p>
           ) : null}
         </div>
