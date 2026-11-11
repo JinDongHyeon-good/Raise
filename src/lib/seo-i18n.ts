@@ -15,10 +15,10 @@ export type SeoLocaleCopy = {
 /** 실제 서빙은 ko만 — en/ja는 키 호환용으로 ko 문구를 그대로 쓴다 */
 const KO_COPY: SeoLocaleCopy = {
   siteName: SERVICE_NAME,
-  homeTitle: "진코 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티",
+  homeTitle: "진동코인 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티",
   homeDescription:
-    "비트코인·이더리움과 나스닥·S&P500 실시간 차트, 코인·미국 주식 전망 유튜브 영상의 AI 요약, 코인·주식 투자자 커뮤니티를 한곳에서. 진코.",
-  ogAlt: "진코 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
+    "비트코인·이더리움과 나스닥·S&P500 실시간 차트, 코인·미국 주식 전망 유튜브 영상의 AI 요약, 코인·주식 투자자 커뮤니티를 한곳에서. 진동코인.",
+  ogAlt: "진동코인 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
   schemaLanguage: "ko",
   featureList: [
     "코인 실시간 시세와 캔들 차트 (15분봉~주봉)",
@@ -30,7 +30,7 @@ const KO_COPY: SeoLocaleCopy = {
   ],
   faq: [
     {
-      question: "진코는 어떤 서비스인가요?",
+      question: "진동코인은 어떤 서비스인가요?",
       answer: SERVICE_DESCRIPTION,
     },
     {

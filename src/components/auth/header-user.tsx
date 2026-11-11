@@ -23,7 +23,7 @@ export function HeaderUser() {
       <button
         type="button"
         onClick={openLogin}
-        className="rounded-md bg-[var(--rz-accent)] px-3 py-1.5 text-xs font-medium text-white"
+        className="rounded-lg bg-[var(--rz-accent)] px-3.5 py-2 text-xs font-semibold text-[var(--rz-accent-fg)] transition hover:brightness-110"
       >
         로그인
       </button>
@@ -51,14 +51,14 @@ export function HeaderUser() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="max-w-[120px] truncate rounded-md border border-[var(--rz-line)] px-2.5 py-1.5 text-xs text-[var(--rz-text)]"
+        className="max-w-[120px] truncate rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] px-2.5 py-2 text-xs text-[var(--rz-text)] transition hover:border-[var(--rz-line-strong)]"
       >
         {me.nickname}
       </button>
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-full z-40 mt-2 w-40 overflow-hidden rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] text-sm shadow-xl"
+          className="absolute right-0 top-full z-40 mt-2 w-40 overflow-hidden rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] text-sm shadow-[var(--rz-shadow)]"
         >
           <a
             href={`/community?author=${me.id}`}

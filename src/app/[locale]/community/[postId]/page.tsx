@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const text = data.content_html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140);
     return {
       title: data.title,
-      description: text || "진코 코인 커뮤니티 게시글",
+      description: text || "진동코인 코인 커뮤니티 게시글",
       alternates: { canonical: `/community/${postId}` },
       openGraph: {
         type: "article",
         title: data.title,
-        description: text || "진코 코인 커뮤니티 게시글",
+        description: text || "진동코인 코인 커뮤니티 게시글",
         url: `/community/${postId}`,
         images: [{ url: "/ogImage.png", width: 1200, height: 630 }],
       },

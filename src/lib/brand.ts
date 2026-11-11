@@ -1,8 +1,8 @@
 import type { AppLocale } from "@/i18n/routing";
 
-export const SERVICE_NAME = "진코";
-export const SERVICE_NAME_EN = "Jinco";
-export const SERVICE_NAME_JA = "Jinco";
+export const SERVICE_NAME = "진동코인";
+export const SERVICE_NAME_EN = "JindongCoin";
+export const SERVICE_NAME_JA = "JindongCoin";
 
 export function getLocalizedBrandName(_locale: AppLocale): string {
   return SERVICE_NAME;
@@ -30,7 +30,7 @@ export function getLocalizedTagline(locale: AppLocale): string {
 
 /** 서비스 한 줄 소개 (메타 description·OG·JSON-LD 공통) */
 export const SERVICE_DESCRIPTION =
-  "진코는 비트코인·이더리움 같은 주요 코인과 나스닥·S&P500 등 미국 증시 지수의 실시간 차트를 보여 주고, 코인·주식 유튜브 전망 영상을 AI가 영상 속 발언만 근거로 요약해 주며, 코인과 주식 투자자가 분석과 정보를 나누는 커뮤니티입니다.";
+  "진동코인은 비트코인·이더리움 같은 주요 코인과 나스닥·S&P500 등 미국 증시 지수의 실시간 차트를 보여 주고, 코인·주식 유튜브 전망 영상을 AI가 영상 속 발언만 근거로 요약해 주며, 코인과 주식 투자자가 분석과 정보를 나누는 커뮤니티입니다.";
 
 /** 서비스가 주는 가치 — 소개 페이지·JSON-LD featureList·홈 소개 문구에 사용 */
 export const SERVICE_VALUES = [
@@ -50,6 +50,7 @@ export const SERVICE_VALUES = [
 
 /** 한국어 검색 유입용 핵심 키워드 */
 export const SERVICE_KEYWORDS = [
+  "진동코인",
   "진코",
   "코인 커뮤니티",
   "주식 커뮤니티",
@@ -74,6 +75,7 @@ export const SERVICE_KEYWORDS = [
 ] as const;
 
 export const SERVICE_KEYWORDS_EN = [
+  "JindongCoin",
   "Jinco",
   "crypto community",
   "stock community",
@@ -84,7 +86,7 @@ export const SERVICE_KEYWORDS_EN = [
   "bitcoin price",
 ] as const;
 
-export const SERVICE_KEYWORDS_JA = ["Jinco", "暗号資産コミュニティ", "暗号資産チャート", "AI分析"] as const;
+export const SERVICE_KEYWORDS_JA = ["JindongCoin", "Jinco", "暗号資産コミュニティ", "暗号資産チャート", "AI分析"] as const;
 
 export function getServiceKeywords(locale: AppLocale): readonly string[] {
   if (locale === "en") return SERVICE_KEYWORDS_EN;

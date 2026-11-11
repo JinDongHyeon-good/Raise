@@ -160,7 +160,7 @@ export function LoginModal({
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-lg bg-[var(--rz-accent)] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+            className="w-full rounded-lg bg-[var(--rz-accent)] px-4 py-2.5 text-sm font-medium text-[var(--rz-accent-fg)] disabled:opacity-60"
           >
             {busy ? "처리 중…" : mode === "login" ? "이메일로 로그인" : "가입하기"}
           </button>

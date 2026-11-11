@@ -37,7 +37,7 @@ function TimeButton({ t, onSeek }: { t: number; onSeek: (sec: number) => void })
       type="button"
       onClick={() => onSeek(Math.floor(t))}
       title="이 시점부터 영상 보기"
-      className="shrink-0 rounded bg-[var(--rz-accent)]/15 px-1.5 py-0.5 font-mono text-[11px] text-[#7fb0ff] hover:bg-[var(--rz-accent)]/25"
+      className="shrink-0 rounded bg-[var(--rz-accent)]/15 px-1.5 py-0.5 font-mono text-[11px] text-[var(--rz-accent)] hover:bg-[var(--rz-accent)]/25"
     >
       {mmss(t)}
     </button>
@@ -127,7 +127,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
         <button
           type="button"
           onClick={() => void start()}
-          className="shrink-0 rounded-lg bg-[var(--rz-accent)] px-3 py-2 text-xs font-medium text-white"
+          className="shrink-0 rounded-lg bg-[var(--rz-accent)] px-3 py-2 text-xs font-medium text-[var(--rz-accent-fg)]"
         >
           {me ? "AI 요약 보기" : "로그인하고 AI 요약 보기"}
         </button>

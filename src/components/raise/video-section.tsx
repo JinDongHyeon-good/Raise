@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VideoSummaryPanel } from "@/components/raise/video-summary-panel";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useFavoriteChannels } from "@/hooks/use-favorite-channels";
 
 export type Video = {
   id: string;
   title: string;
   channelTitle: string;
+  channelId?: string;
   publishedAt: string;
   thumbnail: string;
   viewCount: number | null;
@@ -59,7 +62,7 @@ export function presetQueries(coinName: string) {
   return [`${coinName} 분석`, `${coinName} 전망`, `${coinName} 차트분석`];
 }
 
-export function VideoSection({ coinName }: { coinName: string }) {
+export function VideoSection({ coinName, hideTitle = false }: { coinName: string; hideTitle?: boolean }) {
   const presets = useMemo(() => presetQueries(coinName), [coinName]);
   const [query, setQuery] = useState(presets[0]);
   const [queryInput, setQueryInput] = useState(presets[0]);
@@ -71,10 +74,19 @@ export function VideoSection({ coinName }: { coinName: string }) {
   const [playStart, setPlayStart] = useState(0);
   const sentinel = useRef<HTMLDivElement | null>(null);
 
+  // ⭐ 내 채널 (즐겨찾기 채널 최신 영상)
+  const { requireLogin } = useAuth();
+  const favorites = useFavoriteChannels();
+  const [mode, setMode] = useState<"search" | "favorites">("search");
+  const [favFilter, setFavFilter] = useState<string | null>(null);
+  const favKey = `fav:${favFilter ?? "all"}:${favorites.channels.map((c) => c.id).join(",")}`;
+  const [favFeed, setFavFeed] = useState<{ key: string; videos: Video[]; error: string | null }>({ key: "", videos: [], error: null });
+
   // 코인이 바뀌면 그 코인의 첫 배지로 검색 (렌더 중 상태 조정 — effect 불필요)
   const [lastCoin, setLastCoin] = useState(coinName);
   if (lastCoin !== coinName) {
     setLastCoin(coinName);
+    setMode("search");
     setQuery(presets[0]);
     setQueryInput(presets[0]);
     setPlaying(null);
@@ -100,17 +112,37 @@ export function VideoSection({ coinName }: { coinName: string }) {
     };
   }, [query]);
 
-  const loading = pages.key !== query;
+  // 즐겨찾기 피드
+  useEffect(() => {
+    if (mode !== "favorites" || !favorites.loggedIn) return;
+    let alive = true;
+    const key = favKey;
+    fetch(`/api/youtube/favorites/feed${favFilter ? `?channelId=${encodeURIComponent(favFilter)}` : ""}`, { cache: "no-store" })
+      .then(async (res) => {
+        const data = (await res.json()) as { videos?: Video[]; error?: string };
+        if (!alive) return;
+        setFavFeed(data.videos ? { key, videos: data.videos, error: null } : { key, videos: [], error: data.error ?? "영상을 불러오지 못했어요." });
+      })
+      .catch(() => alive && setFavFeed({ key, videos: [], error: "영상을 불러오지 못했어요." }));
+    return () => {
+      alive = false;
+    };
+  }, [mode, favFilter, favKey, favorites.loggedIn]);
+
+  const inFavorites = mode === "favorites";
+  const loading = inFavorites ? favFeed.key !== favKey : pages.key !== query;
+  const listError = inFavorites ? favFeed.error : pages.error;
   const all = useMemo(() => {
     const seen = new Set<string>();
-    const merged = pages.list.flatMap((p) => p.videos).filter((v) => (seen.has(v.id) ? false : (seen.add(v.id), true)));
+    const source = inFavorites ? favFeed.videos : pages.list.flatMap((p) => p.videos);
+    const merged = source.filter((v) => (seen.has(v.id) ? false : (seen.add(v.id), true)));
     if (order === "date") merged.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
     if (order === "viewCount") merged.sort((a, b) => (b.viewCount ?? -1) - (a.viewCount ?? -1));
     return merged;
-  }, [pages.list, order]);
+  }, [pages.list, favFeed.videos, inFavorites, order]);
   const shown = all.slice(0, visible);
   const lastPage = pages.list[pages.list.length - 1];
-  const canFetchMore = !loading && !!lastPage?.nextPageToken && pages.list.length < MAX_PAGES;
+  const canFetchMore = !inFavorites && !loading && !!lastPage?.nextPageToken && pages.list.length < MAX_PAGES;
   const hasMore = visible < all.length || canFetchMore;
 
   const loadMore = useCallback(async () => {
@@ -153,6 +185,15 @@ export function VideoSection({ coinName }: { coinName: string }) {
     if (!trimmed) return;
     setQueryInput(trimmed);
     setQuery(trimmed);
+    setMode("search");
+    setPlaying(null);
+    setVisible(REVEAL_STEP);
+  };
+
+  const openFavorites = () => {
+    if (!requireLogin()) return;
+    setMode("favorites");
+    setFavFilter(null);
     setPlaying(null);
     setVisible(REVEAL_STEP);
   };
@@ -165,15 +206,15 @@ export function VideoSection({ coinName }: { coinName: string }) {
 
   return (
     <section id="videos" className="scroll-mt-20">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">관련 영상</h2>
-        <div className="flex rounded-lg border border-[var(--rz-line)] p-0.5 text-xs">
+      <div className={`mb-3 flex flex-wrap items-center gap-3 ${hideTitle ? "justify-end" : "justify-between"}`}>
+        {hideTitle ? null : <h2 className="text-lg font-semibold">관련 영상</h2>}
+        <div className="flex rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-0.5 text-xs">
           {ORDERS.map((o) => (
             <button
               key={o.value}
               type="button"
               onClick={() => setOrder(o.value)}
-              className={`rounded-md px-2.5 py-1.5 transition ${
+              className={`rounded-lg px-3 py-2 transition sm:py-1.5 ${
                 order === o.value ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"
               }`}
             >
@@ -195,23 +236,38 @@ export function VideoSection({ coinName }: { coinName: string }) {
           onChange={(e) => setQueryInput(e.target.value)}
           placeholder="유튜브 검색"
           maxLength={100}
-          className="min-w-0 flex-1 rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] px-3 py-2 text-sm outline-none focus:border-[var(--rz-accent)]"
+          className="min-w-0 flex-1 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--rz-accent)]/60"
         />
-        <button type="submit" className="rounded-lg bg-[var(--rz-accent)] px-4 py-2 text-sm font-medium text-white">
+        <button
+          type="submit"
+          className="shrink-0 rounded-xl bg-[var(--rz-accent)] px-4 py-2.5 text-sm font-medium text-[var(--rz-accent-fg)] transition hover:brightness-110"
+        >
           검색
         </button>
       </form>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <button
+          type="button"
+          onClick={openFavorites}
+          aria-pressed={inFavorites}
+          className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition ${
+            inFavorites
+              ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
+              : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
+          }`}
+        >
+          ★ 내 채널{favorites.channels.length ? ` ${favorites.channels.length}` : ""}
+        </button>
         {presets.map((p) => (
           <button
             key={p}
             type="button"
             onClick={() => runSearch(p)}
-            className={`rounded-full border px-3 py-1 text-xs transition ${
-              query === p
-                ? "border-[var(--rz-accent)] text-[var(--rz-text)]"
-                : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
+            className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition ${
+              !inFavorites && query === p
+                ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
+                : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
             }`}
           >
             {p}
@@ -219,8 +275,55 @@ export function VideoSection({ coinName }: { coinName: string }) {
         ))}
       </div>
 
+      {inFavorites ? (
+        <div className="mb-4 rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-3">
+          {favorites.channels.length === 0 ? (
+            <p className="text-xs leading-5 text-[var(--rz-muted)]">
+              아직 즐겨찾기한 채널이 없어요. 영상을 재생한 뒤 <b className="text-[var(--rz-text)]">★ 채널 즐겨찾기</b>를 누르면 그 채널의 새 영상이 여기에 모여요.
+            </p>
+          ) : (
+            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden">
+              <button
+                type="button"
+                onClick={() => setFavFilter(null)}
+                className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs ${favFilter === null ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"}`}
+              >
+                전체
+              </button>
+              {favorites.channels.map((c) => (
+                <span
+                  key={c.id}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-lg py-1 pl-1.5 pr-1 text-xs ${
+                    favFilter === c.id ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"
+                  }`}
+                >
+                  <button type="button" onClick={() => setFavFilter(c.id)} className="flex items-center gap-1.5">
+                    {c.thumbnail ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.thumbnail} alt="" className="h-5 w-5 rounded-full" />
+                    ) : null}
+                    <span className="max-w-[140px] truncate">{c.title}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (favFilter === c.id) setFavFilter(null);
+                      void favorites.toggle(c.id);
+                    }}
+                    aria-label={`${c.title} 즐겨찾기 해제`}
+                    className="rounded px-1 text-[var(--rz-muted)] hover:text-[var(--rz-up)]"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
+
       {playing ? (
-        <div className="mb-5 overflow-hidden rounded-xl border border-[var(--rz-line)] bg-black">
+        <div className="mb-5 overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-black shadow-[var(--rz-shadow)]">
           <div className="aspect-video w-full">
             <iframe
               key={`${playing.id}:${playStart}`}
@@ -231,27 +334,43 @@ export function VideoSection({ coinName }: { coinName: string }) {
               className="h-full w-full"
             />
           </div>
-          <div className="bg-[var(--rz-panel)] p-3">
+          <div className="bg-[var(--rz-panel)] p-3.5 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="line-clamp-2 text-sm font-medium">{playing.title}</p>
-                <p className="mt-0.5 text-xs text-[var(--rz-muted)]">
+                <p className="line-clamp-2 text-sm font-medium leading-snug">{playing.title}</p>
+                <p className="mt-1 text-xs text-[var(--rz-muted)]">
                   {[playing.channelTitle, formatCount(playing.viewCount), timeAgo(playing.publishedAt)].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <div className="flex shrink-0 gap-2 text-xs">
+                {playing.channelId ? (
+                  <button
+                    type="button"
+                    onClick={() => void favorites.toggle(playing.channelId!)}
+                    disabled={favorites.busyId === playing.channelId}
+                    aria-pressed={favorites.isFavorite(playing.channelId)}
+                    title={favorites.isFavorite(playing.channelId) ? "채널 즐겨찾기 해제" : "이 채널 즐겨찾기"}
+                    className={`rounded-lg border px-2.5 py-1.5 transition disabled:opacity-50 ${
+                      favorites.isFavorite(playing.channelId)
+                        ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
+                        : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
+                    }`}
+                  >
+                    {favorites.isFavorite(playing.channelId) ? "★ 즐겨찾기됨" : "☆ 채널 즐겨찾기"}
+                  </button>
+                ) : null}
                 <a
                   href={`https://www.youtube.com/watch?v=${playing.id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-md border border-[var(--rz-line)] px-2.5 py-1.5 text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
+                  className="rounded-lg border border-[var(--rz-line)] px-2.5 py-1.5 text-[var(--rz-muted)] transition hover:text-[var(--rz-text)]"
                 >
                   YouTube
                 </a>
                 <button
                   type="button"
                   onClick={() => setPlaying(null)}
-                  className="rounded-md border border-[var(--rz-line)] px-2.5 py-1.5 text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
+                  className="rounded-lg border border-[var(--rz-line)] px-2.5 py-1.5 text-[var(--rz-muted)] transition hover:text-[var(--rz-text)]"
                 >
                   닫기
                 </button>
@@ -262,17 +381,18 @@ export function VideoSection({ coinName }: { coinName: string }) {
         </div>
       ) : null}
 
-      {pages.error && !loading ? (
-        <p className="rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)] p-6 text-center text-sm text-[var(--rz-down)]">
-          {pages.error}
+      {listError && !loading ? (
+        <p className="rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-6 text-center text-sm text-[var(--rz-down)]">
+          {listError}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {loading
             ? Array.from({ length: 8 }, (_, i) => (
                 <div key={i} className="space-y-2">
-                  <div className="aspect-video animate-pulse rounded-lg bg-[var(--rz-panel-2)]" />
-                  <div className="h-4 w-4/5 animate-pulse rounded bg-[var(--rz-panel-2)]" />
+                  <div className="aspect-video animate-pulse rounded-xl bg-[var(--rz-panel-2)]" />
+                  <div className="mt-0.5 h-5 w-full animate-pulse rounded bg-[var(--rz-panel-2)]" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-[var(--rz-panel-2)]" />
                   <div className="h-3 w-1/2 animate-pulse rounded bg-[var(--rz-panel-2)]" />
                 </div>
               ))
@@ -281,40 +401,48 @@ export function VideoSection({ coinName }: { coinName: string }) {
                   key={v.id}
                   type="button"
                   onClick={() => play(v)}
-                  className={`group text-left ${playing?.id === v.id ? "opacity-60" : ""}`}
+                  className={`group flex h-full w-full flex-col text-left ${playing?.id === v.id ? "opacity-60" : ""}`}
                 >
-                  <div className="relative aspect-video overflow-hidden rounded-lg bg-[var(--rz-panel-2)]">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--rz-panel-2)] ring-1 ring-[var(--rz-line)]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={v.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-[1.03]" />
+                    <img
+                      src={v.thumbnail}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                    />
                     {v.duration ? (
-                      <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[11px] text-white">
+                      <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/80 px-1.5 py-0.5 font-mono text-[11px] text-white">
                         {formatDuration(v.duration)}
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-2 line-clamp-2 text-sm font-medium leading-snug group-hover:text-white">{v.title}</p>
-                  <p className="mt-1 text-xs text-[var(--rz-muted)]">{v.channelTitle}</p>
-                  <p className="text-xs text-[var(--rz-muted)]">
+                  <p className="mt-2.5 truncate text-sm font-medium leading-snug transition group-hover:text-white">
+                    {v.title}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-[var(--rz-muted)]">{v.channelTitle}</p>
+                  <p className="truncate text-xs text-[var(--rz-muted)]">
                     {[formatCount(v.viewCount), timeAgo(v.publishedAt)].filter(Boolean).join(" · ")}
                   </p>
                 </button>
               ))}
           {!loading && all.length === 0 ? (
-            <p className="col-span-full py-10 text-center text-sm text-[var(--rz-muted)]">검색 결과가 없어요.</p>
+            <p className="col-span-full py-10 text-center text-sm text-[var(--rz-muted)]">
+              {inFavorites ? (favorites.channels.length ? "즐겨찾기 채널에 새 영상이 없어요." : "") : "검색 결과가 없어요."}
+            </p>
           ) : null}
         </div>
       )}
 
       {!loading && hasMore ? (
-        <div ref={sentinel} className="flex justify-center py-6">
-          <button
-            type="button"
-            onClick={() => void loadMore()}
-            disabled={loadingMore}
-            className="rounded-lg border border-[var(--rz-line)] px-4 py-2 text-xs text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
-          >
-            {loadingMore ? "불러오는 중…" : "영상 더 보기"}
-          </button>
+        <div ref={sentinel} className="flex justify-center py-5" aria-hidden={!loadingMore}>
+          {loadingMore ? (
+            <div className="rz-linear-indeterminate w-full max-w-xs" role="status" aria-label="더 불러오는 중">
+              <span />
+            </div>
+          ) : (
+            <span className="h-1 w-full max-w-xs" />
+          )}
         </div>
       ) : null}
       {!loading && !hasMore && all.length > 0 ? (

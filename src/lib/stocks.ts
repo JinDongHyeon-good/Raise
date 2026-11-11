@@ -77,7 +77,7 @@ async function cached<T>(key: string, ttl: number, load: () => Promise<T>): Prom
 async function yahooChart(symbol: string, interval: string, range: string) {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}&includePrePost=false`;
   const res = await fetch(url, {
-    headers: { "user-agent": "Mozilla/5.0 (compatible; JincoBot/1.0)", accept: "application/json" },
+    headers: { "user-agent": "Mozilla/5.0 (compatible; JindongCoinBot/1.0)", accept: "application/json" },
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
   });
