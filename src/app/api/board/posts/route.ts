@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { hydratePostSummaries, isEmptyHtml, requireSessionUser, sanitizePostHtml } from "@/lib/board-server";
 import {
@@ -36,12 +37,12 @@ export async function GET(request: NextRequest) {
     query = query.order("created_at", { ascending: false }).range(from, to);
 
     const { data, error, count } = await query;
-    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
+    if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
 
     const items = await hydratePostSummaries(supabase, (data ?? []) as BoardPostRow[], user?.id);
-    return NextResponse.json({ items, page, limit, total: count ?? 0 });
+    return privateJson({ items, page, limit, total: count ?? 0 });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.postsLoadFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.postsLoadFailed")) }, { status: 500 });
   }
 }
 
@@ -49,19 +50,19 @@ export async function POST(request: NextRequest) {
   const t = apiTranslator(request);
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
+    if (!user) return privateJson({ error: t("board.loginRequired") }, { status: 401 });
 
     const body = (await request.json()) as { title?: string; content_html?: string; post_type?: string };
     const title = body.title?.trim() ?? "";
     const contentHtml = sanitizePostHtml(body.content_html ?? "");
     if (!isBoardPostType(body.post_type)) {
-      return NextResponse.json({ error: t("board.boardRequired") }, { status: 400 });
+      return privateJson({ error: t("board.boardRequired") }, { status: 400 });
     }
     if (!title || isEmptyHtml(contentHtml)) {
-      return NextResponse.json({ error: t("board.titleBodyRequired") }, { status: 400 });
+      return privateJson({ error: t("board.titleBodyRequired") }, { status: 400 });
     }
     if (contentHtml.length > 100_000) {
-      return NextResponse.json({ error: t("board.bodyTooLong") }, { status: 400 });
+      return privateJson({ error: t("board.bodyTooLong") }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -75,10 +76,10 @@ export async function POST(request: NextRequest) {
       .select(BOARD_POST_SELECT)
       .single<BoardPostRow>();
 
-    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
+    if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
     const [post] = await hydratePostSummaries(supabase, [data], user.id, { includeContent: true });
-    return NextResponse.json({ item: post }, { status: 201 });
+    return privateJson({ item: post }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.postCreateFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.postCreateFailed")) }, { status: 500 });
   }
 }

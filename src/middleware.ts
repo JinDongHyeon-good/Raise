@@ -1,7 +1,7 @@
 import createIntlMiddleware from "next-intl/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 import { detectLocaleFromRequest, isBot } from "@/i18n/locale-detect";
-import { LOCALE_COOKIE, localizedPath, routing } from "@/i18n/routing";
+import { localizedPath, routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -29,16 +29,15 @@ export function middleware(request: NextRequest) {
     url.pathname = localizedPath(pathname, "en");
     url.search = search;
     const res = NextResponse.redirect(url, 307);
+    // 방문자마다(쿠키·국가·언어) 결과가 달라서 CDN 이 저장해 다른 사람에게 주면 안 된다
+    res.headers.set("Cache-Control", "private, no-store");
     res.headers.set("Vary", "Cookie, Accept-Language, CloudFront-Viewer-Country");
     return res;
   }
 
-  const response = intlMiddleware(request);
-  // 한국어 페이지를 보고 있으면 선택 언어를 ko로 기억 (지구본으로 바꾼 경우 포함)
-  if (!hasEnPrefix && !request.cookies.get(LOCALE_COOKIE)) {
-    response.cookies.set(LOCALE_COOKIE, "ko", { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
-  }
-  return response;
+  // 페이지(HTML)는 CDN 에 캐시되므로 여기서 쿠키를 심지 않는다 — 캐시된 Set-Cookie 가 모든 방문자에게 퍼질 수 있다.
+  // 선택 언어는 지구본(언어 전환)에서 브라우저가 직접 쿠키로 저장한다.
+  return intlMiddleware(request);
 }
 
 export const config = {

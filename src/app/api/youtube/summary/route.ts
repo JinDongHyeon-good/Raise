@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { guardAiRequest } from "@/lib/ai-quota";
 import { requireSessionUser } from "@/lib/board-server";
 import { apiTranslator } from "@/lib/server-i18n";
@@ -23,11 +24,11 @@ export async function POST(request: NextRequest) {
   // 요약 언어 (화면 언어). 받아쓰기는 언어끼리 공유한다
   const lang = isSummaryLang(body.lang) ? body.lang : "ko";
   const t = apiTranslator(request);
-  if (!VIDEO_ID.test(videoId)) return NextResponse.json({ error: t("video.invalidVideo") }, { status: 400 });
+  if (!VIDEO_ID.test(videoId)) return privateJson({ error: t("video.invalidVideo") }, { status: 400 });
 
   const { user } = await requireSessionUser();
   if (user && !stepLimiter.check(user.id).allowed) {
-    return NextResponse.json({ error: t("video.tooManyRequests") }, { status: 429 });
+    return privateJson({ error: t("video.tooManyRequests") }, { status: 429 });
   }
 
   try {
@@ -40,15 +41,15 @@ export async function POST(request: NextRequest) {
     if (body.retry) await resetFailedSummary(videoId, lang);
     const view = await ensureSummary(videoId, lang);
     if (view.status === "failed") view.error = t("video.summaryFailed");
-    return NextResponse.json({ item: view, quota }, { headers: { "Cache-Control": "no-store" } });
+    return privateJson({ item: view, quota }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof SummaryRejectedError) {
-      return NextResponse.json({ error: t(`video.rejected.${error.message}`) }, { status: 422 });
+      return privateJson({ error: t(`video.rejected.${error.message}`) }, { status: 422 });
     }
     if (error instanceof YoutubeQuotaError) {
-      return NextResponse.json({ error: t("video.youtubeQuotaShort") }, { status: 429 });
+      return privateJson({ error: t("video.youtubeQuotaShort") }, { status: 429 });
     }
     console.error("[youtube/summary]", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: t("video.summaryStepFailed") }, { status: 500 });
+    return privateJson({ error: t("video.summaryStepFailed") }, { status: 500 });
   }
 }

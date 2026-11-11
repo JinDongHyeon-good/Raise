@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { apiTranslator, hideError } from "@/lib/server-i18n";
 import {
   hydrateComments,
@@ -32,18 +33,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .order("created_at", { ascending: true }),
     ]);
 
-    if (postError) return NextResponse.json({ error: postError.message }, { status: 500 });
-    if (!post) return NextResponse.json({ error: t("board.postNotFound") }, { status: 404 });
-    if (commentError) return NextResponse.json({ error: commentError.message }, { status: 500 });
+    if (postError) return privateJson({ error: postError.message }, { status: 500 });
+    if (!post) return privateJson({ error: t("board.postNotFound") }, { status: 404 });
+    if (commentError) return privateJson({ error: commentError.message }, { status: 500 });
 
     const [item] = await hydratePostSummaries(supabase, [post], user?.id, { includeContent: true });
     const commentViews = await hydrateComments(supabase, (comments ?? []) as BoardCommentRow[], user?.id);
-    return NextResponse.json(
+    return privateJson(
       { item, comments: commentViews, me: user?.id ?? null },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.postLoadFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.postLoadFailed")) }, { status: 500 });
   }
 }
 
@@ -52,15 +53,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { postId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
+    if (!user) return privateJson({ error: t("board.loginRequired") }, { status: 401 });
     const body = (await request.json()) as { title?: string; content_html?: string; post_type?: string };
     const title = body.title?.trim() ?? "";
     const contentHtml = sanitizePostHtml(body.content_html ?? "");
     if (body.post_type && !isBoardPostType(body.post_type)) {
-      return NextResponse.json({ error: t("board.validBoardRequired") }, { status: 400 });
+      return privateJson({ error: t("board.validBoardRequired") }, { status: 400 });
     }
     if (!title || isEmptyHtml(contentHtml)) {
-      return NextResponse.json({ error: t("board.titleBodyRequired") }, { status: 400 });
+      return privateJson({ error: t("board.titleBodyRequired") }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -77,13 +78,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .select(BOARD_POST_SELECT)
       .maybeSingle<BoardPostRow>();
 
-    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
-    if (!data) return NextResponse.json({ error: t("board.noEditPermission") }, { status: 403 });
+    if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
+    if (!data) return privateJson({ error: t("board.noEditPermission") }, { status: 403 });
 
     const [item] = await hydratePostSummaries(supabase, [data], user.id, { includeContent: true });
-    return NextResponse.json({ item });
+    return privateJson({ item });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.postUpdateFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.postUpdateFailed")) }, { status: 500 });
   }
 }
 
@@ -92,7 +93,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { postId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
+    if (!user) return privateJson({ error: t("board.loginRequired") }, { status: 401 });
     const { data, error } = await supabase
       .from("BOARD_POSTS")
       .update({ deleted_at: new Date().toISOString() })
@@ -101,10 +102,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .is("deleted_at", null)
       .select("id");
 
-    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
-    if (!data?.length) return NextResponse.json({ error: t("board.noDeletePermission") }, { status: 403 });
-    return NextResponse.json({ ok: true });
+    if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
+    if (!data?.length) return privateJson({ error: t("board.noDeletePermission") }, { status: 403 });
+    return privateJson({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.postDeleteFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.postDeleteFailed")) }, { status: 500 });
   }
 }

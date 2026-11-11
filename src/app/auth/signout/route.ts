@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { privateJson } from "@/lib/private-response";
 
 /**
  * 로그아웃 — POST 만 받는다. GET 으로 받으면 다른 사이트의 링크나 글 속 <img> 만으로 로그아웃시킬 수 있다.
@@ -17,10 +18,10 @@ export async function POST(request: Request) {
     } catch {
       sameSite = false;
     }
-    if (!sameSite) return NextResponse.json({ ok: false }, { status: 403 });
+    if (!sameSite) return privateJson({ ok: false }, { status: 403 });
   }
 
-  const response = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+  const response = privateJson({ ok: true }, { headers: { "Cache-Control": "no-store" } });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;

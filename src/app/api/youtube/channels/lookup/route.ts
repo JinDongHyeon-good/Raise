@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { requireSessionUser } from "@/lib/board-server";
 import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { SlidingRateLimiter } from "@/lib/sliding-rate-limit";
@@ -13,21 +14,21 @@ const limiter = new SlidingRateLimiter(20, 10 * 60_000);
 export async function GET(request: NextRequest) {
   const t = apiTranslator(request);
   const { user } = await requireSessionUser();
-  if (!user) return NextResponse.json({ error: t("youtubeFavorites.loginRequired"), code: "login_required" }, { status: 401 });
+  if (!user) return privateJson({ error: t("youtubeFavorites.loginRequired"), code: "login_required" }, { status: 401 });
 
   const q = (new URL(request.url).searchParams.get("q") ?? "").trim();
-  if (!q) return NextResponse.json({ items: [] });
+  if (!q) return privateJson({ items: [] });
   if (!limiter.check(user.id).allowed) {
-    return NextResponse.json({ error: t("youtubeFavorites.tooManyLookups") }, { status: 429 });
+    return privateJson({ error: t("youtubeFavorites.tooManyLookups") }, { status: 429 });
   }
 
   try {
     const items = await lookupChannels(q);
-    return NextResponse.json({ items }, { headers: { "Cache-Control": "private, max-age=300" } });
+    return privateJson({ items }, { headers: { "Cache-Control": "private, max-age=300" } });
   } catch (error) {
     if (error instanceof YoutubeQuotaError) {
-      return NextResponse.json({ error: t("youtubeFavorites.quotaExhausted") }, { status: 503 });
+      return privateJson({ error: t("youtubeFavorites.quotaExhausted") }, { status: 503 });
     }
-    return NextResponse.json({ error: hideError(error, t("youtubeFavorites.channelLoadFailed")) }, { status: 502 });
+    return privateJson({ error: hideError(error, t("youtubeFavorites.channelLoadFailed")) }, { status: 502 });
   }
 }

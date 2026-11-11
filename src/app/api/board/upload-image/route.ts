@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 
@@ -13,18 +14,18 @@ export async function POST(request: NextRequest) {
   const t = apiTranslator(request);
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
+    if (!user) return privateJson({ error: t("board.loginRequired") }, { status: 401 });
 
     const form = await request.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: t("board.imageRequired") }, { status: 400 });
+      return privateJson({ error: t("board.imageRequired") }, { status: 400 });
     }
     if (!ALLOWED_MIME.has(file.type)) {
-      return NextResponse.json({ error: t("board.imageTypeInvalid") }, { status: 400 });
+      return privateJson({ error: t("board.imageTypeInvalid") }, { status: 400 });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: t("board.imageTooLarge") }, { status: 400 });
+      return privateJson({ error: t("board.imageTooLarge") }, { status: 400 });
     }
 
     const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" }[file.type] ?? "png";
@@ -35,11 +36,11 @@ export async function POST(request: NextRequest) {
       contentType: file.type,
       upsert: false,
     });
-    if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    if (uploadError) return privateJson({ error: uploadError.message }, { status: 500 });
 
     const { data } = supabase.storage.from("board-images").getPublicUrl(objectPath);
-    return NextResponse.json({ url: data.publicUrl, path: objectPath });
+    return privateJson({ url: data.publicUrl, path: objectPath });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.imageUploadFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.imageUploadFailed")) }, { status: 500 });
   }
 }

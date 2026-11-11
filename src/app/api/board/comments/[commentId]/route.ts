@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { apiTranslator, hideError } from "@/lib/server-i18n";
 import { hydrateComments, requireSessionUser } from "@/lib/board-server";
 import { BOARD_COMMENT_SELECT, type BoardCommentRow } from "@/lib/board-types";
@@ -8,11 +9,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { commentId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
+    if (!user) return privateJson({ error: t("board.loginRequired") }, { status: 401 });
 
     const body = (await request.json()) as { content?: string };
     const content = body.content?.trim() ?? "";
-    if (!content) return NextResponse.json({ error: t("board.commentRequired") }, { status: 400 });
+    if (!content) return privateJson({ error: t("board.commentRequired") }, { status: 400 });
 
     const { data, error } = await supabase
       .from("BOARD_COMMENTS")
@@ -26,13 +27,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .select(BOARD_COMMENT_SELECT)
       .maybeSingle<BoardCommentRow>();
 
-    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
-    if (!data) return NextResponse.json({ error: t("board.noEditPermission") }, { status: 403 });
+    if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
+    if (!data) return privateJson({ error: t("board.noEditPermission") }, { status: 403 });
 
     const [item] = await hydrateComments(supabase, [data], user.id);
-    return NextResponse.json({ item });
+    return privateJson({ item });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.commentUpdateFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.commentUpdateFailed")) }, { status: 500 });
   }
 }
 
@@ -41,7 +42,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { commentId } = await params;
   try {
     const { supabase, user } = await requireSessionUser();
-    if (!user) return NextResponse.json({ error: t("board.loginRequired") }, { status: 401 });
+    if (!user) return privateJson({ error: t("board.loginRequired") }, { status: 401 });
 
     const { error } = await supabase
       .from("BOARD_COMMENTS")
@@ -50,9 +51,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .eq("author_auth_id", user.id)
       .is("deleted_at", null);
 
-    if (error) return NextResponse.json({ error: hideError(error, t("common.serverError")) }, { status: 500 });
-    return NextResponse.json({ ok: true });
+    if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
+    return privateJson({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: hideError(e, t("board.commentDeleteFailed")) }, { status: 500 });
+    return privateJson({ error: hideError(e, t("board.commentDeleteFailed")) }, { status: 500 });
   }
 }

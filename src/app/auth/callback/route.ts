@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { privateRedirect } from "@/lib/private-response";
 import { ensureUserProfileOnAuth } from "@/lib/ensure-user-profile-server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase-server";
 
@@ -58,11 +58,11 @@ export async function GET(request: Request) {
 
   if (oauthError) {
     const msg = oauthDesc || oauthError;
-    return NextResponse.redirect(buildAbsoluteRedirectUrl(request, `/?error=${encodeURIComponent(msg)}`));
+    return privateRedirect(buildAbsoluteRedirectUrl(request, `/?error=${encodeURIComponent(msg)}`));
   }
 
   if (!code) {
-    return NextResponse.redirect(buildAbsoluteRedirectUrl(request, "/?error=auth-code-error"));
+    return privateRedirect(buildAbsoluteRedirectUrl(request, "/?error=auth-code-error"));
   }
 
   try {
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error("[auth/callback] exchangeCodeForSession", error.message);
-      return NextResponse.redirect(buildAbsoluteRedirectUrl(request, "/?error=auth-code-error"));
+      return privateRedirect(buildAbsoluteRedirectUrl(request, "/?error=auth-code-error"));
     }
 
     let redirectPath = nextPath;
@@ -89,13 +89,13 @@ export async function GET(request: Request) {
       }
     }
 
-    const redirect = NextResponse.redirect(buildAbsoluteRedirectUrl(request, redirectPath));
+    const redirect = privateRedirect(buildAbsoluteRedirectUrl(request, redirectPath));
     redirect.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     redirect.headers.set("Pragma", "no-cache");
     redirect.headers.set("Expires", "0");
     return redirect;
   } catch (e) {
     console.error("[auth/callback]", e);
-    return NextResponse.redirect(buildAbsoluteRedirectUrl(request, "/?error=auth-code-error"));
+    return privateRedirect(buildAbsoluteRedirectUrl(request, "/?error=auth-code-error"));
   }
 }

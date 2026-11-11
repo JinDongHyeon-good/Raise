@@ -34,7 +34,8 @@ export const routing = defineRouting({
   localePrefix: "as-needed",
   // 첫 방문 언어 결정은 middleware에서 국가·브라우저 언어로 직접 한다
   localeDetection: false,
-  localeCookie: { name: LOCALE_COOKIE, maxAge: 60 * 60 * 24 * 365 },
+  // 캐시되는 페이지 응답에 Set-Cookie 를 싣지 않도록 라이브러리 쿠키는 끈다 (언어 전환 시 브라우저가 직접 저장)
+  localeCookie: false,
 });
 
 export function isAppLocale(value: string | null | undefined): value is AppLocale {

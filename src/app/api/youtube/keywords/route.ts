@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { apiTranslator } from "@/lib/server-i18n";
 import { requireSessionUser } from "@/lib/board-server";
 
@@ -18,7 +19,7 @@ function normalize(raw: unknown) {
 export async function GET(request: NextRequest) {
   const t = apiTranslator(request);
   const { supabase, user } = await requireSessionUser();
-  if (!user) return NextResponse.json({ error: t("searchKeywords.loginRequired"), code: "login_required" }, { status: 401 });
+  if (!user) return privateJson({ error: t("searchKeywords.loginRequired"), code: "login_required" }, { status: 401 });
   const { data, error } = await supabase
     .from("SEARCH_KEYWORDS")
     .select("id, keyword")
@@ -27,19 +28,19 @@ export async function GET(request: NextRequest) {
     .limit(MAX_KEYWORDS);
   if (error) {
     console.error("[search-keywords] list", error.message);
-    return NextResponse.json({ error: t("searchKeywords.failed") }, { status: 500 });
+    return privateJson({ error: t("searchKeywords.failed") }, { status: 500 });
   }
-  return NextResponse.json({ items: (data ?? []) as KeywordRow[] }, { headers: { "Cache-Control": "no-store" } });
+  return privateJson({ items: (data ?? []) as KeywordRow[] }, { headers: { "Cache-Control": "no-store" } });
 }
 
 /** 키워드 추가 { keyword } */
 export async function POST(request: NextRequest) {
   const t = apiTranslator(request);
   const { supabase, user } = await requireSessionUser();
-  if (!user) return NextResponse.json({ error: t("searchKeywords.loginRequired"), code: "login_required" }, { status: 401 });
+  if (!user) return privateJson({ error: t("searchKeywords.loginRequired"), code: "login_required" }, { status: 401 });
   const body = (await request.json().catch(() => ({}))) as { keyword?: unknown };
   const keyword = normalize(body.keyword);
-  if (!keyword) return NextResponse.json({ error: t("searchKeywords.empty"), code: "empty" }, { status: 400 });
+  if (!keyword) return privateJson({ error: t("searchKeywords.empty"), code: "empty" }, { status: 400 });
 
   const { data, error } = await supabase
     .from("SEARCH_KEYWORDS")
@@ -47,27 +48,27 @@ export async function POST(request: NextRequest) {
     .select("id, keyword")
     .single<KeywordRow>();
   if (error) {
-    if (error.code === "23505") return NextResponse.json({ error: t("searchKeywords.duplicate"), code: "duplicate" }, { status: 409 });
+    if (error.code === "23505") return privateJson({ error: t("searchKeywords.duplicate"), code: "duplicate" }, { status: 409 });
     if (error.message.includes("limit reached")) {
-      return NextResponse.json({ error: t("searchKeywords.full", { max: MAX_KEYWORDS }), code: "full" }, { status: 409 });
+      return privateJson({ error: t("searchKeywords.full", { max: MAX_KEYWORDS }), code: "full" }, { status: 409 });
     }
     console.error("[search-keywords] insert", error.message);
-    return NextResponse.json({ error: t("searchKeywords.failed") }, { status: 500 });
+    return privateJson({ error: t("searchKeywords.failed") }, { status: 500 });
   }
-  return NextResponse.json({ item: data }, { status: 201 });
+  return privateJson({ item: data }, { status: 201 });
 }
 
 /** 키워드 삭제 ?id= */
 export async function DELETE(request: NextRequest) {
   const t = apiTranslator(request);
   const { supabase, user } = await requireSessionUser();
-  if (!user) return NextResponse.json({ error: t("searchKeywords.loginRequired"), code: "login_required" }, { status: 401 });
+  if (!user) return privateJson({ error: t("searchKeywords.loginRequired"), code: "login_required" }, { status: 401 });
   const id = Number(new URL(request.url).searchParams.get("id"));
-  if (!Number.isSafeInteger(id) || id <= 0) return NextResponse.json({ error: t("searchKeywords.failed") }, { status: 400 });
+  if (!Number.isSafeInteger(id) || id <= 0) return privateJson({ error: t("searchKeywords.failed") }, { status: 400 });
   const { error } = await supabase.from("SEARCH_KEYWORDS").delete().eq("user_auth_id", user.id).eq("id", id);
   if (error) {
     console.error("[search-keywords] delete", error.message);
-    return NextResponse.json({ error: t("searchKeywords.failed") }, { status: 500 });
+    return privateJson({ error: t("searchKeywords.failed") }, { status: 500 });
   }
-  return NextResponse.json({ ok: true });
+  return privateJson({ ok: true });
 }

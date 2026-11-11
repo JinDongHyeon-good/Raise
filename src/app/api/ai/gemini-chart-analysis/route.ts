@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-response";
 import { apiTranslator } from "@/lib/server-i18n";
 import { getVertexGeminiHeaders, getVertexGeminiUrl, isVertexGeminiConfigured } from "@/lib/gemini-fetch";
 import { getGeminiModelChain } from "@/lib/gemini-models";
@@ -227,19 +228,19 @@ export async function POST(request: NextRequest) {
   try {
     const requestStartedAt = Date.now();
     if (process.env.AI_ANALYSIS_ENABLED?.toLowerCase() === "false") {
-      return NextResponse.json({ error: t("chartAnalysis.disabled") }, { status: 503 });
+      return privateJson({ error: t("chartAnalysis.disabled") }, { status: 503 });
     }
 
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
     if (origin && host && !isAllowedOrigin(origin, host)) {
-      return NextResponse.json({ error: t("chartAnalysis.originNotAllowed") }, { status: 403 });
+      return privateJson({ error: t("chartAnalysis.originNotAllowed") }, { status: 403 });
     }
 
     const clientIp = getClientIp(request);
     const rateLimit = checkRateLimit(clientIp);
     if (!rateLimit.allowed) {
-      return NextResponse.json(
+      return privateJson(
         { error: t("chartAnalysis.tooManyRequests") },
         {
           status: 429,
@@ -253,12 +254,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isVertexGeminiConfigured()) {
-      return NextResponse.json({ error: t("chartAnalysis.notConfigured") }, { status: 500 });
+      return privateJson({ error: t("chartAnalysis.notConfigured") }, { status: 500 });
     }
 
     const parsedBody = validateBody(await request.json());
     if (!parsedBody.ok) {
-      return NextResponse.json({ error: t(parsedBody.message) }, { status: 400 });
+      return privateJson({ error: t(parsedBody.message) }, { status: 400 });
     }
     const body = parsedBody.body;
 
@@ -272,7 +273,7 @@ export async function POST(request: NextRequest) {
     const cacheKey = getCacheKey(body);
     const cached = analysisCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
-      return NextResponse.json(
+      return privateJson(
         { analysis: cached.analysis, model: cached.model, warning: cached.warning, cached: true },
         {
           headers: {
@@ -431,7 +432,7 @@ export async function POST(request: NextRequest) {
       for (let attempt = 1; attempt <= 3; attempt += 1) {
         const elapsedMs = Date.now() - requestStartedAt;
         if (elapsedMs > GEMINI_TOTAL_BUDGET_MS) {
-          return NextResponse.json(
+          return privateJson(
             { error: t("chartAnalysis.budgetExceeded") },
             { status: 504 },
           );
@@ -478,7 +479,7 @@ export async function POST(request: NextRequest) {
           console.error("[gemini-analysis] model failed", { model, attempt, error: lastErrorMessage });
           if (isQuotaExceededError(lastErrorMessage)) {
             const retryAfter = parseRetryAfterSeconds(lastErrorMessage) ?? 10;
-            return NextResponse.json(
+            return privateJson(
               {
                 error: t("chartAnalysis.quotaExceeded", { seconds: retryAfter }),
                 code: "quota_exceeded",
@@ -517,7 +518,7 @@ export async function POST(request: NextRequest) {
           const finalAnalysis = mergedAnalysis.replace(/\n?\[END_REPORT\]\s*$/g, "").trim();
           console.log("[gemini-analysis] success", { model, attempt, length: analysis.length });
           analysisCache.set(cacheKey, { analysis: finalAnalysis, model, expiresAt: Date.now() + CACHE_TTL_MS });
-          return NextResponse.json(
+          return privateJson(
             { analysis: finalAnalysis, model },
             {
               headers: {
@@ -541,7 +542,7 @@ export async function POST(request: NextRequest) {
           warning: "partial_response",
           expiresAt: Date.now() + CACHE_TTL_MS,
         });
-        return NextResponse.json(
+        return privateJson(
           { analysis: partialAnalysis, model, warning: "partial_response" },
           {
             headers: {
@@ -555,15 +556,15 @@ export async function POST(request: NextRequest) {
     }
 
     console.error("[gemini-analysis] all models failed", { lastErrorMessage });
-    return NextResponse.json({ error: lastErrorMessage }, { status: 502 });
+    return privateJson({ error: lastErrorMessage }, { status: 502 });
   } catch (error) {
     console.error("[gemini-analysis] unexpected error", error);
     if (error instanceof Error && error.name === "AbortError") {
-      return NextResponse.json(
+      return privateJson(
         { error: t("chartAnalysis.timeout") },
         { status: 504 },
       );
     }
-    return NextResponse.json({ error: t("chartAnalysis.unexpected") }, { status: 500 });
+    return privateJson({ error: t("chartAnalysis.unexpected") }, { status: 500 });
   }
 }
