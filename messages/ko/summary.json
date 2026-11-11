@@ -7,7 +7,7 @@
   "statusSummarizing": "받아쓴 내용으로 요약하는 중",
   "statusVerifying": "요약이 영상 내용과 맞는지 확인하는 중",
   "title": "AI 영상 요약",
-  "intro": "영상에서 실제로 나온 말만 근거로 핵심을 정리해요.",
+  "intro": "영상의 내용을 근거로 핵심을 찐투AI가 정리해요",
   "usageToday": "오늘 {used}/{limit}회 사용",
   "loginDailyLimit": "로그인 후 하루 5회",
   "start": "AI 요약 보기",

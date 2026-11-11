@@ -2,6 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { PriceText } from "@/components/raise/candle-chart";
+import { ScrollArrows, useHScroll } from "@/components/raise/scroll-arrows";
 import { localizedName, type Coin, type Ticker } from "@/lib/coins";
 
 type Props = {
@@ -15,11 +16,16 @@ type Props = {
 
 export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }: Props) {
   const locale = useLocale();
+  const { setNode: rowRef, update: onRowScroll, edge: rowEdge, slide: slideRow } = useHScroll([coins]);
   return (
     <div className="border-b border-[var(--rz-line)] bg-[var(--rz-bg-elevated)]">
       <div className="rz-container">
         {toolbar ? <div className="w-full pt-3">{toolbar}</div> : null}
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <ScrollArrows edge={rowEdge} onSlide={slideRow} className="flex items-center justify-end gap-2 pt-2.5 sm:hidden" />
+        <div
+          ref={rowRef}
+          onScroll={onRowScroll}
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
           {coins.map((c) => {
             const t = tickers[c.symbol];
             const active = c.symbol === selected.symbol;

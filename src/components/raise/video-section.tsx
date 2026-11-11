@@ -8,6 +8,7 @@ import { useFavoriteChannels } from "@/hooks/use-favorite-channels";
 import { VideoFilterModal } from "@/components/raise/video-filter-modal";
 import { KeywordModal } from "@/components/raise/keyword-modal";
 import { ChannelModal } from "@/components/raise/channel-modal";
+import { ScrollArrows, useHScroll } from "@/components/raise/scroll-arrows";
 import { useSearchKeywords } from "@/hooks/use-search-keywords";
 import { useVideoFilterDefault } from "@/hooks/use-video-filter-default";
 import {
@@ -128,6 +129,12 @@ export function VideoSection({
   const [mode, setMode] = useState<"search" | "favorites">("search");
   const [favFilter, setFavFilter] = useState<string | null>(null);
   const favKey = `fav:${favFilter ?? "all"}:${favorites.channels.map((c) => c.id).join(",")}`;
+  // 모바일: 채널·키워드·검색 버튼 줄 좌우 이동 (버튼 수가 바뀌면 다시 계산)
+  const { setNode: chipRowRef, update: onChipScroll, edge: chipEdge, slide: slideChips } = useHScroll([
+    favorites.channels.length,
+    savedKeywords.length,
+    name,
+  ]);
   const [favFeed, setFavFeed] = useState<{ key: string; videos: Video[]; error: string | null }>({ key: "", videos: [], error: null });
 
   // 코인이 바뀌면 그 코인의 첫 배지로 검색 (렌더 중 상태 조정 — effect 불필요)
@@ -348,7 +355,11 @@ export function VideoSection({
         }}
       />
 
-      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+      <ScrollArrows edge={chipEdge} onSlide={slideChips} className="mb-2 flex items-center justify-end gap-2 sm:hidden" />
+      <div
+        ref={chipRowRef}
+        onScroll={onChipScroll}
+        className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           onClick={() => {

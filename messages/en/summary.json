@@ -7,7 +7,7 @@
   "statusSummarizing": "Summarizing the transcript",
   "statusVerifying": "Checking the summary against the video",
   "title": "AI video summary",
-  "intro": "Key points based only on what's actually said in the video.",
+  "intro": "jjintu AI sums up the key points based on what the video says",
   "usageToday": "{used}/{limit} used today",
   "loginDailyLimit": "5 per day after login",
   "start": "Show AI summary",
