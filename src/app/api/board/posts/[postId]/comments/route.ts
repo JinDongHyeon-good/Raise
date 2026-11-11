@@ -13,6 +13,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const parentId = body.parent_id?.trim() || null;
     if (!content) return NextResponse.json({ error: "댓글 내용을 입력해 주세요." }, { status: 400 });
 
+    const { data: post } = await supabase
+      .from("BOARD_POSTS")
+      .select("id")
+      .eq("id", postId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (!post) return NextResponse.json({ error: "게시글을 찾을 수 없습니다." }, { status: 404 });
+
     if (parentId) {
       const { data: parent, error: parentError } = await supabase
         .from("BOARD_COMMENTS")
@@ -42,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .single<BoardCommentRow>();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    const [item] = await hydrateComments(supabase, [data]);
+    const [item] = await hydrateComments(supabase, [data], user.id);
     return NextResponse.json({ item }, { status: 201 });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "댓글 작성 실패" }, { status: 500 });

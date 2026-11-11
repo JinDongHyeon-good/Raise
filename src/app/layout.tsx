@@ -18,7 +18,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#2D6A4F",
+  themeColor: "#0b0e13",
 };
 
 export default function RootLayout({
@@ -39,7 +39,7 @@ export default function RootLayout({
           suppressHydrationWarning
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[var(--piclick-beige-soft)] text-[var(--piclick-ink)]">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#0b0e13] text-[#e7ebf0]">{children}</body>
     </html>
   );
 }

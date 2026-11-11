@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { htmlLang, routing, type AppLocale, type RoutedLocale } from "@/i18n/routing";
 import { buildRootMetadata } from "@/lib/seo";
 
@@ -32,9 +33,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <NextIntlClientProvider locale="ko" messages={messages}>
-      <div lang={lang} className="contents">
-        {children}
-      </div>
+      <AuthProvider>
+        <div lang={lang} className="contents">
+          {children}
+        </div>
+      </AuthProvider>
     </NextIntlClientProvider>
   );
 }

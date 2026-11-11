@@ -1,4 +1,25 @@
+import { getGoogleAccessToken, getServiceAccountProjectId } from "@/lib/google-service-account";
+
 const RETRYABLE_HTTP_STATUS = new Set([408, 429, 500, 502, 503, 504]);
+const VERTEX_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+
+/** Vertex AI generateContent 엔드포인트 (서비스 계정 = GOOGLE_SERVICE_ACCOUNT_CREDENTIALS) */
+export function getVertexGeminiUrl(model: string) {
+  const location = process.env.GOOGLE_VERTEX_LOCATION?.trim() || "global";
+  const host = location === "global" ? "aiplatform.googleapis.com" : `${location}-aiplatform.googleapis.com`;
+  const project = getServiceAccountProjectId();
+  return `https://${host}/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:generateContent`;
+}
+
+export async function getVertexGeminiHeaders(): Promise<Record<string, string>> {
+  const token = await getGoogleAccessToken(VERTEX_SCOPE);
+  return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+}
+
+/** 서비스 계정 env가 있는지 (라우트에서 500 응답용) */
+export function isVertexGeminiConfigured() {
+  return Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS?.trim());
+}
 
 export type GeminiGenerateResponse = {
   candidates?: Array<{
@@ -64,7 +85,6 @@ export async function fetchWithTimeout(input: string, init: RequestInit, timeout
 }
 
 export async function callGeminiGenerateContent(options: {
-  apiKey: string;
   model: string;
   prompt: string;
   timeoutMs: number;
@@ -76,7 +96,6 @@ export async function callGeminiGenerateContent(options: {
   deadlineAt?: number;
 }): Promise<GeminiCallResult> {
   const {
-    apiKey,
     model,
     prompt,
     timeoutMs,
@@ -87,9 +106,9 @@ export async function callGeminiGenerateContent(options: {
     deadlineAt,
   } = options;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const url = getVertexGeminiUrl(model);
   const body = JSON.stringify({
-    contents: [{ parts: [{ text: prompt }] }],
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
       temperature,
       topP,
@@ -126,7 +145,7 @@ export async function callGeminiGenerateContent(options: {
         url,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await getVertexGeminiHeaders(),
           body,
         },
         attemptTimeoutMs,

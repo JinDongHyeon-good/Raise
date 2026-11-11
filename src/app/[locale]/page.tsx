@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
+import RaiseHome from "@/components/raise/raise-home";
 import { JsonLd } from "@/components/seo/json-ld";
-import PiclickHome from "@/components/piclick/piclick-home";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { buildHomePageMetadata, getHomeJsonLd } from "@/lib/seo";
@@ -26,7 +26,7 @@ export default async function HomePage({ params }: PageProps) {
   return (
     <>
       <JsonLd data={getHomeJsonLd(locale as AppLocale)} />
-      <PiclickHome />
+      <RaiseHome />
     </>
   );
 }

@@ -1,20 +1,9 @@
-type JsonLdProps = {
-  data: Record<string, unknown> | Array<Record<string, unknown>>;
-};
-
-export function JsonLd({ data }: JsonLdProps) {
-  const graphs = Array.isArray(data) ? data : [data];
-
+/** 구조화 데이터 (검색엔진용). `<` 를 이스케이프해 스크립트 주입을 막는다 */
+export function JsonLd({ data }: { data: unknown }) {
   return (
-    <>
-      {graphs.map((graph, index) => (
-        <script
-          // eslint-disable-next-line react/no-danger
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
-        />
-      ))}
-    </>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+    />
   );
 }

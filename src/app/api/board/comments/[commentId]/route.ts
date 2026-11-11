@@ -27,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!data) return NextResponse.json({ error: "수정 권한이 없습니다." }, { status: 403 });
 
-    const [item] = await hydrateComments(supabase, [data]);
+    const [item] = await hydrateComments(supabase, [data], user.id);
     return NextResponse.json({ item });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "댓글 수정 실패" }, { status: 500 });
