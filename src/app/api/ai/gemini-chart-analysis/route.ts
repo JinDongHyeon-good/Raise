@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LATEST_GEMINI_MODEL } from "@/lib/gemini-models";
+import { getVertexGeminiHeaders, getVertexGeminiUrl, isVertexGeminiConfigured } from "@/lib/gemini-fetch";
+import { getGeminiModelChain } from "@/lib/gemini-models";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -9,7 +10,6 @@ const RATE_LIMIT_MAX_REQUESTS = 8;
 const CACHE_TTL_MS = 30 * 1000;
 const GEMINI_HTTP_TIMEOUT_MS = 60000;
 const GEMINI_TOTAL_BUDGET_MS = 90000;
-const DEFAULT_GEMINI_MODEL = LATEST_GEMINI_MODEL;
 
 const requestBuckets = new Map<string, { count: number; windowStart: number }>();
 const analysisCache = new Map<string, { analysis: string; model: string; expiresAt: number; warning?: string }>();
@@ -23,13 +23,6 @@ type CandleInput = {
   volume: number;
 };
 
-type GeminiModelsResponse = {
-  models?: Array<{
-    name?: string;
-    supportedGenerationMethods?: string[];
-  }>;
-};
-
 type GeminiGenerateResponse = {
   candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
   error?: { message?: string };
@@ -41,26 +34,6 @@ type AnalyzeRequestBody = {
   interval: string;
   candles: CandleInput[];
 };
-
-function normalizeModelName(name: string) {
-  return name.startsWith("models/") ? name.replace("models/", "") : name;
-}
-
-function sanitizePreferredModel(raw?: string) {
-  if (!raw) return DEFAULT_GEMINI_MODEL;
-  const trimmed = raw.trim().replace(/^['"]|['"]$/g, "");
-  const normalized = normalizeModelName(trimmed);
-  return normalized || DEFAULT_GEMINI_MODEL;
-}
-
-function sanitizeApiKey(raw?: string) {
-  if (!raw) return "";
-  return raw.trim().replace(/^['"]|['"]$/g, "");
-}
-
-function isValidModelName(model: string) {
-  return /^gemini[a-z0-9.-]*$/i.test(model);
-}
 
 function isAllowedOrigin(origin: string, host: string) {
   try {
@@ -245,35 +218,6 @@ function isCompleteAnalysis(text: string, market: "spot" | "linear") {
   return text.includes("5) 현재 캔들 기준 한줄 결론");
 }
 
-async function listGenerateModels(apiKey: string) {
-  const response = await fetchWithTimeout(
-    `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
-    {
-      method: "GET",
-      cache: "no-store",
-    },
-    6000,
-  );
-
-  if (!response.ok) return [];
-
-  const data = (await response.json()) as GeminiModelsResponse;
-  const available = (data.models ?? [])
-    .filter((model) => model.supportedGenerationMethods?.includes("generateContent"))
-    .map((model) => normalizeModelName(model.name ?? ""))
-    .filter(Boolean);
-
-  // pro 우선, 그다음 flash 우선 정렬
-  return available.sort((a, b) => {
-    const score = (model: string) => {
-      if (model.includes("pro")) return 0;
-      if (model.includes("flash")) return 1;
-      return 2;
-    };
-    return score(a) - score(b);
-  });
-}
-
 export async function POST(request: NextRequest) {
   try {
     const requestStartedAt = Date.now();
@@ -303,10 +247,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = sanitizeApiKey(process.env.GEMINI_API_KEY);
-    const preferredModel = sanitizePreferredModel(DEFAULT_GEMINI_MODEL);
-    if (!apiKey) {
-      return NextResponse.json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
+    if (!isVertexGeminiConfigured()) {
+      return NextResponse.json({ error: "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS가 설정되지 않았습니다." }, { status: 500 });
     }
 
     const parsedBody = validateBody(await request.json());
@@ -466,14 +408,7 @@ export async function POST(request: NextRequest) {
       "반드시 모든 섹션을 끝까지 작성하고 마지막 줄에 [END_REPORT]를 출력하라.",
     ].join("\n");
 
-    const discovered = await listGenerateModels(apiKey);
-    const candidateModels = Array.from(new Set([preferredModel, ...discovered]))
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .filter(isValidModelName);
-    if (candidateModels.length === 0) {
-      candidateModels.push(LATEST_GEMINI_MODEL);
-    }
+    const candidateModels = getGeminiModelChain();
     console.log("[gemini-analysis] model candidates", candidateModels);
 
     let lastErrorMessage = "Gemini 요청 실패";
@@ -509,12 +444,12 @@ export async function POST(request: NextRequest) {
               ].join("\n");
 
         const response = await fetchWithTimeout(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          getVertexGeminiUrl(model),
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: await getVertexGeminiHeaders(),
             body: JSON.stringify({
-              contents: [{ parts: [{ text: attemptPrompt }] }],
+              contents: [{ role: "user", parts: [{ text: attemptPrompt }] }],
               generationConfig: {
                 temperature: 0.35,
                 topP: 0.9,

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "이미지는 5MB 이하만 업로드 가능합니다." }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" }[file.type] ?? "png";
     const objectPath = `${user.id}/${Date.now()}-${randomUUID()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 

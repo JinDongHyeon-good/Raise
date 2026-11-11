@@ -1,101 +1,61 @@
 import type { Metadata } from "next";
-import { Link } from "@/navigation";
-import { SitePageShell } from "@/components/site/site-page-shell";
+import Link from "next/link";
+import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { SERVICE_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: "이용약관",
-  description: `${SERVICE_NAME} 서비스 이용약관 — 서비스 성격, 이용 제한, 면책, 광고`,
+  description: `${SERVICE_NAME} 서비스 이용약관 — 서비스 성격, 투자 면책, 외부 콘텐츠, 광고`,
 };
 
 export default function TermsPage() {
   return (
-    <SitePageShell title="이용약관">
-      <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-800 sm:px-6">
-        <h1 className="font-brand-display text-3xl text-slate-900 sm:text-4xl">이용약관</h1>
-        <p className="mt-4 text-sm text-slate-500">시행일: 2026-06-02 · 최종 개정일: 2026-07-24</p>
+    <RaisePageShell>
+      <main>
+        <h1>이용약관</h1>
+        <p className="meta">시행일: 2026-11-11</p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">1. 목적</h2>
-          <p>
-            본 약관은 {SERVICE_NAME}가 제공하는 오늘의 운세·사주팔자·궁합 등 사주 풀이 및 커뮤니티·광고 관련 콘텐츠
-            서비스의 이용 조건, 권리·의무 및 책임사항을 규정함을 목적으로 합니다.
-          </p>
-        </section>
+        <h2>1. 목적</h2>
+        <p>
+          본 약관은 {SERVICE_NAME}가 제공하는 코인 시세·차트 열람 및 관련 영상 검색 서비스의 이용 조건과 책임 범위를
+          정합니다.
+        </p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">2. 서비스 성격 (중요)</h2>
-          <p>
-            본 서비스는 사주·운세 콘텐츠를 제공하는 플랫폼입니다. 오늘의 운세, 사주팔자, 궁합 등 모든 풀이 결과는
-            전통 명리와 AI 해석에 기반한 참고용 정보이며, 어떠한 결과도 미래를 확정적으로 보장하지 않습니다. 진로·건강·
-            재정·결혼 등 중요한 결정은 이용자 본인이 신중히 판단해야 하며, {SERVICE_NAME}는 결과 이용에 따른 결정과
-            책임의 당사자가 아닙니다.
-          </p>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>코트·시설의 운영 상태·가용성을 항상 보장하지 않습니다.</li>
-            <li>모임 참가자 간 분쟁·부상·손실에 대해 직접 책임지지 않습니다.</li>
-            <li>광고·홍보 콘텐츠의 정확성은 광고주·게시자에게 책임이 있습니다.</li>
-            <li>타인의 권리를 침해하거나 혐오·폭력·불법 콘텐츠를 게시·유포해서는 안 됩니다.</li>
-          </ul>
-        </section>
+        <h2>2. 서비스의 성격과 투자 면책</h2>
+        <p>
+          서비스는 공개된 시세와 영상을 모아 보여주는 정보 열람 서비스이며, 투자 권유나 금융 자문을 제공하지 않습니다. 시세는
+          지연되거나 실제 거래 가격과 다를 수 있습니다. 서비스의 정보를 바탕으로 한 투자 판단과 그 결과에 대한 책임은
+          이용자 본인에게 있습니다.
+        </p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">3. 이용 제한</h2>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>타인의 계정을 무단 사용하거나 서비스 운영을 방해하는 행위</li>
-            <li>자동화된 비정상 요청, 스팸성 접근, 보안 취약점 악용 시도</li>
-            <li>관련 법령 및 공서양속에 반하는 목적의 이용</li>
-            <li>타인의 권리를 침해하거나 혐오·폭력·불법 콘텐츠를 게시·유포하는 행위</li>
-          </ul>
-        </section>
+        <h2>3. 외부 콘텐츠</h2>
+        <p>
+          영상은 YouTube, 시세는 Bybit에서 제공되며 각 콘텐츠의 권리와 책임은 해당 제공자와 게시자에게 있습니다. 영상 속
+          의견은 {SERVICE_NAME}의 입장이 아니며, 서비스는 영상 내용의 정확성을 보증하지 않습니다.
+        </p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">4. 콘텐츠·지식재산</h2>
-          <p>
-            서비스에 게시된 문구, UI, 가이드, 브랜드 요소 등의 권리는 {SERVICE_NAME} 또는 정당한 권리자에게 있습니다.
-            이용자는 개인적·비상업적 범위에서 서비스를 이용할 수 있으며, 무단 복제·배포·재판매를 해서는 안 됩니다. 사용자가
-            업로드한 모임·대관·광고 콘텐츠의 책임은 게시자에게 있습니다.
-          </p>
-        </section>
+        <h2>4. 이용 제한</h2>
+        <p>
+          자동화된 대량 요청, 서비스 장애를 유발하는 행위, 관련 법령을 위반하는 이용은 사전 통지 없이 제한될 수 있습니다.
+        </p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">5. 광고</h2>
-          <p>
-            서비스는 Google AdSense 등 제3자 광고를 게재할 수 있습니다. 광고 내용·링크의 정확성·적법성에 대한 책임은 해당
-            광고주에게 있으며, 이용자와 광고주 간 거래에 대해 {SERVICE_NAME}는 관련 법령이 허용하는 범위 내에서 책임을
-            제한합니다. 쿠키·광고 관련 개인정보 처리는{" "}
-            <Link href="/privacy" className="text-slate-700 underline">
-              개인정보처리방침
-            </Link>
-            을 따릅니다.
-          </p>
-        </section>
+        <h2>5. 광고</h2>
+        <p>
+          서비스에는 제3자 광고가 표시될 수 있으며, 광고 내용과 거래에 대한 책임은 광고주에게 있습니다. 쿠키·광고 관련
+          사항은 <Link href="/privacy">개인정보처리방침</Link>을 따릅니다.
+        </p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">6. 면책</h2>
-          <p>
-            서비스는 운영상 필요에 따라 변경·중단될 수 있습니다. AI가 생성한 문구의 완전성·정확성·최신성을 보증하지
-            않습니다. 천재지변, 외부 서비스 장애, 이용자 귀책사유로 인한 손해에 대해 회사는 관련 법령이 허용하는 범위
-            내에서 책임을 제한할 수 있습니다.
-          </p>
-        </section>
+        <h2>6. 서비스 변경 및 중단</h2>
+        <p>
+          서비스는 운영상·기술상 필요에 따라 기능을 변경하거나 중단할 수 있으며, 외부 API의 한도·장애로 일부 기능이
+          일시적으로 제공되지 않을 수 있습니다.
+        </p>
 
-        <section className="mt-8 space-y-3 leading-7">
-          <h2 className="text-xl font-semibold text-slate-800">7. 문의</h2>
-          <p>
-            약관 관련 문의:{" "}
-            <a href="mailto:wlsehdgus23@gmail.com" className="text-slate-700 underline">
-              wlsehdgus23@gmail.com
-            </a>
-          </p>
-          <p>
-            <Link href="/contact" className="text-slate-700 underline">
-              문의 페이지
-            </Link>
-            에서도 접수할 수 있습니다.
-          </p>
-        </section>
+        <h2>7. 문의</h2>
+        <p>
+          약관 관련 문의는 <Link href="/contact">문의 페이지</Link>를 이용해 주세요.
+        </p>
       </main>
-    </SitePageShell>
+    </RaisePageShell>
   );
 }

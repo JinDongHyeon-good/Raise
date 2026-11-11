@@ -1,47 +1,48 @@
 import type { MetadataRoute } from "next";
-import { locales } from "@/i18n/routing";
+import { createClient } from "@supabase/supabase-js";
 import { getSiteUrl } from "@/lib/brand";
-import { buildLanguageAlternates, localizedSeoPath } from "@/lib/seo-i18n";
 
-const siteUrl = new URL(getSiteUrl());
+/** 1시간마다 다시 생성 (새 글 반영) */
+export const revalidate = 3600;
 
-// 색인 대상 공개 페이지. 오늘의 운세·사주팔자·궁합 세 툴 페이지는 로그인 없이도
-// 폼·설명이 그대로 보이는 공개 콘텐츠라 robots.ts에서 개별 allow로 열어 두고 여기도 포함한다.
-const STATIC_PATHS = [
-  "/",
-  "/saju",
-  "/dashboard/today",
-  "/dashboard/saju",
-  "/dashboard/gunghap",
-  "/about",
-  "/contact",
-  "/privacy",
-  "/terms",
-] as const;
+const STATIC_PATHS = ["/", "/community", "/about", "/contact", "/privacy", "/terms"] as const;
 
-const HIGH_PRIORITY_PATHS = new Set<string>(["/saju", "/dashboard/today", "/dashboard/saju", "/dashboard/gunghap"]);
-
-function abs(path: string) {
-  return new URL(path, siteUrl).toString();
+async function fetchCommunityPosts() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return [];
+  try {
+    const supabase = createClient(url, key, { auth: { persistSession: false } });
+    const { data } = await supabase
+      .from("BOARD_POSTS")
+      .select("id, updated_at")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    return (data ?? []) as Array<{ id: string; updated_at: string }>;
+  } catch {
+    return [];
+  }
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const siteUrl = getSiteUrl();
   const now = new Date();
 
-  return STATIC_PATHS.flatMap((path) => {
-    // hreflang 대체 링크는 모든 로케일 항목에 동일하게 붙인다
-    const alternates = Object.fromEntries(
-      Object.entries(buildLanguageAlternates(path)).map(([lang, p]) => [lang, abs(p)]),
-    );
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
+    url: new URL(path, siteUrl).toString(),
+    lastModified: now,
+    changeFrequency: path === "/" || path === "/community" ? "hourly" : "monthly",
+    priority: path === "/" ? 1 : path === "/community" ? 0.9 : 0.4,
+  }));
 
-    return locales.map((locale) => ({
-      url: abs(localizedSeoPath(path, locale)),
-      lastModified: now,
-      changeFrequency: (path === "/" || path === "/dashboard/today" ? "daily" : "weekly") as
-        | "daily"
-        | "weekly",
-      priority: path === "/" ? 1 : HIGH_PRIORITY_PATHS.has(path) ? 0.8 : 0.6,
-      alternates: { languages: alternates },
-    }));
-  });
+  const posts = await fetchCommunityPosts();
+  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: new URL(`/community/${post.id}`, siteUrl).toString(),
+    lastModified: new Date(post.updated_at),
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...postEntries];
 }
