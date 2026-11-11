@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { mapAuthErrorMessage } from "@/lib/auth-errors";
 import { getAuthCallbackUrl } from "@/lib/auth-urls";
-import { SERVICE_NAME } from "@/lib/brand";
 import { ensureUserProfileClient } from "@/lib/ensure-user-profile-client";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 
@@ -111,7 +110,7 @@ export function LoginModal({
         <div className="mb-5 flex items-start justify-between">
           <div>
             <p className="text-lg font-semibold">{mode === "login" ? "로그인" : "회원가입"}</p>
-            <p className="mt-1 text-xs text-[var(--rz-muted)]">{SERVICE_NAME} 커뮤니티에 글·댓글을 남기려면 로그인하세요.</p>
+            <p className="mt-1 text-xs text-[var(--rz-muted)]">AI 요약·분석, 커뮤니티 글·댓글은 로그인 후 이용할 수 있어요.</p>
           </div>
           <button type="button" onClick={onClose} aria-label="닫기" className="text-xl leading-none text-[var(--rz-muted)]">
             ×

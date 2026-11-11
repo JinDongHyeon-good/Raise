@@ -34,9 +34,15 @@ export type YoutubeVideo = {
 
 export type YoutubeSearchResult = {
   query: string;
+  /** 0부터. 페이지 하나 = search.list 1번(100 units) = 최대 50개 */
+  page: number;
   videos: YoutubeVideo[];
+  nextPageToken: string | null;
   fetchedAt: number;
 };
+
+/** 무한 스크롤로 받아올 수 있는 최대 페이지 수 (할당량 보호) */
+export const MAX_PAGES = 4;
 
 type CacheSource = "memory" | "db" | "api" | "stale";
 
@@ -153,8 +159,9 @@ export function normalizeQuery(raw: string) {
   return raw.normalize("NFC").trim().replace(/\s+/g, " ").slice(0, 100);
 }
 
-function cacheKey(query: string) {
-  return query.toLowerCase();
+/** v2: 라이브 방송 제외 + 페이지 */
+function cacheKey(query: string, page: number) {
+  return `v2:${page}:${query.toLowerCase()}`;
 }
 
 function l1Set(key: string, value: YoutubeSearchResult) {
@@ -195,6 +202,7 @@ type SearchItem = {
     channelTitle?: string;
     channelId?: string;
     publishedAt?: string;
+    liveBroadcastContent?: string;
     thumbnails?: Record<string, { url?: string }>;
   };
 };
@@ -203,6 +211,7 @@ type VideoItem = {
   id: string;
   statistics?: { viewCount?: string; likeCount?: string };
   contentDetails?: { duration?: string };
+  liveStreamingDetails?: Record<string, unknown>;
 };
 
 function decodeEntities(text: string) {
@@ -214,9 +223,10 @@ function decodeEntities(text: string) {
     .replace(/&gt;/g, ">");
 }
 
-async function fetchFromApi(query: string): Promise<YoutubeSearchResult> {
+async function fetchFromApi(query: string, page: number, pageToken: string | null): Promise<YoutubeSearchResult> {
   // search.list = 100 units (maxResults와 무관하므로 최대치 50개를 한 번에)
-  const { data: search, credential } = await ytGet<{ items?: SearchItem[] }>("search", {
+  const { data: search, credential } = await ytGet<{ items?: SearchItem[]; nextPageToken?: string }>("search", {
+    ...(pageToken ? { pageToken } : {}),
     part: "snippet",
     type: "video",
     maxResults: "50",
@@ -227,7 +237,10 @@ async function fetchFromApi(query: string): Promise<YoutubeSearchResult> {
     safeSearch: "moderate",
   });
 
-  const items = (search.items ?? []).filter((item) => item.id?.videoId);
+  // 라이브 중·예정 방송 제외
+  const items = (search.items ?? []).filter(
+    (item) => item.id?.videoId && (item.snippet?.liveBroadcastContent ?? "none") === "none",
+  );
   const ids = items.map((item) => item.id!.videoId!);
 
   // videos.list = 1 unit (최대 50개). 실패해도 검색 결과는 살린다
@@ -235,19 +248,28 @@ async function fetchFromApi(query: string): Promise<YoutubeSearchResult> {
   if (ids.length) {
     try {
       details =
-        (await ytGet<{ items?: VideoItem[] }>("videos", { part: "statistics,contentDetails", id: ids.join(",") })).data.items ?? [];
+        (await ytGet<{ items?: VideoItem[] }>("videos", { part: "statistics,contentDetails,liveStreamingDetails", id: ids.join(",") })).data.items ?? [];
     } catch (e) {
       console.warn("[youtube] videos.list 실패, 통계 없이 진행", e instanceof Error ? e.message : e);
     }
   }
   const detailMap = new Map(details.map((item) => [item.id, item]));
 
-  console.info(`[youtube] search "${query}" via ${credential} (${ids.length}개)`);
+  console.info(`[youtube] search "${query}" p${page} via ${credential} (${ids.length}개)`);
+
+  // 지난 라이브 방송 다시보기(liveStreamingDetails 있음)·길이 0(라이브)도 제외
+  const isLiveRecording = (id: string) => {
+    const detail = detailMap.get(id);
+    if (!detail) return false;
+    return Boolean(detail.liveStreamingDetails) || detail.contentDetails?.duration === "P0D";
+  };
 
   return {
     query,
+    page,
+    nextPageToken: search.nextPageToken ?? null,
     fetchedAt: Date.now(),
-    videos: items.map((item) => {
+    videos: items.filter((item) => !isLiveRecording(item.id!.videoId!)).map((item) => {
       const id = item.id!.videoId!;
       const snippet = item.snippet ?? {};
       const detail = detailMap.get(id);
@@ -272,10 +294,11 @@ async function fetchFromApi(query: string): Promise<YoutubeSearchResult> {
  */
 export async function searchYoutube(
   rawQuery: string,
-  options: { allowNetwork?: boolean } = {},
+  options: { allowNetwork?: boolean; page?: number } = {},
 ): Promise<{ result: YoutubeSearchResult; source: CacheSource } | null> {
   const query = normalizeQuery(rawQuery);
-  const key = cacheKey(query);
+  const page = Math.min(MAX_PAGES - 1, Math.max(0, options.page ?? 0));
+  const key = cacheKey(query, page);
   const now = Date.now();
 
   let cached: YoutubeSearchResult | null = l1.get(key) ?? null;
@@ -294,7 +317,16 @@ export async function searchYoutube(
 
   let pending = inflight.get(key);
   if (!pending) {
-    pending = fetchFromApi(query).then(async (fresh) => {
+    pending = (async () => {
+      let pageToken: string | null = null;
+      if (page > 0) {
+        // 다음 페이지 토큰은 앞 페이지 결과에 들어 있다 (앞 페이지도 캐시 우선)
+        const prev = await searchYoutube(query, { page: page - 1 });
+        pageToken = prev?.result.nextPageToken ?? null;
+        if (!pageToken) return { query, page, videos: [], nextPageToken: null, fetchedAt: Date.now() };
+      }
+      return fetchFromApi(query, page, pageToken);
+    })().then(async (fresh) => {
       l1Set(key, fresh);
       await l2Set(key, fresh);
       return fresh;
@@ -312,4 +344,41 @@ export async function searchYoutube(
     }
     throw error;
   }
+}
+
+// ── 단일 영상 정보 (요약 전 검증용, videos.list = 1 unit) ──
+
+export type YoutubeVideoMeta = {
+  id: string;
+  title: string;
+  channelTitle: string;
+  durationSec: number;
+  isLive: boolean;
+};
+
+export function parseIsoDuration(iso: string | null | undefined) {
+  const m = (iso ?? "").match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  const [, d, h, min, s] = m.map((v) => Number(v ?? 0));
+  return d * 86400 + h * 3600 + min * 60 + s;
+}
+
+export async function getVideoMeta(videoId: string): Promise<YoutubeVideoMeta | null> {
+  const { data } = await ytGet<{
+    items?: Array<{
+      id: string;
+      snippet?: { title?: string; channelTitle?: string; liveBroadcastContent?: string };
+      contentDetails?: { duration?: string };
+    }>;
+  }>("videos", { part: "snippet,contentDetails", id: videoId });
+  const item = data.items?.[0];
+  if (!item) return null;
+  const durationSec = parseIsoDuration(item.contentDetails?.duration);
+  return {
+    id: item.id,
+    title: decodeEntities(item.snippet?.title ?? ""),
+    channelTitle: decodeEntities(item.snippet?.channelTitle ?? ""),
+    durationSec,
+    isLive: (item.snippet?.liveBroadcastContent ?? "none") !== "none" || durationSec === 0,
+  };
 }

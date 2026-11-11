@@ -195,3 +195,47 @@ export async function callGeminiGenerateContent(options: {
     retryable: true,
   };
 }
+
+export type VertexPart =
+  | { text: string }
+  | { fileData: { fileUri: string; mimeType: string }; videoMetadata?: { startOffset?: string; endOffset?: string } };
+
+/**
+ * Vertex Gemini 1회 호출 → 텍스트(또는 JSON 문자열). 재시도 없음 — 호출하는 쪽에서 결정.
+ * temperature 0 고정: 요약·받아쓰기에서 창작을 줄이기 위함.
+ */
+export async function vertexGenerate(options: {
+  model: string;
+  parts: VertexPart[];
+  responseSchema?: Record<string, unknown>;
+  timeoutMs: number;
+  mediaResolution?: "MEDIA_RESOLUTION_LOW" | "MEDIA_RESOLUTION_MEDIUM";
+  thinkingLevel?: "LOW" | "MEDIUM" | "HIGH";
+  maxOutputTokens?: number;
+}): Promise<{ text: string; finishReason?: string }> {
+  const generationConfig: Record<string, unknown> = {
+    temperature: 0,
+    maxOutputTokens: options.maxOutputTokens ?? 8192,
+  };
+  if (options.responseSchema) {
+    generationConfig.responseMimeType = "application/json";
+    generationConfig.responseSchema = options.responseSchema;
+  }
+  if (options.mediaResolution) generationConfig.mediaResolution = options.mediaResolution;
+  if (options.thinkingLevel) generationConfig.thinkingConfig = { thinkingLevel: options.thinkingLevel };
+
+  const response = await fetchWithTimeout(
+    getVertexGeminiUrl(options.model),
+    {
+      method: "POST",
+      headers: await getVertexGeminiHeaders(),
+      body: JSON.stringify({ contents: [{ role: "user", parts: options.parts }], generationConfig }),
+    },
+    options.timeoutMs,
+  );
+  const data = (await response.json()) as GeminiGenerateResponse;
+  if (!response.ok) throw new Error(data.error?.message || `Gemini 요청 실패 (${response.status})`);
+  const candidate = data.candidates?.[0];
+  const text = (candidate?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim();
+  return { text, finishReason: candidate?.finishReason };
+}

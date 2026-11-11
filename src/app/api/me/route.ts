@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSessionUser } from "@/lib/board-server";
 import { ensureUserProfileOnAuth } from "@/lib/ensure-user-profile-server";
 import { isNicknameTakenByOther } from "@/lib/nickname-duplicate";
+import { getAiUsage } from "@/lib/ai-quota";
 
 export const runtime = "nodejs";
 
@@ -14,9 +15,12 @@ export async function GET() {
   } catch (e) {
     console.error("[api/me] ensure profile", e);
   }
-  const { data } = await supabase.from("USER_MST").select("nickname").eq("auth_id", user.id).maybeSingle<{ nickname: string }>();
+  const [{ data }, aiUsage] = await Promise.all([
+    supabase.from("USER_MST").select("nickname").eq("auth_id", user.id).maybeSingle<{ nickname: string }>(),
+    getAiUsage(user.id),
+  ]);
   return NextResponse.json(
-    { user: { id: user.id, email: user.email ?? null, nickname: data?.nickname ?? "방문자" } },
+    { user: { id: user.id, email: user.email ?? null, nickname: data?.nickname ?? "방문자", aiUsage } },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

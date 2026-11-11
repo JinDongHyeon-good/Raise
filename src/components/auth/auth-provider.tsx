@@ -4,7 +4,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { LoginModal } from "@/components/auth/login-modal";
 import { getSupabaseBrowserClientSafe } from "@/lib/supabase-safe";
 
-export type Me = { id: string; email: string | null; nickname: string };
+export type Me = {
+  id: string;
+  email: string | null;
+  nickname: string;
+  /** 오늘 AI 사용량 (확인 불가 시 null) */
+  aiUsage?: { used: number; limit: number } | null;
+};
 
 type AuthContextValue = {
   me: Me | null;

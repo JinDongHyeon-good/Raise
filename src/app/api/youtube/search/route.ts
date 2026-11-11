@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SlidingRateLimiter } from "@/lib/sliding-rate-limit";
-import { normalizeQuery, searchYoutube, YoutubeQuotaError } from "@/lib/youtube";
+import { MAX_PAGES, normalizeQuery, searchYoutube, YoutubeQuotaError } from "@/lib/youtube";
 
 export const runtime = "nodejs";
 
@@ -15,12 +15,14 @@ const FRESH_HEADERS = {
 const STALE_HEADERS = { "Cache-Control": "public, max-age=120, s-maxage=300" };
 
 export async function GET(request: NextRequest) {
-  const query = normalizeQuery(new URL(request.url).searchParams.get("q") ?? "");
+  const params = new URL(request.url).searchParams;
+  const query = normalizeQuery(params.get("q") ?? "");
+  const page = Math.min(MAX_PAGES - 1, Math.max(0, Number(params.get("page")) || 0));
   if (!query) return NextResponse.json({ error: "q 파라미터가 필요합니다." }, { status: 400 });
 
   try {
     // 1) 캐시만 먼저 확인 (할당량 0)
-    const cached = await searchYoutube(query, { allowNetwork: false });
+    const cached = await searchYoutube(query, { allowNetwork: false, page });
     if (cached && cached.source !== "stale") {
       return NextResponse.json(cached.result, { headers: { ...FRESH_HEADERS, "x-cache": cached.source } });
     }
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "새 검색이 너무 많아요. 잠시 후 다시 시도하세요." }, { status: 429 });
     }
 
-    const found = await searchYoutube(query);
+    const found = await searchYoutube(query, { page });
     const headers = found?.source === "stale" ? STALE_HEADERS : FRESH_HEADERS;
     return NextResponse.json(found!.result, { headers: { ...headers, "x-cache": found!.source } });
   } catch (error) {
