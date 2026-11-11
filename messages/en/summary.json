@@ -7,7 +7,7 @@
   "statusSummarizing": "Summarizing the transcript",
   "statusVerifying": "Checking the summary against the video",
   "title": "AI video summary",
-  "intro": "Key points in English, based only on what's actually said in the video.",
+  "intro": "Key points based only on what's actually said in the video.",
   "usageToday": "{used}/{limit} used today",
   "loginDailyLimit": "5 per day after login",
   "start": "Show AI summary",
@@ -24,5 +24,19 @@
   "disclaimerDropped": "{count, plural, one {# item} other {# items}} that couldn't be verified against the transcript were removed.",
   "disclaimerTail": "Tap a timestamp to jump to that scene. The summary reflects the speaker's claims and is not investment advice.",
   "hideTranscript": "Hide transcript",
-  "showTranscript": "Show transcript ({count, plural, one {# paragraph} other {# paragraphs}})"
+  "showTranscript": "Show transcript ({count, plural, one {# paragraph} other {# paragraphs}})",
+  "quotaBonusCta": "Sign up on Bybit with our code for 20 summaries a day",
+  "type": {
+    "analysis": "Market analysis",
+    "news": "News",
+    "general": "Info / general"
+  },
+  "typeNote": {
+    "analysis": "The speaker's outlook, reasons and price levels",
+    "news": "The news covered, summarized as reported",
+    "general": "What the video covers, in order"
+  },
+  "overviewTitleInfo": "Summary",
+  "pointsTitleAnalysis": "Speaker's claims and reasons",
+  "pointsTitleInfo": "Key points"
 }

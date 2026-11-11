@@ -44,7 +44,7 @@ const ITEMS_KO: FaqItem[] = [
   {
     id: "what",
     category: "service",
-    q: "찐동코인은 어떤 서비스인가요?",
+    q: "찐투는 어떤 서비스인가요?",
     a: "코인·주식 유튜브 영상을 모아 보고, AI로 영상 내용을 요약하고, 비트코인 등 코인과 미국 지수 차트를 보고, 투자자끼리 의견을 나누는 커뮤니티 서비스입니다.",
   },
   {
@@ -81,7 +81,7 @@ const ITEMS_KO: FaqItem[] = [
     id: "ai-more",
     category: "ai",
     q: "요약 횟수를 늘릴 수 있나요?",
-    a: "바이비트에 찐동코인 추천인 코드로 가입한 뒤 안내된 이메일로 알려 주시면, 확인 후 하루 20회로 늘려 드립니다.",
+    a: "바이비트에 찐투 추천인 코드로 가입한 뒤 안내된 이메일로 알려 주시면, 확인 후 하루 20회로 늘려 드립니다.",
     link: { href: "/bybit#bybit-ai-bonus", label: "AI 요약 20회 혜택 보기" },
   },
   {
@@ -169,7 +169,7 @@ const ITEMS_KO: FaqItem[] = [
     id: "bybit-why",
     category: "bybit",
     q: "바이비트 추천인 코드는 무엇인가요?",
-    a: "찐동코인의 바이비트 추천인(레퍼럴) 코드는 XQZZ6O 입니다. 가입할 때 추천인 코드 칸에 넣거나 안내 페이지의 가입 링크로 가입하면 자동으로 들어갑니다.",
+    a: "찐투의 바이비트 추천인(레퍼럴) 코드는 XQZZ6O 입니다. 가입할 때 추천인 코드 칸에 넣거나 안내 페이지의 가입 링크로 가입하면 자동으로 들어갑니다.",
     link: { href: "/bybit", label: "바이비트 가입 방법 보기" },
   },
   {
@@ -204,7 +204,7 @@ const ITEMS_EN: FaqItem[] = [
   {
     id: "what",
     category: "service",
-    q: "What is JindongCoin?",
+    q: "What is jjintu?",
     a: "A community service where you browse crypto and stock YouTube videos, get AI summaries of them, check Bitcoin and other coin charts alongside US indices, and discuss with other investors.",
   },
   {

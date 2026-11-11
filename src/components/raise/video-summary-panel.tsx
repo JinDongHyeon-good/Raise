@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { Link } from "@/navigation";
 
 type Segment = { id: string; t: number; text: string };
 type Item = { text: string; segs: string[]; t: number; quote?: string };
@@ -14,6 +15,14 @@ type Summary = {
   stance: { label: string; reason: string; segs: string[]; t: number } | null;
   dropped: number;
   noSpeech: boolean;
+  /** 받아쓴 내용으로 판단한 영상 종류. 예전 요약에는 없다 */
+  videoType?: "analysis" | "news" | "general";
+};
+
+const TYPE_STYLE: Record<"analysis" | "news" | "general", string> = {
+  analysis: "border-[var(--rz-accent)]/40 bg-[var(--rz-accent-soft)] text-[#fda4af]",
+  news: "border-[#60a5fa]/40 bg-[#60a5fa]/10 text-[#93c5fd]",
+  general: "border-[var(--rz-line-strong)] bg-white/5 text-white/80",
 };
 type View = {
   status: "transcribing" | "summarizing" | "verifying" | "done" | "failed";
@@ -43,19 +52,6 @@ function TimeButton({ t, onSeek }: { t: number; onSeek: (sec: number) => void })
     >
       {mmss(t)}
     </button>
-  );
-}
-
-function AiSparkIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
-      <path
-        d="M12 3l1.4 5.1L18.5 9.5l-5.1 1.4L12 16l-1.4-5.1L5.5 9.5l5.1-1.4L12 3z"
-        fill="currentColor"
-        opacity="0.95"
-      />
-      <path d="M18.5 14.5l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3z" fill="currentColor" opacity="0.7" />
-    </svg>
   );
 }
 
@@ -105,6 +101,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
   const [view, setView] = useState<View | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quotaHit, setQuotaHit] = useState(false);
   const [quota, setQuota] = useState<Quota | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const cancelled = useRef(false);
@@ -119,6 +116,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
   const start = async (retry = false) => {
     if (!requireLogin()) return;
     setError(null);
+    setQuotaHit(false);
     setRunning(true);
     let first = true;
     try {
@@ -137,6 +135,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
         }
         if (!res.ok || !data.item) {
           setError(data.error ?? t("failed"));
+          setQuotaHit(data.code === "ai_quota_exceeded");
           return;
         }
         setView(data.item);
@@ -174,7 +173,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
         : 95;
 
   const shellClass =
-    "relative mt-3 overflow-hidden rounded-2xl border border-[var(--rz-accent)]/30 bg-[linear-gradient(160deg,rgb(225_29_72_/_0.14),rgb(18_22_30_/_0.95)_42%,rgb(18_22_30)_100%)] p-3.5 shadow-[0_12px_40px_rgb(225_29_72_/_0.12)] sm:p-5";
+    "relative mt-3 overflow-hidden rounded-2xl border border-[var(--rz-accent)]/35 bg-[var(--rz-panel)] p-4 shadow-[0_14px_40px_rgb(225_29_72_/_0.14)] sm:p-5";
 
   const cardClass = "rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/45 p-3 sm:p-3.5";
 
@@ -184,29 +183,45 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
       <div className={shellClass}>
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-8 -top-10 hidden h-32 w-32 rounded-full bg-[var(--rz-accent)]/20 blur-3xl sm:block"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgb(225_29_72_/_0.28)_0%,rgb(225_29_72_/_0.08)_38%,transparent_68%),radial-gradient(90%_80%_at_100%_0%,rgb(251_113_133_/_0.22),transparent_55%),radial-gradient(70%_60%_at_0%_100%,rgb(225_29_72_/_0.16),transparent_50%)]"
         />
-        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+            maskImage: "radial-gradient(ellipse at center, black 35%, transparent 78%)",
+          }}
+        />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(251_113_133_/_0.85),transparent)]" />
+        <div aria-hidden className="absolute inset-y-0 left-0 w-1 bg-[linear-gradient(180deg,#fb7185,var(--rz-accent),#9f1239)]" />
+
+        <div className="relative flex flex-col gap-4 pl-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:pl-3">
           <div className="min-w-0">
-            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-[var(--rz-accent)]/35 bg-[var(--rz-accent-soft)] px-2.5 py-1 text-[11px] font-semibold tracking-wide text-[var(--rz-accent)]">
-              <AiSparkIcon />
-              AI SUMMARY
-            </div>
-            <p className="font-[family-name:var(--font-brand-display)] text-[15px] font-semibold tracking-tight text-white sm:text-lg">
+            <p className="font-[family-name:var(--font-brand-display)] text-base font-semibold tracking-tight text-white sm:text-lg">
               {t("title")}
             </p>
-            <p className="mt-1 text-xs leading-5 text-[var(--rz-muted)] sm:max-w-md">
-              {t("intro")}
-              {me && usage ? ` ${t("usageToday", { used: usage.used, limit: usage.limit })}` : ` ${t("loginDailyLimit")}`}
+            <p className="mt-2.5 text-sm leading-relaxed text-white/75 sm:max-w-md">{t("intro")}</p>
+            <p className="mt-1.5 text-xs text-[#fda4af]/90">
+              {me && usage ? t("usageToday", { used: usage.used, limit: usage.limit }) : t("loginDailyLimit")}
             </p>
             {error ? <p className="mt-2 text-xs text-[var(--rz-up)]">{error}</p> : null}
+            {quotaHit ? (
+              <Link
+                href="/bybit#bybit-ai-bonus"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#f7a600] transition hover:brightness-110"
+              >
+                {t("quotaBonusCta")} →
+              </Link>
+            ) : null}
           </div>
           <button
             type="button"
             onClick={() => void start()}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--rz-accent)] px-4 py-3 text-sm font-semibold text-[var(--rz-accent-fg)] shadow-[0_8px_20px_rgb(225_29_72_/_0.35)] transition hover:brightness-110 sm:w-auto sm:shrink-0 sm:py-2.5"
+            className="inline-flex w-full shrink-0 items-center justify-center rounded-xl bg-[var(--rz-accent)] px-5 py-3.5 text-sm font-semibold text-[var(--rz-accent-fg)] shadow-[0_10px_24px_rgb(225_29_72_/_0.35)] transition hover:brightness-110 active:scale-[0.99] sm:w-auto sm:min-w-[11.5rem]"
           >
-            <AiSparkIcon />
             {me ? t("start") : t("loginToStart")}
           </button>
         </div>
@@ -216,50 +231,49 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
   return (
     <div className={shellClass}>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-10 -top-12 hidden h-36 w-36 rounded-full bg-[var(--rz-accent)]/15 blur-3xl sm:block"
-      />
+      <div aria-hidden className="absolute inset-y-0 left-0 w-1 bg-[var(--rz-accent)]" />
 
-      <div className="relative flex items-start justify-between gap-3">
+      <div className="relative flex items-start justify-between gap-3 pl-2 sm:pl-3">
         <div className="min-w-0">
-          <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-[var(--rz-accent)]/35 bg-[var(--rz-accent-soft)] px-2.5 py-1 text-[11px] font-semibold tracking-wide text-[var(--rz-accent)]">
-            <AiSparkIcon />
-            AI SUMMARY
-          </div>
           <p className="font-[family-name:var(--font-brand-display)] text-[15px] font-semibold tracking-tight text-white sm:text-base">
             {t("title")}
           </p>
         </div>
         {usage ? (
-          <span className="shrink-0 rounded-lg border border-[var(--rz-line)] bg-[var(--rz-panel)]/80 px-2 py-1 text-[10px] text-[var(--rz-muted)] sm:px-2.5 sm:text-[11px]">
+          <span className="shrink-0 rounded-md border border-[var(--rz-line)] px-2 py-1 text-[10px] text-[var(--rz-muted)] sm:text-[11px]">
             {t("quotaBadge", { used: usage.used, limit: usage.limit })}
           </span>
         ) : null}
       </div>
 
       {view?.status !== "done" && view?.status !== "failed" ? (
-        <div className="relative mt-3 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/55 p-3 sm:mt-4 sm:p-3.5">
+        <div className="relative mt-3 ml-2 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/55 p-3 sm:ml-3 sm:mt-4 sm:p-3.5">
           <div className="flex items-start gap-2 text-xs text-[var(--rz-text)] sm:items-center">
             <span className="mt-0.5 inline-block h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-[var(--rz-accent)]/30 border-t-[var(--rz-accent)] sm:mt-0" />
             <span className="min-w-0 break-words font-medium leading-5">{statusText}</span>
           </div>
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--rz-panel-2)]">
             <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,var(--rz-accent),#fb7185)] transition-all duration-500"
+              className="h-full rounded-full bg-[var(--rz-accent)] transition-all duration-500"
               style={{ width: `${progressWidth}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] leading-5 text-[var(--rz-muted)]">
-            {t("waitNote")}
-          </p>
+          <p className="mt-2 text-[11px] leading-5 text-[var(--rz-muted)]">{t("waitNote")}</p>
         </div>
       ) : null}
 
-      {error ? <p className="relative mt-3 text-xs text-[var(--rz-up)]">{error}</p> : null}
+      {error ? <p className="relative mt-3 pl-2 text-xs text-[var(--rz-up)] sm:pl-3">{error}</p> : null}
+      {quotaHit ? (
+        <Link
+          href="/bybit#bybit-ai-bonus"
+          className="relative mt-2 ml-2 inline-flex items-center gap-1 text-xs font-semibold text-[#f7a600] transition hover:brightness-110 sm:ml-3"
+        >
+          {t("quotaBonusCta")} →
+        </Link>
+      ) : null}
 
       {view?.status === "failed" ? (
-        <div className="relative mt-3 flex flex-col gap-2.5 rounded-xl border border-[var(--rz-up)]/25 bg-[var(--rz-up)]/10 px-3 py-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3.5">
+        <div className="relative mt-3 ml-2 flex flex-col gap-2.5 rounded-xl border border-[var(--rz-up)]/25 bg-[var(--rz-up)]/10 px-3 py-3 sm:ml-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3.5">
           <p className="min-w-0 break-words text-xs text-[var(--rz-up)]">{view.error ?? t("failed")}</p>
           <button
             type="button"
@@ -272,11 +286,20 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
       ) : null}
 
       {summary ? (
-        <div className="relative mt-3 space-y-3 text-sm sm:mt-4 sm:space-y-4">
+        <div className="relative mt-3 ml-2 space-y-3 text-sm sm:ml-3 sm:mt-4 sm:space-y-4">
+          {summary.videoType && !summary.noSpeech ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${TYPE_STYLE[summary.videoType]}`}
+              >
+                {t(`type.${summary.videoType}`)}
+              </span>
+              <span className="text-[11px] text-[var(--rz-muted)]">{t(`typeNote.${summary.videoType}`)}</span>
+            </div>
+          ) : null}
+
           {summary.noSpeech || (summary.overview.length === 0 && summary.points.length === 0) ? (
-            <p className={`${cardClass} text-xs text-[var(--rz-muted)]`}>
-              {t("noEvidence")}
-            </p>
+            <p className={`${cardClass} text-xs text-[var(--rz-muted)]`}>{t("noEvidence")}</p>
           ) : null}
 
           {summary.stance ? (
@@ -300,7 +323,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
           {summary.overview.length ? (
             <div className={cardClass}>
-              <SectionTitle>{t("overviewTitle")}</SectionTitle>
+              <SectionTitle>{summary.videoType && summary.videoType !== "analysis" ? t("overviewTitleInfo") : t("overviewTitle")}</SectionTitle>
               <ul className="space-y-2.5 sm:space-y-3">
                 {summary.overview.map((o, i) => (
                   <SummaryRow key={i} t={o.t} onSeek={onSeek}>
@@ -313,7 +336,13 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
           {summary.points.length ? (
             <div className={cardClass}>
-              <SectionTitle>{t("pointsTitle")}</SectionTitle>
+              <SectionTitle>
+                {summary.videoType === "analysis"
+                  ? t("pointsTitleAnalysis")
+                  : summary.videoType
+                    ? t("pointsTitleInfo")
+                    : t("pointsTitle")}
+              </SectionTitle>
               <ul className="space-y-3">
                 {summary.points.map((p, i) => (
                   <SummaryRow key={i} t={p.t} onSeek={onSeek}>

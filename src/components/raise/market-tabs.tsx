@@ -21,7 +21,7 @@ export function MarketTabs({ value, onChange }: { value: Market; onChange: (mark
     <div
       role="tablist"
       aria-label={t("marketTabs")}
-      className="relative grid w-full rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-1 sm:max-w-xl"
+      className="relative grid w-full rounded-xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-1"
       style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
     >
       <span

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate dollar-mark favicons for 찐동코인."""
+"""Generate dollar-mark favicons for 찐투."""
 
 from pathlib import Path
 

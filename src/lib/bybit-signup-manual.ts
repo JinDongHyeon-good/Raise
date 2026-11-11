@@ -21,7 +21,7 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
   {
     id: "open-link",
     title: "1. 레퍼럴 링크로 가입 페이지 열기",
-    summary: "찐동코인 Bybit 가입 버튼으로 공식 초대 링크를 엽니다.",
+    summary: "찐투 Bybit 가입 버튼으로 공식 초대 링크를 엽니다.",
     details: [
       `아래 CTA 또는 초대코드 ${BYBIT_REFERRAL.code}가 포함된 링크로 Bybit 가입 화면에 접속합니다.`,
       "웹에서 Sign Up / 가입을 눌러 회원가입 화면으로 이동합니다.",
@@ -100,15 +100,15 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
 export const BYBIT_SIGNUP_FAQ = [
   {
     q: "바이비트 추천인 코드(레퍼럴 코드)는 무엇인가요?",
-    a: `찐동코인의 바이비트 추천인 코드는 ${BYBIT_REFERRAL.code}입니다. 가입 화면의 Referral Code(선택) 칸에 입력하거나, 이 페이지의 가입 버튼으로 들어가면 자동으로 입력됩니다. 계정을 만들기 전에 입력해야 적용됩니다.`,
+    a: `찐투의 바이비트 추천인 코드는 ${BYBIT_REFERRAL.code}입니다. 가입 화면의 Referral Code(선택) 칸에 입력하거나, 이 페이지의 가입 버튼으로 들어가면 자동으로 입력됩니다. 계정을 만들기 전에 입력해야 적용됩니다.`,
   },
   {
     q: "추천인 코드로 가입하면 어떤 혜택이 있나요?",
     a: "신규 가입자 보상·이벤트는 Bybit 정책에 따라 수시로 바뀝니다. 가입 화면과 Bybit 이벤트(Rewards Hub) 페이지에서 현재 혜택을 확인하세요. 추천인 코드를 넣어도 이용자에게 추가 수수료는 붙지 않습니다.",
   },
   {
-    q: "레퍼럴로 가입하면 찐동코인 AI 요약이 늘어나나요?",
-    a: `네. 추천인 코드 ${BYBIT_REFERRAL.code}로 Bybit에 가입한 뒤, 이 페이지의 '가입 이메일 보내기'로 Bybit 가입 이메일과 찐동코인 로그인 이메일을 보내 주세요. 운영자가 확인한 뒤 AI 요약 한도를 하루 5회에서 20회로 늘려 드립니다(영업일 1~3일).`,
+    q: "레퍼럴로 가입하면 찐투 AI 요약이 늘어나나요?",
+    a: `네. 추천인 코드 ${BYBIT_REFERRAL.code}로 Bybit에 가입한 뒤, 이 페이지의 '가입 이메일 보내기'로 Bybit 가입 이메일과 찐투 로그인 이메일을 보내 주세요. 운영자가 확인한 뒤 AI 요약 한도를 하루 5회에서 20회로 늘려 드립니다(영업일 1~3일).`,
   },
   {
     q: "한국에서도 바이비트에 가입할 수 있나요?",
@@ -237,7 +237,7 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
 export const BYBIT_SIGNUP_FAQ_EN = [
   {
     q: "What is the Bybit referral code?",
-    a: `JindongCoin's code is ${BYBIT_REFERRAL.code}. Enter it in Referral Code (optional) on sign-up, or use this page's button to autofill. It only works if entered before account creation.`,
+    a: `jjintu's code is ${BYBIT_REFERRAL.code}. Enter it in Referral Code (optional) on sign-up, or use this page's button to autofill. It only works if entered before account creation.`,
   },
   {
     q: "What do I get with a referral?",
@@ -245,7 +245,7 @@ export const BYBIT_SIGNUP_FAQ_EN = [
   },
   {
     q: "Do I get more AI summaries for signing up?",
-    a: `Yes. Sign up for Bybit with referral code ${BYBIT_REFERRAL.code}, then use 'Send my sign-up email' on this page to send your Bybit sign-up email and JindongCoin login email. Once we confirm it, we'll raise your AI summary limit from 5 to 20 a day (1–3 business days).`,
+    a: `Yes. Sign up for Bybit with referral code ${BYBIT_REFERRAL.code}, then use 'Send my sign-up email' on this page to send your Bybit sign-up email and jjintu login email. Once we confirm it, we'll raise your AI summary limit from 5 to 20 a day (1–3 business days).`,
   },
   {
     q: "Is Bybit available in my country?",

@@ -3,7 +3,7 @@
 import { useId } from "react";
 
 /**
- * 찐동코인 로고 (동전 + $) — public/favicon.svg 와 같은 그림.
+ * 찐투 로고 (동전 + $) — public/favicon.svg 와 같은 그림.
  * 그림을 바꾸면 favicon/앱 아이콘도 같이 다시 만들어야 한다.
  */
 export function LogoMark({ size = 28, className }: { size?: number; className?: string }) {

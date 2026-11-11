@@ -61,22 +61,24 @@ export default async function FaqPage({ params }: PageProps) {
             labels={{ searchPlaceholder: t("searchPlaceholder"), all: t("all"), empty: t("empty") }}
           />
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 sm:items-stretch">
             <Link
               href="/bybit"
-              className="group rounded-2xl border border-[#f7a600]/30 bg-[#f7a600]/[0.07] px-5 py-5 transition hover:border-[#f7a600]/60 hover:bg-[#f7a600]/[0.12]"
+              className="group flex h-full flex-col rounded-2xl border border-[#f7a600]/30 bg-[#f7a600]/[0.07] px-5 py-5 transition hover:border-[#f7a600]/60 hover:bg-[#f7a600]/[0.12]"
             >
-              <p className="text-sm font-semibold text-[#f7a600]">{t("bybitTitle")}</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-[var(--rz-muted)]">{t("bybitBody")}</p>
-              <p className="mt-3 text-xs font-semibold text-white transition group-hover:translate-x-0.5">{t("bybitCta")} →</p>
+              <p className="text-sm font-semibold leading-snug text-[#f7a600]">{t("bybitTitle")}</p>
+              <p className="mt-1.5 flex-1 text-xs leading-relaxed text-[var(--rz-muted)]">{t("bybitBody")}</p>
+              <p className="mt-4 text-xs font-semibold text-white transition group-hover:translate-x-0.5">
+                {t("bybitCta")} →
+              </p>
             </Link>
             <Link
               href="/contact"
-              className="group rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] px-5 py-5 transition hover:border-[var(--rz-line-strong)] hover:bg-[var(--rz-panel-2)]"
+              className="group flex h-full flex-col rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] px-5 py-5 transition hover:border-[var(--rz-line-strong)] hover:bg-[var(--rz-panel-2)]"
             >
-              <p className="text-sm font-semibold text-white">{t("contactTitle")}</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-[var(--rz-muted)]">{t("contactBody")}</p>
-              <p className="mt-3 text-xs font-semibold text-[var(--rz-accent)] transition group-hover:translate-x-0.5">
+              <p className="text-sm font-semibold leading-snug text-white">{t("contactTitle")}</p>
+              <p className="mt-1.5 flex-1 text-xs leading-relaxed text-[var(--rz-muted)]">{t("contactBody")}</p>
+              <p className="mt-4 text-xs font-semibold text-[var(--rz-accent)] transition group-hover:translate-x-0.5">
                 {t("contactCta")} →
               </p>
             </Link>

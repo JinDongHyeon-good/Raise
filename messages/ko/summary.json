@@ -7,7 +7,7 @@
   "statusSummarizing": "받아쓴 내용으로 요약하는 중",
   "statusVerifying": "요약이 영상 내용과 맞는지 확인하는 중",
   "title": "AI 영상 요약",
-  "intro": "영상에서 실제로 나온 말만 근거로 한국어로 핵심을 정리해요.",
+  "intro": "영상에서 실제로 나온 말만 근거로 핵심을 정리해요.",
   "usageToday": "오늘 {used}/{limit}회 사용",
   "loginDailyLimit": "로그인 후 하루 5회",
   "start": "AI 요약 보기",
@@ -24,5 +24,19 @@
   "disclaimerDropped": "원문으로 확인되지 않은 {count}개 항목은 뺐어요.",
   "disclaimerTail": "시간을 누르면 그 장면부터 볼 수 있어요. 요약은 영상 화자의 주장이며 투자 권유가 아니에요.",
   "hideTranscript": "받아쓴 원문 접기",
-  "showTranscript": "받아쓴 원문 보기 ({count}문단)"
+  "showTranscript": "받아쓴 원문 보기 ({count}문단)",
+  "quotaBonusCta": "바이비트 추천인 가입하고 하루 20회로 늘리기",
+  "type": {
+    "analysis": "시장 분석 영상",
+    "news": "뉴스·소식 영상",
+    "general": "정보·일반 영상"
+  },
+  "typeNote": {
+    "analysis": "화자의 전망·근거·가격대를 정리했어요",
+    "news": "전한 소식을 사실 위주로 요약했어요",
+    "general": "다룬 내용을 순서대로 요약했어요"
+  },
+  "overviewTitleInfo": "핵심 요약",
+  "pointsTitleAnalysis": "화자의 주장과 근거",
+  "pointsTitleInfo": "주요 내용"
 }

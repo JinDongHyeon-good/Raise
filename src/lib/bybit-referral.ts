@@ -45,4 +45,4 @@ export const BYBIT_REFERRAL_KEYWORDS_EN = [
 export const BYBIT_REFERRAL_KEYWORDS = [...BYBIT_REFERRAL_KEYWORDS_KO, ...BYBIT_REFERRAL_KEYWORDS_EN] as const;
 
 export const BYBIT_REFERRAL_DESCRIPTION =
-  "찐동코인 이용에 만족하셨다면 Bybit(바이비트) 레퍼럴 가입을 부탁드립니다. Bybit Referral Code XQZZ6O · 바이비트 추천인 코드 · Bybit invite signup.";
+  "찐투 이용에 만족하셨다면 Bybit(바이비트) 레퍼럴 가입을 부탁드립니다. Bybit Referral Code XQZZ6O · 바이비트 추천인 코드 · Bybit invite signup.";

@@ -1,4 +1,4 @@
--- 진코: 유튜브 채널 즐겨찾기 + 주식 게시판 — SQL Editor 또는 supabase db query 로 실행 (여러 번 실행해도 안전)
+-- 찐투: 유튜브 채널 즐겨찾기 + 주식 게시판 — SQL Editor 또는 supabase db query 로 실행 (여러 번 실행해도 안전)
 
 begin;
 

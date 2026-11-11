@@ -16,11 +16,11 @@ export type SeoLocaleCopy = {
 
 const KO_COPY: SeoLocaleCopy = {
   siteName: SERVICE_NAME,
-  homeTitle: "찐동코인 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티",
+  homeTitle: "찐투 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티",
   homeDescription:
-    "비트코인·이더리움과 나스닥·S&P500 실시간 차트, 코인·미국 주식 전망 유튜브 영상의 AI 요약, 코인·주식 투자자 커뮤니티를 한곳에서. 찐동코인.",
-  introHeading: "찐동코인 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
-  ogAlt: "찐동코인 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
+    "비트코인·이더리움과 나스닥·S&P500 실시간 차트, 코인·미국 주식 전망 유튜브 영상의 AI 요약, 코인·주식 투자자 커뮤니티를 한곳에서. 찐투.",
+  introHeading: "찐투 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
+  ogAlt: "찐투 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
   schemaLanguage: "ko",
   featureList: [
     "코인 실시간 시세와 캔들 차트 (15분봉~주봉)",
@@ -32,7 +32,7 @@ const KO_COPY: SeoLocaleCopy = {
   ],
   faq: [
     {
-      question: "찐동코인은 어떤 서비스인가요?",
+      question: "찐투는 어떤 서비스인가요?",
       answer: SERVICE_DESCRIPTION,
     },
     {
@@ -62,11 +62,11 @@ const KO_COPY: SeoLocaleCopy = {
 
 const EN_COPY: SeoLocaleCopy = {
   siteName: SERVICE_NAME_EN,
-  homeTitle: "JindongCoin – Live Crypto & Nasdaq Charts, AI YouTube Summaries, Investor Community",
+  homeTitle: "jjintu – Live Crypto & Nasdaq Charts, AI YouTube Summaries, Investor Community",
   homeDescription:
-    "Live Bitcoin, Ethereum, Nasdaq and S&P 500 charts, AI summaries of crypto and US stock outlook videos on YouTube, and a community for crypto and stock investors — all in one place. JindongCoin.",
-  introHeading: "JindongCoin — Live Crypto & US Stock Charts · AI YouTube Summaries · Investor Community",
-  ogAlt: "JindongCoin — Live crypto & US stock charts · AI YouTube summaries · Investor community",
+    "Live Bitcoin, Ethereum, Nasdaq and S&P 500 charts, AI summaries of crypto and US stock outlook videos on YouTube, and a community for crypto and stock investors — all in one place. jjintu.",
+  introHeading: "jjintu — Live Crypto & US Stock Charts · AI YouTube Summaries · Investor Community",
+  ogAlt: "jjintu — Live crypto & US stock charts · AI YouTube summaries · Investor community",
   schemaLanguage: "en",
   featureList: [
     "Live crypto prices and candlestick charts (15-minute to weekly)",
@@ -78,7 +78,7 @@ const EN_COPY: SeoLocaleCopy = {
   ],
   faq: [
     {
-      question: "What is JindongCoin?",
+      question: "What is jjintu?",
       answer: SERVICE_DESCRIPTION_EN,
     },
     {

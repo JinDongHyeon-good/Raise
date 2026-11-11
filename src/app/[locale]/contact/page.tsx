@@ -113,7 +113,7 @@ function ContactEn() {
         <ul>
           <li>
             Partnership email:{" "}
-            <a href="mailto:wlsehdgus23@gmail.com?subject=%5BPartnership%5D%20JindongCoin">
+            <a href="mailto:wlsehdgus23@gmail.com?subject=%5BPartnership%5D%20jjintu">
               wlsehdgus23@gmail.com
             </a>
           </li>
