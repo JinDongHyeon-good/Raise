@@ -23,7 +23,7 @@ export function HeaderUser() {
       <button
         type="button"
         onClick={openLogin}
-        className="rounded-lg bg-[var(--rz-accent)] px-3.5 py-2 text-xs font-semibold text-[var(--rz-accent-fg)] transition hover:brightness-110"
+        className="rounded-lg border border-[var(--rz-line-strong)] bg-transparent px-3.5 py-2 text-xs font-medium text-white/85 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
       >
         로그인
       </button>

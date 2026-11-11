@@ -33,7 +33,7 @@ a {
   cursor: pointer;
 }
 
-/* ── 진동코인: 프리미엄 다크 + 레드 ── */
+/* ── 찐동코인: 프리미엄 다크 + 레드 ── */
 .raise-app {
   --rz-bg: #0a0c10;
   --rz-bg-elevated: #0e1117;
@@ -62,6 +62,26 @@ a {
   margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* 탭 클릭 프레스 애니메이션 */
+.rz-tab-press {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.2s ease;
+  transform-origin: center;
+}
+.rz-tab-press:active,
+.rz-tab-pressed {
+  transform: scale(0.94);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rz-tab-press,
+  .rz-tab-press:active,
+  .rz-tab-pressed {
+    transition: none;
+    transform: none;
+  }
 }
 
 /* 무한 스크롤 로딩용 리니어 인디케이터 */

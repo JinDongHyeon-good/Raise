@@ -230,8 +230,12 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
         />
         <button
           type="submit"
-          className="shrink-0 rounded-xl bg-[var(--rz-accent)] px-4 py-2.5 text-sm font-medium text-[var(--rz-accent-fg)] transition hover:brightness-110"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[var(--rz-accent)] px-4 py-2.5 text-sm font-medium text-[var(--rz-accent-fg)] transition hover:brightness-110"
         >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
+            <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
           검색
         </button>
         <button
@@ -358,15 +362,15 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
               className="h-full w-full"
             />
           </div>
-          <div className="bg-[var(--rz-panel)] p-3.5 sm:p-4">
-            <div className="flex items-start justify-between gap-3">
+          <div className="bg-[var(--rz-panel)] p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="line-clamp-2 text-sm font-medium leading-snug">{playing.title}</p>
                 <p className="mt-1 text-xs text-[var(--rz-muted)]">
                   {[playing.channelTitle, formatCount(playing.viewCount), timeAgo(playing.publishedAt)].filter(Boolean).join(" · ")}
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2 text-xs">
+              <div className="flex flex-wrap gap-2 text-xs sm:shrink-0 sm:justify-end">
                 {playing.channelId ? (
                   <button
                     type="button"
@@ -374,7 +378,7 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
                     disabled={favorites.busyId === playing.channelId}
                     aria-pressed={favorites.isFavorite(playing.channelId)}
                     title={favorites.isFavorite(playing.channelId) ? "채널 즐겨찾기 해제" : "이 채널 즐겨찾기"}
-                    className={`rounded-lg border px-2.5 py-1.5 transition disabled:opacity-50 ${
+                    className={`rounded-lg border px-2.5 py-2 transition disabled:opacity-50 sm:py-1.5 ${
                       favorites.isFavorite(playing.channelId)
                         ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
                         : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
@@ -387,17 +391,10 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
                   href={`https://www.youtube.com/watch?v=${playing.id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-lg border border-[var(--rz-line)] px-2.5 py-1.5 text-[var(--rz-muted)] transition hover:text-[var(--rz-text)]"
+                  className="rounded-lg border border-[var(--rz-line)] px-2.5 py-2 text-[var(--rz-muted)] transition hover:text-[var(--rz-text)] sm:py-1.5"
                 >
                   YouTube
                 </a>
-                <button
-                  type="button"
-                  onClick={() => setPlaying(null)}
-                  className="rounded-lg border border-[var(--rz-line)] px-2.5 py-1.5 text-[var(--rz-muted)] transition hover:text-[var(--rz-text)]"
-                >
-                  닫기
-                </button>
               </div>
             </div>
             <VideoSummaryPanel key={playing.id} videoId={playing.id} onSeek={(sec) => play(playing, sec)} />
@@ -474,9 +471,6 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
             <span className="h-1 w-full max-w-xs" />
           )}
         </div>
-      ) : null}
-      {!loading && !hasMore && all.length > 0 ? (
-        <p className="py-6 text-center text-xs text-[var(--rz-muted)]">영상을 모두 불러왔어요.</p>
       ) : null}
     </section>
   );
