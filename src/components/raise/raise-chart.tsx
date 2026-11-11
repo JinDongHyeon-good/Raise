@@ -93,7 +93,7 @@ export default function RaiseChart() {
                   </>
                 )}
               </p>
-              <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <div className="mt-1 flex h-8 items-baseline gap-x-3 overflow-hidden whitespace-nowrap sm:h-9">
                 <span className="font-mono text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
                   {ticker ? <PriceText value={ticker.price} currency={coin.currency} locale={locale} unitClassName="text-sm sm:text-base" /> : "—"}
                 </span>
@@ -105,8 +105,10 @@ export default function RaiseChart() {
                   </span>
                 ) : null}
               </div>
+              {/* 시세가 오기 전에도 같은 높이를 잡아 두어 아래 차트가 밀리지 않게 */}
+              <div className="mt-2 flex h-4 items-center gap-x-4 overflow-hidden whitespace-nowrap font-mono text-[11px] text-[var(--rz-muted)] sm:h-[18px] sm:text-xs">
               {ticker ? (
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
+                <>
                   <span>
                     {t("high")} {formatQuote(ticker.high24h, coin.currency, locale)}
                   </span>
@@ -118,8 +120,11 @@ export default function RaiseChart() {
                       {t("turnover")} {formatTurnover(ticker.turnover24h)}
                     </span>
                   ) : null}
-                </div>
-              ) : null}
+                </>
+              ) : (
+                "\u00a0"
+              )}
+              </div>
             </div>
 
             <div className="-mx-1 flex max-w-full overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -144,17 +149,17 @@ export default function RaiseChart() {
 
           <div className="p-3 sm:p-5">
             {chartError ? (
-              <div className="flex h-[260px] items-center justify-center text-sm text-[var(--rz-down)] sm:h-[300px]">
+              <div className="flex h-[308px] items-center justify-center text-sm text-[var(--rz-down)] sm:h-[408px]">
                 {chartError}
               </div>
             ) : chartLoading && candles.length === 0 ? (
-              <div className="h-[260px] animate-pulse rounded-xl bg-[var(--rz-panel-2)] sm:h-[400px]" />
+              <div className="h-[308px] animate-pulse rounded-xl bg-[var(--rz-panel-2)] sm:h-[408px]" />
             ) : (
               <div className={chartLoading ? "opacity-50 transition" : "transition"}>
                 <CandleChart candles={candles} interval={interval} currency={coin.currency} />
               </div>
             )}
-            <p className="mt-2 text-right text-[11px] text-[var(--rz-muted)]">
+            <p className="mt-2 h-4 truncate text-[11px] leading-4 text-[var(--rz-muted)]">
               {isYahooMarket(coin.market) ? t("sourceUs") : t("sourceCrypto")}
             </p>
           </div>

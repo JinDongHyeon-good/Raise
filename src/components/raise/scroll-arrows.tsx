@@ -48,9 +48,9 @@ export function useHScroll(deps: unknown[] = []) {
   return { setNode, update, edge, slide };
 }
 
-function Arrow({ dir }: { dir: "left" | "right" }) {
+function Arrow({ dir, size = 16 }: { dir: "left" | "right"; size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d={dir === "left" ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"} />
     </svg>
   );
@@ -61,10 +61,22 @@ function Arrow({ dir }: { dir: "left" | "right" }) {
  * 감싸는 요소에 relative 를 주고 슬라이더와 같은 곳에 둔다. 끝에 닿은 쪽 버튼은 사라진다.
  * 떠 있는 요소라 나타나거나 사라져도 레이아웃이 움직이지 않는다.
  */
-export function ScrollArrows({ edge, onSlide }: { edge: { left: boolean; right: boolean }; onSlide: (dir: -1 | 1) => void }) {
+export function ScrollArrows({
+  edge,
+  onSlide,
+  size = "md",
+  allScreens = false,
+}: {
+  edge: { left: boolean; right: boolean };
+  onSlide: (dir: -1 | 1) => void;
+  /** sm: 작은 칩 줄(28px)에 맞춤, md: 카드 줄(32px) */
+  size?: "sm" | "md";
+  /** true 면 넓은 화면에서도 보인다 (기본은 모바일만) */
+  allScreens?: boolean;
+}) {
   const t = useTranslations("common");
   const cls =
-    "absolute top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_14px_rgb(0_0_0_/_0.45)] transition-opacity duration-200 active:scale-95 sm:hidden";
+    `absolute top-1/2 z-10 inline-flex ${size === "sm" ? "h-7 w-7" : "h-8 w-8"} -translate-y-1/2 items-center justify-center rounded-full bg-white text-black shadow-[0_4px_14px_rgb(0_0_0_/_0.45)] transition-opacity duration-200 active:scale-95 ${allScreens ? "" : "sm:hidden"}`;
   return (
     <>
       <button
@@ -75,7 +87,7 @@ export function ScrollArrows({ edge, onSlide }: { edge: { left: boolean; right: 
         tabIndex={edge.left ? -1 : 0}
         className={`${cls} left-1 ${edge.left ? "pointer-events-none opacity-0" : "opacity-100"}`}
       >
-        <Arrow dir="left" />
+        <Arrow dir="left" size={size === "sm" ? 14 : 16} />
       </button>
       <button
         type="button"
@@ -85,7 +97,7 @@ export function ScrollArrows({ edge, onSlide }: { edge: { left: boolean; right: 
         tabIndex={edge.right ? -1 : 0}
         className={`${cls} right-1 ${edge.right ? "pointer-events-none opacity-0" : "opacity-100"}`}
       >
-        <Arrow dir="right" />
+        <Arrow dir="right" size={size === "sm" ? 14 : 16} />
       </button>
     </>
   );

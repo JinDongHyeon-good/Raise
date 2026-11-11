@@ -110,7 +110,7 @@ export function CandleChart({ candles, interval, currency }: { candles: Candle[]
   }, [candles]);
 
   if (!geo) {
-    return <div className="flex h-[300px] items-center justify-center text-sm text-[var(--rz-muted)]">{t("noData")}</div>;
+    return <div className="flex h-[308px] items-center justify-center text-sm text-[var(--rz-muted)] sm:h-[408px]">{t("noData")}</div>;
   }
 
   const { step, y, ticks, maxVol } = geo;
@@ -128,18 +128,18 @@ export function CandleChart({ candles, interval, currency }: { candles: Candle[]
 
   return (
     <div className="relative">
-      <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
-        <span>{formatTime(active.timestamp, interval, locale)}</span>
-        <span>
+      <div className="mb-2 flex h-5 items-center gap-x-4 overflow-hidden whitespace-nowrap font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
+        <span className="inline-block w-[6.5rem] shrink-0 sm:w-[7.5rem]">{formatTime(active.timestamp, interval, locale)}</span>
+        <span className="inline-block min-w-[11ch]">
           O <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.open, currency)}</b>
         </span>
-        <span>
+        <span className="inline-block min-w-[11ch]">
           H <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.high, currency)}</b>
         </span>
-        <span>
+        <span className="inline-block min-w-[11ch]">
           L <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.low, currency)}</b>
         </span>
-        <span>
+        <span className="inline-block min-w-[11ch]">
           C <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.close, currency)}</b>
         </span>
       </div>

@@ -359,7 +359,7 @@ export function VideoSection({
       <div
         ref={chipRowRef}
         onScroll={onChipScroll}
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           onClick={() => {
@@ -443,7 +443,7 @@ export function VideoSection({
           );
         })}
       </div>
-      <ScrollArrows edge={chipEdge} onSlide={slideChips} />
+      <ScrollArrows edge={chipEdge} onSlide={slideChips} size="sm" allScreens />
       </div>
 
 

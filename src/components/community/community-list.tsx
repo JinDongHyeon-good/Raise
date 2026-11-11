@@ -177,7 +177,8 @@ export function CommunityList() {
         </div>
       )}
 
-      {/* 목록 */}
+      {/* 목록 — 불러오기 전(로딩 줄 8개) 높이만큼 자리를 잡아 두어, 글이 적어도 아래 푸터가 움직이지 않게 */}
+      <div className="min-h-[33rem]">
       <ul className="divide-y divide-[var(--rz-line)] overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] shadow-[var(--rz-shadow)]">
         {loading && result.items.length === 0
           ? Array.from({ length: 8 }, (_, i) => (
@@ -239,6 +240,7 @@ export function CommunityList() {
           </button>
         </nav>
       ) : null}
+      </div>
     </main>
   );
 }

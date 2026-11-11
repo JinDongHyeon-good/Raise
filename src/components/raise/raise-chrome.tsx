@@ -117,7 +117,10 @@ export function RaiseHeader() {
             <div className="hidden md:block">
               <LanguageSwitcher />
             </div>
-            <HeaderUser />
+            {/* 로그인 확인 전·후(빈칸 → 로그인 버튼 → 프로필)로 폭이 바뀌어 옆 버튼이 움직이지 않게 고정 칸 */}
+            <div className="flex w-16 shrink-0 justify-end">
+              <HeaderUser />
+            </div>
             <button
               type="button"
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--rz-line)] text-[var(--rz-text)] md:hidden"
@@ -248,7 +251,7 @@ export function RaisePageShell({ children, plain = false }: { children: React.Re
   return (
     <div className="raise-app flex min-h-dvh flex-col bg-[var(--rz-bg)] text-[var(--rz-text)]">
       <RaiseHeader />
-      <div className={plain ? "flex-1" : "raise-prose flex-1"}>{children}</div>
+      <div className={`min-h-[calc(100dvh-4rem)] ${plain ? "flex-1" : "raise-prose flex-1"}`}>{children}</div>
       <RaiseFooter />
     </div>
   );

@@ -8,7 +8,7 @@ import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { JsonLd } from "@/components/seo/json-ld";
 import { localizedPath } from "@/i18n/routing";
 import { getLocalizedBrandName, getSiteUrl } from "@/lib/brand";
-import { BYBIT_REFERRAL, BYBIT_REFERRAL_KEYWORDS_EN, BYBIT_REFERRAL_KEYWORDS_KO } from "@/lib/bybit-referral";
+import { BYBIT_REFERRAL_KEYWORDS_EN, BYBIT_REFERRAL_KEYWORDS_KO } from "@/lib/bybit-referral";
 import { BYBIT_GUIDE_UPDATED, getBybitSignupManual } from "@/lib/bybit-signup-manual";
 import { buildPageMetadata } from "@/lib/seo";
 import { toRoutedLocale } from "@/lib/seo-i18n";
@@ -92,12 +92,6 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
   const seo = await getTranslations({ locale, namespace: "seo.pages.bybit" });
 
   const isEn = locale === "en";
-  const quick = [
-    { label: t("quickCode"), value: BYBIT_REFERRAL.code, mono: true },
-    { label: t("quickWhen"), value: t("quickWhenValue") },
-    { label: t("quickTime"), value: t("quickTimeValue") },
-    { label: t("quickNeed"), value: t("quickNeedValue") },
-  ];
 
   return (
     <RaisePageShell plain>
@@ -127,29 +121,6 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
             </p>
           </header>
 
-          <section aria-labelledby="bybit-quick" className="rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-4 sm:p-5">
-            <h2 id="bybit-quick" className="text-sm font-semibold text-white">
-              {t("quickTitle")}
-            </h2>
-            <dl className="mt-3 divide-y divide-[var(--rz-line)] text-sm">
-              {quick.map((row) => (
-                <div key={row.label} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:items-baseline sm:gap-4">
-                  <dt className={`shrink-0 text-xs text-[var(--rz-muted)] sm:text-sm ${isEn ? "sm:w-32" : "sm:w-28"}`}>
-                    {row.label}
-                  </dt>
-                  <dd
-                    className={
-                      row.mono
-                        ? "font-mono font-bold tracking-[0.15em] text-[#F7A600]"
-                        : `text-white/90 ${isEn ? "leading-snug" : ""}`
-                    }
-                  >
-                    {row.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
 
           <BybitReferralCard />
 

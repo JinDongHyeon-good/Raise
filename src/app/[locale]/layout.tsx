@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { htmlLang, routing, type RoutedLocale } from "@/i18n/routing";
 import { GOOGLE_ADSENSE_CLIENT } from "@/lib/brand";
-import { brandDisplayFont } from "@/lib/brand-font";
 import { buildRootMetadata } from "@/lib/seo";
 import { toRoutedLocale } from "@/lib/seo-i18n";
+// Pretendard (OFL) — 사이트 안에서 제공. 화면에 쓰인 글자 범위의 파일만 받는다 (dynamic subset)
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "../globals.css";
 
 /**
@@ -16,8 +16,6 @@ import "../globals.css";
  * 요청 헤더를 읽지 않으므로 페이지가 정적으로 미리 만들어진다.
  */
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -54,7 +52,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   return (
     <html
       lang={lang}
-      className={`${geistSans.variable} ${geistMono.variable} ${brandDisplayFont.variable} h-full antialiased`}
+      className="h-full antialiased"
       suppressHydrationWarning
     >
       <head>

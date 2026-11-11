@@ -2,33 +2,30 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "@/navigation";
-import type { FaqCategory, FaqCategoryId, FaqItem } from "@/lib/faq";
+import type { FaqCategory, FaqItem } from "@/lib/faq";
 
 type Labels = {
   searchPlaceholder: string;
-  all: string;
   empty: string;
 };
 
 /**
  * FAQ 목록 — 검색어·분류로 거르고, 항목은 <details> 로 펼친다.
- * 모든 질문·답변은 처음부터 HTML 에 들어 있고(검색엔진용), 걸러진 항목은 hidden 으로만 숨긴다.
+ * 모든 질문·답변은 처음부터 HTML 에 들어 있고(검색엔진용), 검색에 안 맞는 항목은 hidden 으로만 숨긴다.
  */
 export function FaqBrowser({ categories, items, labels }: { categories: FaqCategory[]; items: FaqItem[]; labels: Labels }) {
   const [query, setQuery] = useState("");
-  const [active, setActive] = useState<FaqCategoryId | "all">("all");
 
   const q = query.trim().toLowerCase();
   const visible = useMemo(
     () =>
       new Set(
         items
-          .filter((item) => (active === "all" || item.category === active) && (!q || `${item.q} ${item.a}`.toLowerCase().includes(q)))
+          .filter((item) => !q || `${item.q} ${item.a}`.toLowerCase().includes(q))
           .map((item) => item.id),
       ),
-    [items, active, q],
+    [items, q],
   );
-  const countFor = (id: FaqCategoryId) => items.filter((item) => item.category === id).length;
 
   return (
     <div className="flex flex-col gap-5">
@@ -54,31 +51,6 @@ export function FaqBrowser({ categories, items, labels }: { categories: FaqCateg
           className="w-full rounded-2xl border border-[var(--rz-line-strong)] bg-[var(--rz-panel)] py-3.5 pl-11 pr-4 text-sm text-[var(--rz-text)] outline-none transition placeholder:text-[var(--rz-muted)] focus:border-[var(--rz-accent)]/60 focus:ring-2 focus:ring-[var(--rz-accent)]/20"
         />
       </label>
-
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-        {[{ id: "all" as const, label: labels.all, icon: "" }, ...categories].map((cat) => {
-          const on = active === cat.id;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setActive(cat.id)}
-              aria-pressed={on}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
-                on
-                  ? "border-[var(--rz-accent)] bg-[var(--rz-accent)] text-white shadow-[0_6px_16px_rgb(225_29_72_/_0.3)]"
-                  : "border-[var(--rz-line-strong)] bg-[var(--rz-panel)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
-              }`}
-            >
-              {cat.icon ? <span aria-hidden>{cat.icon}</span> : null}
-              {cat.label}
-              <span className={`text-[10px] ${on ? "text-white/80" : "text-[var(--rz-muted)]/70"}`}>
-                {cat.id === "all" ? items.length : countFor(cat.id)}
-              </span>
-            </button>
-          );
-        })}
-      </div>
 
       {categories.map((cat) => {
         const catItems = items.filter((item) => item.category === cat.id);

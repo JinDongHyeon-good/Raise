@@ -34,13 +34,13 @@ export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }:
                 key={c.symbol}
                 type="button"
                 onClick={() => onSelect(c)}
-                className={`flex min-w-[148px] shrink-0 flex-col items-start rounded-xl border px-3.5 py-2.5 text-left transition sm:min-w-0 ${
+                className={`flex w-[148px] shrink-0 flex-col items-start rounded-xl border px-3.5 py-2.5 text-left transition sm:w-auto sm:min-w-0 ${
                   active
                     ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] shadow-[inset_0_0_0_1px_rgb(225_29_72_/_0.18)]"
                     : "border-[var(--rz-line)] bg-[var(--rz-panel)] hover:border-[var(--rz-line-strong)] hover:bg-[var(--rz-panel-2)]"
                 }`}
               >
-                <span className="text-[11px] tracking-wide text-[var(--rz-muted)]">
+                <span className="block w-full truncate text-[11px] tracking-wide text-[var(--rz-muted)]">
                   <b className="font-semibold text-[var(--rz-text)]">{c.ticker}</b>
                   <span className="ml-1.5">{localizedName(c, locale)}</span>
                 </span>

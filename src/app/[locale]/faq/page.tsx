@@ -58,7 +58,7 @@ export default async function FaqPage({ params }: PageProps) {
           <FaqBrowser
             categories={categories}
             items={items}
-            labels={{ searchPlaceholder: t("searchPlaceholder"), all: t("all"), empty: t("empty") }}
+            labels={{ searchPlaceholder: t("searchPlaceholder"), empty: t("empty") }}
           />
 
           <div className="grid gap-3 sm:grid-cols-2 sm:items-stretch">
