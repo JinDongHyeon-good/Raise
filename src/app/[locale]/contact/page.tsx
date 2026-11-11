@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { SERVICE_NAME } from "@/lib/brand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "문의",
   description: `${SERVICE_NAME} 서비스 문의 및 연락처입니다.`,
-};
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

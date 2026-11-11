@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SERVICE_NAME } from "@/lib/brand";
 import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { PostDetail } from "@/components/community/post-detail";
@@ -25,14 +26,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const text = data.content_html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140);
     return {
       title: data.title,
-      description: text || "진동코인 코인 커뮤니티 게시글",
+      description: text || "찐동코인 코인 커뮤니티 게시글",
       alternates: { canonical: `/community/${postId}` },
       openGraph: {
         type: "article",
-        title: data.title,
-        description: text || "진동코인 코인 커뮤니티 게시글",
+        title: `${data.title} | ${SERVICE_NAME} 커뮤니티`,
+        description: text || "찐동코인 코인 커뮤니티 게시글",
         url: `/community/${postId}`,
-        images: [{ url: "/ogImage.png", width: 1200, height: 630 }],
+        siteName: SERVICE_NAME,
+        locale: "ko_KR",
+        images: [{ url: "/og-community.png", width: 1200, height: 630, alt: `${SERVICE_NAME} 커뮤니티` }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${data.title} | ${SERVICE_NAME} 커뮤니티`,
+        description: text || `${SERVICE_NAME} 코인·주식 커뮤니티 게시글`,
+        images: ["/og-community.png"],
       },
     };
   } catch {

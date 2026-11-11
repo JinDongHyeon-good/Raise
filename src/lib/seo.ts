@@ -217,3 +217,43 @@ export const HOME_SEO_INTRO = {
   heading: "찐동코인 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
   body: SERVICE_DESCRIPTION,
 };
+
+/**
+ * 하위 페이지 메타데이터 — title/description만 쓰면 og:·twitter:가 홈 값을 그대로 물려받으므로
+ * 페이지마다 공유 미리보기(제목·설명·주소·이미지)를 함께 만든다.
+ */
+export function buildPageMetadata(options: {
+  title: string;
+  description: string;
+  path: string;
+  /** public/ 아래 1200x630 이미지 (기본: 홈 이미지) */
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+}): Metadata {
+  const copy = getSeoCopy(defaultLocale);
+  const fullTitle = `${options.title} | ${copy.siteName}`;
+  const image = options.image ?? OG_IMAGE_PATH;
+  const alt = options.imageAlt ?? `${copy.siteName} — ${options.title}`;
+  return {
+    title: options.title,
+    description: options.description,
+    alternates: { canonical: options.path },
+    ...(options.noindex ? { robots: { index: false, follow: false } } : {}),
+    openGraph: {
+      title: fullTitle,
+      description: options.description,
+      url: options.path,
+      siteName: copy.siteName,
+      locale: getOpenGraphLocale(defaultLocale),
+      type: "website",
+      images: [{ url: image, width: 1200, height: 630, alt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle,
+      description: options.description,
+      images: [image],
+    },
+  };
+}

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { SERVICE_NAME } from "@/lib/brand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "이용약관",
   description: `${SERVICE_NAME} 서비스 이용약관 — 서비스 성격, 투자 면책, 외부 콘텐츠, 광고`,
-};
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

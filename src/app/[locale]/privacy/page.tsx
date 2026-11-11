@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { GOOGLE_ADSENSE_CLIENT, SERVICE_NAME } from "@/lib/brand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "개인정보처리방침",
-  description: `${SERVICE_NAME} 개인정보처리방침 — 처리 정보, 쿠키·광고(Google AdSense), YouTube 임베드, 이용자 권리`,
-};
+  description: `${SERVICE_NAME} 개인정보처리방침 — 처리 정보, 쿠키·광고(Google AdSense), YouTube 임베드, AI 요약, 이용자 권리`,
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

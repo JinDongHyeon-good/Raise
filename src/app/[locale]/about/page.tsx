@@ -4,13 +4,13 @@ import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { getSeoCopy } from "@/lib/seo-i18n";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SERVICE_VALUES } from "@/lib/brand";
-import { getFaqJsonLd, HOME_SEO_INTRO } from "@/lib/seo";
+import { getFaqJsonLd, HOME_SEO_INTRO, buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "서비스 소개",
-  alternates: { canonical: "/about" },
   description: HOME_SEO_INTRO.body,
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   const copy = getSeoCopy("ko");
