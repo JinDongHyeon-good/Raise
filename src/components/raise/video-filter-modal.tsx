@@ -8,7 +8,6 @@ import {
   ORDER_OPTIONS,
   UPLOADED_OPTIONS,
   sameFilters,
-  saveDefaultVideoFilters,
   type VideoFilters,
 } from "@/lib/video-filters";
 
@@ -16,6 +15,10 @@ type Props = {
   open: boolean;
   value: VideoFilters;
   savedDefault: VideoFilters;
+  /** 로그인해야 기본값을 계정에 저장할 수 있다 */
+  loggedIn: boolean;
+  /** 기본값 저장. 비로그인이면 로그인 창을 띄우고 "login" */
+  onSaveDefault: (filters: VideoFilters) => Promise<"saved" | "login" | "failed">;
   onApply: (filters: VideoFilters) => void;
   onClose: () => void;
 };
@@ -58,10 +61,11 @@ function OptionGroup<T extends string>({
   );
 }
 
-export function VideoFilterModal({ open, value, savedDefault, onApply, onClose }: Props) {
+export function VideoFilterModal({ open, value, savedDefault, loggedIn, onSaveDefault, onApply, onClose }: Props) {
   const t = useTranslations("video");
   const [draft, setDraft] = useState<VideoFilters>(value);
   const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // 열 때마다 현재 적용된 값에서 시작 (렌더 중 조정)
   const [wasOpen, setWasOpen] = useState(open);
@@ -149,14 +153,18 @@ export function VideoFilterModal({ open, value, savedDefault, onApply, onClose }
             </button>
             <button
               type="button"
-              disabled={isSavedDefault}
-              onClick={() => {
-                saveDefaultVideoFilters(sameFilters(draft, DEFAULT_FILTERS) ? null : draft);
-                setSavedNote(t("filters.savedNote"));
+              disabled={loggedIn && (isSavedDefault || saving)}
+              onClick={async () => {
+                setSaving(true);
+                const result = await onSaveDefault(draft);
+                setSaving(false);
+                // 비로그인: 이 창을 닫아 로그인 창이 보이게
+                if (result === "login") onClose();
+                else setSavedNote(result === "saved" ? t("filters.savedNote") : t("filters.saveFailed"));
               }}
               className="rounded-lg border border-[var(--rz-line)] px-3 py-2 text-sm text-[var(--rz-muted)] transition hover:text-[var(--rz-text)] disabled:opacity-40"
             >
-              {isSavedDefault ? t("filters.sameAsDefault") : t("filters.saveDefault")}
+              {!loggedIn ? t("filters.saveDefaultLogin") : isSavedDefault ? t("filters.sameAsDefault") : t("filters.saveDefault")}
             </button>
           </div>
           <button

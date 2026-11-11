@@ -6,10 +6,12 @@ import { VideoSummaryPanel } from "@/components/raise/video-summary-panel";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useFavoriteChannels } from "@/hooks/use-favorite-channels";
 import { VideoFilterModal } from "@/components/raise/video-filter-modal";
+import { KeywordModal } from "@/components/raise/keyword-modal";
+import { useSearchKeywords } from "@/hooks/use-search-keywords";
+import { useVideoFilterDefault } from "@/hooks/use-video-filter-default";
 import {
   activeFilterCount,
   applyVideoFilters,
-  useSavedVideoFilters,
   type VideoFilters,
 } from "@/lib/video-filters";
 
@@ -101,10 +103,15 @@ export function VideoSection({
   const [query, setQuery] = useState(presets[0]);
   const [queryInput, setQueryInput] = useState(presets[0]);
   // 필터 (정렬·업로드 날짜·길이). 저장된 기본값 위에 이번 화면에서 바꾼 값을 덮어쓴다
-  const savedFilters = useSavedVideoFilters();
+  const filterDefault = useVideoFilterDefault();
+  const savedFilters = filterDefault.saved;
   const [filterOverride, setFilterOverride] = useState<VideoFilters | null>(null);
   const filters = filterOverride ?? savedFilters;
   const [filterOpen, setFilterOpen] = useState(false);
+  // 내가 추가한 검색 키워드 (이 브라우저에 저장)
+  const searchKeywords = useSearchKeywords();
+  const savedKeywords = searchKeywords.items.map((k) => k.keyword);
+  const [keywordOpen, setKeywordOpen] = useState(false);
   const filterCount = activeFilterCount(filters);
   const [pages, setPages] = useState<{ key: string; list: Page[]; error: string | null }>({ key: "", list: [], error: null });
   const [loadingMore, setLoadingMore] = useState(false);
@@ -267,13 +274,14 @@ export function VideoSection({
         />
         <button
           type="submit"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[var(--rz-accent)] px-4 py-2.5 text-sm font-medium text-[var(--rz-accent-fg)] transition hover:brightness-110"
+          aria-label={t("search")}
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--rz-accent)] px-3 py-2.5 text-sm font-medium text-[var(--rz-accent-fg)] transition hover:brightness-110 sm:px-4"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
             <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
             <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          {t("search")}
+          <span className="hidden sm:inline">{t("search")}</span>
         </button>
         <button
           type="button"
@@ -299,10 +307,20 @@ export function VideoSection({
       </form>
 
 
+      <KeywordModal
+        open={keywordOpen}
+        keywords={searchKeywords.items}
+        onAdd={searchKeywords.add}
+        onRemove={searchKeywords.remove}
+        onClose={() => setKeywordOpen(false)}
+      />
+
       <VideoFilterModal
         open={filterOpen}
         value={filters}
         savedDefault={savedFilters}
+        loggedIn={filterDefault.loggedIn}
+        onSaveDefault={filterDefault.save}
         onClose={() => setFilterOpen(false)}
         onApply={(next) => {
           setFilterOverride(next);
@@ -325,6 +343,19 @@ export function VideoSection({
           ★ {t("myChannels")}
           {favorites.channels.length ? ` ${favorites.channels.length}` : ""}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (requireLogin()) setKeywordOpen(true);
+          }}
+          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-dashed border-[var(--rz-line-strong)] px-3 py-1.5 text-xs text-[var(--rz-muted)] transition hover:border-[var(--rz-accent)]/50 hover:text-[var(--rz-text)]"
+        >
+          <span aria-hidden className="inline-flex h-3.5 w-3.5 items-center justify-center text-[13px] font-semibold leading-none">
+            +
+          </span>
+          <span className="leading-none">{t("keywords.button")}</span>
+          {savedKeywords.length ? <span className="leading-none tabular-nums">{savedKeywords.length}</span> : null}
+        </button>
         {presets.map((p) => (
           <button
             key={p}
@@ -339,6 +370,23 @@ export function VideoSection({
             {p}
           </button>
         ))}
+        {savedKeywords
+          .filter((k) => !presets.includes(k))
+          .map((p) => (
+            <button
+              key={`kw:${p}`}
+              type="button"
+              onClick={() => runSearch(p)}
+              title={t("keywords.chipTitle")}
+              className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition ${
+                !inFavorites && query === p
+                  ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
+                  : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
+              }`}
+            >
+              # {p}
+            </button>
+          ))}
       </div>
 
       {inFavorites ? (
@@ -408,7 +456,7 @@ export function VideoSection({
                   {[playing.channelTitle, formatCount(playing.viewCount, locale), timeAgo(playing.publishedAt, locale)].filter(Boolean).join(" · ")}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 text-xs sm:shrink-0 sm:justify-end">
+              <div className="flex flex-wrap gap-2 sm:shrink-0 sm:justify-end">
                 {playing.channelId ? (
                   <button
                     type="button"
@@ -416,21 +464,25 @@ export function VideoSection({
                     disabled={favorites.busyId === playing.channelId}
                     aria-pressed={favorites.isFavorite(playing.channelId)}
                     title={favorites.isFavorite(playing.channelId) ? t("unfavoriteTitle") : t("favoriteTitle")}
-                    className={`rounded-lg border px-2.5 py-2 transition disabled:opacity-50 sm:py-1.5 ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition disabled:opacity-50 ${
                       favorites.isFavorite(playing.channelId)
-                        ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
-                        : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:text-[var(--rz-text)]"
+                        ? "bg-amber-400 text-[#1a1408] shadow-[0_6px_16px_rgb(251_191_36_/_0.35)] hover:brightness-110"
+                        : "border border-amber-400/45 bg-amber-400/15 text-amber-100 hover:border-amber-300/70 hover:bg-amber-400/25"
                     }`}
                   >
-                    {favorites.isFavorite(playing.channelId) ? `★ ${t("favorited")}` : `☆ ${t("favoriteChannel")}`}
+                    <span aria-hidden>{favorites.isFavorite(playing.channelId) ? "★" : "☆"}</span>
+                    {favorites.isFavorite(playing.channelId) ? t("favorited") : t("favoriteChannel")}
                   </button>
                 ) : null}
                 <a
                   href={`https://www.youtube.com/watch?v=${playing.id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-lg border border-[var(--rz-line)] px-2.5 py-2 text-[var(--rz-muted)] transition hover:text-[var(--rz-text)] sm:py-1.5"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#ff0033] px-3.5 py-2.5 text-xs font-semibold text-white shadow-[0_6px_16px_rgb(255_0_51_/_0.28)] transition hover:brightness-110"
                 >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.75 15.5v-7l6.5 3.5-6.5 3.5z" />
+                  </svg>
                   YouTube
                 </a>
               </div>
@@ -445,14 +497,14 @@ export function VideoSection({
           {listError}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {loading
             ? Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="aspect-video animate-pulse rounded-xl bg-[var(--rz-panel-2)]" />
-                  <div className="mt-0.5 h-5 w-full animate-pulse rounded bg-[var(--rz-panel-2)]" />
+                <div key={i} className="space-y-1.5 sm:space-y-2">
+                  <div className="aspect-video animate-pulse rounded-lg bg-[var(--rz-panel-2)] sm:rounded-xl" />
+                  <div className="mt-0.5 h-4 w-full animate-pulse rounded bg-[var(--rz-panel-2)] sm:h-5" />
                   <div className="h-3 w-2/3 animate-pulse rounded bg-[var(--rz-panel-2)]" />
-                  <div className="h-3 w-1/2 animate-pulse rounded bg-[var(--rz-panel-2)]" />
+                  <div className="hidden h-3 w-1/2 animate-pulse rounded bg-[var(--rz-panel-2)] sm:block" />
                 </div>
               ))
             : shown.map((v) => (
@@ -462,7 +514,7 @@ export function VideoSection({
                   onClick={() => play(v)}
                   className={`group flex h-full w-full flex-col text-left ${playing?.id === v.id ? "opacity-60" : ""}`}
                 >
-                  <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--rz-panel-2)] ring-1 ring-[var(--rz-line)]">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-[var(--rz-panel-2)] ring-1 ring-[var(--rz-line)] sm:rounded-xl">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={v.thumbnail}
@@ -470,17 +522,20 @@ export function VideoSection({
                       loading="lazy"
                       className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                     />
+                    <span className="absolute right-1 top-1 rounded-md bg-[linear-gradient(135deg,#fb7185,#e11d48)] px-1.5 py-0.5 text-[9px] font-bold tracking-tight text-white shadow-[0_4px_12px_rgb(225_29_72_/_0.45)] ring-1 ring-white/20 sm:right-1.5 sm:top-1.5 sm:rounded-lg sm:px-2 sm:py-1 sm:text-[10px]">
+                      {t("aiBadge")}
+                    </span>
                     {v.duration ? (
-                      <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/80 px-1.5 py-0.5 font-mono text-[11px] text-white">
+                      <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.5 font-mono text-[10px] text-white sm:bottom-1.5 sm:right-1.5 sm:rounded-md sm:px-1.5 sm:text-[11px]">
                         {formatDuration(v.duration)}
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-2.5 truncate text-sm font-medium leading-snug transition group-hover:text-white">
+                  <p className="mt-1.5 truncate text-[13px] font-medium leading-snug transition group-hover:text-white sm:mt-2.5 sm:text-sm">
                     {v.title}
                   </p>
-                  <p className="mt-1 truncate text-xs text-[var(--rz-muted)]">{v.channelTitle}</p>
-                  <p className="truncate text-xs text-[var(--rz-muted)]">
+                  <p className="mt-0.5 truncate text-[11px] text-[var(--rz-muted)] sm:mt-1 sm:text-xs">{v.channelTitle}</p>
+                  <p className="truncate text-[11px] text-[var(--rz-muted)] sm:text-xs">
                     {[formatCount(v.viewCount, locale), timeAgo(v.publishedAt, locale)].filter(Boolean).join(" · ")}
                   </p>
                 </button>

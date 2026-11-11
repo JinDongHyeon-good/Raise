@@ -1,9 +1,7 @@
 /**
  * 영상 목록 필터 — 이미 받아온 영상에만 적용 (YouTube 할당량을 쓰지 않음)
- * "기본값으로 저장"은 이 브라우저(localStorage)에 저장한다.
+ * "기본값으로 저장"은 로그인 사용자의 계정(USER_PREFERENCES)에 저장한다 — src/hooks/use-video-filter-default.ts
  */
-import { useSyncExternalStore } from "react";
-
 export type VideoOrder = "relevance" | "date" | "viewCount";
 export type UploadedWithin = "any" | "day" | "week" | "month" | "year";
 export type VideoLength = "any" | "short" | "medium" | "long";
@@ -25,57 +23,13 @@ export const UPLOADED_OPTIONS: Array<{ value: UploadedWithin }> = [
 
 export const LENGTH_OPTIONS: Array<{ value: VideoLength }> = [{ value: "any" }, { value: "short" }, { value: "medium" }, { value: "long" }];
 
-const STORAGE_KEY = "jd.videoFilters.v1";
-const CHANGE_EVENT = "jd-video-filters-change";
-
-function parse(raw: string | null): VideoFilters | null {
-  if (!raw) return null;
-  try {
-    const v = JSON.parse(raw) as Partial<VideoFilters>;
-    const pick = <T extends string>(value: unknown, options: Array<{ value: T }>, fallback: T) =>
-      options.some((o) => o.value === value) ? (value as T) : fallback;
-    return {
-      order: pick(v.order, ORDER_OPTIONS, DEFAULT_FILTERS.order),
-      uploaded: pick(v.uploaded, UPLOADED_OPTIONS, DEFAULT_FILTERS.uploaded),
-      length: pick(v.length, LENGTH_OPTIONS, DEFAULT_FILTERS.length),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function readRaw() {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function subscribe(onChange: () => void) {
-  const handler = () => onChange();
-  window.addEventListener("storage", handler);
-  window.addEventListener(CHANGE_EVENT, handler);
-  return () => {
-    window.removeEventListener("storage", handler);
-    window.removeEventListener(CHANGE_EVENT, handler);
-  };
-}
-
-/** 저장된 기본 필터 (없으면 DEFAULT_FILTERS). 서버 렌더링 때는 항상 DEFAULT_FILTERS */
-export function useSavedVideoFilters(): VideoFilters {
-  const raw = useSyncExternalStore(subscribe, readRaw, () => null);
-  return parse(raw) ?? DEFAULT_FILTERS;
-}
-
-export function saveDefaultVideoFilters(filters: VideoFilters | null) {
-  try {
-    if (filters) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
-    else window.localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // 저장소를 못 쓰는 환경(사생활 보호 모드 등)에서는 이번 화면에만 적용
-  }
-  window.dispatchEvent(new Event(CHANGE_EVENT));
+/** 저장값 확인: 세 항목이 모두 올바를 때만 필터로 인정 (서버·클라이언트 공용) */
+export function parseVideoFilters(value: unknown): VideoFilters | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  const valid = <T extends string>(x: unknown, options: Array<{ value: T }>): x is T => options.some((o) => o.value === x);
+  if (!valid(v.order, ORDER_OPTIONS) || !valid(v.uploaded, UPLOADED_OPTIONS) || !valid(v.length, LENGTH_OPTIONS)) return null;
+  return { order: v.order, uploaded: v.uploaded, length: v.length };
 }
 
 export function sameFilters(a: VideoFilters, b: VideoFilters) {

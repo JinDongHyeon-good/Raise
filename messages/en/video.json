@@ -3,11 +3,12 @@
   "presetPrediction": "{name} prediction",
   "presetChart": "{name} chart analysis",
   "relatedVideos": "Related videos",
-  "searchPlaceholder": "Search YouTube",
+  "aiBadge": "AI summary",
+  "searchPlaceholder": "Search channels or videos",
   "search": "Search",
   "filterButton": "Filters",
   "filterButtonActive": "Filters ({count} applied)",
-  "myChannels": "My channels",
+  "myChannels": "Add channel",
   "noFavorites": "No favorite channels yet. Play a video and tap <b>★ Favorite channel</b> to collect that channel's new videos here.",
   "allChannels": "All",
   "unfavoriteChannel": "Remove {channel} from favorites",
@@ -28,7 +29,7 @@
     "orderTitle": "Sort by",
     "uploadedTitle": "Upload date",
     "lengthTitle": "Duration",
-    "help": "Filters apply to the videos already loaded. Save as default to open with these settings next time in this browser.",
+    "help": "Filters apply to the videos already loaded. Save as default to keep these settings on your account (sign-in required).",
     "savedNote": "Saved as default.",
     "sameAsDefault": "Same as default",
     "saveDefault": "Save as default",
@@ -51,6 +52,26 @@
       "short": "Under 4 min",
       "medium": "4–20 min",
       "long": "Over 20 min"
-    }
+    },
+    "saveDefaultLogin": "Sign in to save default",
+    "saveFailed": "Couldn't save. Please try again."
+  },
+  "keywords": {
+    "button": "Add keyword",
+    "title": "Search keywords",
+    "help": "Add searches you use often and they appear as buttons under the search box. Saved to your account, so they show on every device.",
+    "placeholder": "e.g. Bitcoin halving",
+    "add": "Add",
+    "added": "Added “{keyword}”.",
+    "empty": "Enter a keyword.",
+    "duplicate": "You already added this keyword.",
+    "full": "You can add up to {max} keywords.",
+    "listTitle": "Your keywords",
+    "none": "No keywords yet.",
+    "delete": "Delete",
+    "remove": "Delete {keyword}",
+    "done": "Close",
+    "chipTitle": "Your keyword",
+    "failed": "Something went wrong. Please try again."
   }
 }

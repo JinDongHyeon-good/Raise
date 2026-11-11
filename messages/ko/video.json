@@ -3,11 +3,12 @@
   "presetPrediction": "{name} 전망",
   "presetChart": "{name} 차트분석",
   "relatedVideos": "관련 영상",
-  "searchPlaceholder": "유튜브 검색",
+  "aiBadge": "AI 요약받기",
+  "searchPlaceholder": "채널이나 영상을 검색해 보세요",
   "search": "검색",
   "filterButton": "필터",
   "filterButtonActive": "필터 ({count}개 적용됨)",
-  "myChannels": "내 채널 추가하기",
+  "myChannels": "채널추가",
   "noFavorites": "아직 즐겨찾기한 채널이 없어요. 영상을 재생한 뒤 <b>★ 채널 즐겨찾기</b>를 누르면 그 채널의 새 영상이 여기에 모여요.",
   "allChannels": "전체",
   "unfavoriteChannel": "{channel} 즐겨찾기 해제",
@@ -28,7 +29,7 @@
     "orderTitle": "정렬",
     "uploadedTitle": "업로드 날짜",
     "lengthTitle": "영상 길이",
-    "help": "불러온 영상 안에서 걸러 보여 줘요. 기본값으로 저장하면 이 브라우저에서 다음에도 이 설정으로 열려요.",
+    "help": "불러온 영상 안에서 걸러 보여 줘요. 기본값으로 저장하면 내 계정에 저장돼 다음에도 이 설정으로 열려요 (로그인 필요).",
     "savedNote": "기본값으로 저장했어요.",
     "sameAsDefault": "기본값과 같음",
     "saveDefault": "기본값으로 저장",
@@ -51,6 +52,26 @@
       "short": "4분 미만",
       "medium": "4~20분",
       "long": "20분 이상"
-    }
+    },
+    "saveDefaultLogin": "로그인하고 기본값 저장",
+    "saveFailed": "저장하지 못했어요. 잠시 후 다시 시도해 주세요."
+  },
+  "keywords": {
+    "button": "키워드추가",
+    "title": "검색 키워드 관리",
+    "help": "자주 찾는 검색어를 추가하면 검색창 아래 버튼으로 생겨요. 내 계정에 저장돼서 다른 기기에서도 보여요.",
+    "placeholder": "예: 진동현 분석",
+    "add": "추가",
+    "added": "“{keyword}” 버튼을 추가했어요.",
+    "empty": "키워드를 입력해 주세요.",
+    "duplicate": "이미 추가한 키워드예요.",
+    "full": "키워드는 최대 {max}개까지 추가할 수 있어요.",
+    "listTitle": "추가한 키워드",
+    "none": "아직 추가한 키워드가 없어요.",
+    "delete": "삭제",
+    "remove": "{keyword} 삭제",
+    "done": "닫기",
+    "chipTitle": "내가 추가한 키워드",
+    "failed": "잠시 후 다시 시도해 주세요."
   }
 }
