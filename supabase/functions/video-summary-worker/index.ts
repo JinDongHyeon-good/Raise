@@ -310,7 +310,10 @@ async function transcribeChunk(job: SummaryJob, index: number) {
     ],
     schema: TRANSCRIPT_SCHEMA,
     mediaLow: true,
-    maxOutputTokens: 12_000,
+    // 받아쓰기는 깊이 생각할 일이 아니다. 생각(thinking) 토큰도 출력 한도를 써서,
+    // 말이 많은 구간에서 생각하다 한도를 넘겨 JSON 이 잘리는 일이 있었다 → 생각은 낮게, 한도는 넉넉히
+    thinkingLow: true,
+    maxOutputTokens: 32_000,
   });
 
   const parsed = JSON.parse(text) as { segments?: Array<{ t?: string; text?: string }> };
