@@ -2,9 +2,9 @@ import { COINS, type Coin } from "@/lib/coins";
 
 export { localizedName } from "@/lib/coins";
 
-export type Market = "crypto" | "us";
+export type Market = "crypto" | "us" | "kr" | "usStock";
 
-/** 화면에서 고를 수 있는 종목 (코인 또는 미국 지수) — CoinTickerStrip이 그대로 쓸 수 있는 모양 */
+/** 화면에서 고를 수 있는 종목 — CoinTickerStrip이 그대로 쓸 수 있는 모양 */
 export type Asset = Coin & {
   market: Market;
   /** 차트 위 작은 라벨 (예: BTC/USDT, 나스닥 종합지수) */
@@ -12,8 +12,13 @@ export type Asset = Coin & {
   labelEn: string;
 };
 
-/** 시장 탭 — 화면 라벨은 home 메시지의 market.<value> */
-export const MARKETS: Array<{ value: Market }> = [{ value: "crypto" }, { value: "us" }];
+/** 시장 탭 — 화면 라벨은 chart 메시지의 market.<value> */
+export const MARKETS: Array<{ value: Market }> = [
+  { value: "crypto" },
+  { value: "us" },
+  { value: "kr" },
+  { value: "usStock" },
+];
 
 export const CRYPTO_ASSETS: Asset[] = COINS.map((c) => ({
   ...c,
@@ -30,15 +35,48 @@ export const US_ASSETS: Asset[] = [
   { symbol: "^DJI", ticker: "DJI", name: "다우존스", nameEn: "Dow Jones", market: "us", label: "다우존스 산업평균", labelEn: "Dow Jones Industrial Average" },
 ];
 
+/** 한국 주식 (Yahoo .KS) — stocks.ts 허용 목록과 심볼 맞출 것 */
+export const KR_ASSETS: Asset[] = [
+  { symbol: "005930.KS", ticker: "005930", name: "삼성전자", nameEn: "Samsung Electronics", market: "kr", label: "삼성전자", labelEn: "Samsung Electronics", currency: "KRW" },
+  { symbol: "000660.KS", ticker: "000660", name: "SK하이닉스", nameEn: "SK hynix", market: "kr", label: "SK하이닉스", labelEn: "SK hynix", currency: "KRW" },
+  { symbol: "035420.KS", ticker: "035420", name: "NAVER", nameEn: "NAVER", market: "kr", label: "NAVER", labelEn: "NAVER", currency: "KRW" },
+  { symbol: "035720.KS", ticker: "035720", name: "카카오", nameEn: "Kakao", market: "kr", label: "카카오", labelEn: "Kakao", currency: "KRW" },
+  { symbol: "005380.KS", ticker: "005380", name: "현대차", nameEn: "Hyundai Motor", market: "kr", label: "현대차", labelEn: "Hyundai Motor", currency: "KRW" },
+  { symbol: "051910.KS", ticker: "051910", name: "LG화학", nameEn: "LG Chem", market: "kr", label: "LG화학", labelEn: "LG Chem", currency: "KRW" },
+  { symbol: "006400.KS", ticker: "006400", name: "삼성SDI", nameEn: "Samsung SDI", market: "kr", label: "삼성SDI", labelEn: "Samsung SDI", currency: "KRW" },
+  { symbol: "068270.KS", ticker: "068270", name: "셀트리온", nameEn: "Celltrion", market: "kr", label: "셀트리온", labelEn: "Celltrion", currency: "KRW" },
+];
+
+/** 미국 개별 주식 — stocks.ts 허용 목록과 심볼 맞출 것 */
+export const US_STOCK_ASSETS: Asset[] = [
+  { symbol: "AAPL", ticker: "AAPL", name: "애플", nameEn: "Apple", market: "usStock", label: "Apple", labelEn: "Apple", currency: "USD" },
+  { symbol: "MSFT", ticker: "MSFT", name: "마이크로소프트", nameEn: "Microsoft", market: "usStock", label: "Microsoft", labelEn: "Microsoft", currency: "USD" },
+  { symbol: "NVDA", ticker: "NVDA", name: "엔비디아", nameEn: "NVIDIA", market: "usStock", label: "NVIDIA", labelEn: "NVIDIA", currency: "USD" },
+  { symbol: "GOOGL", ticker: "GOOGL", name: "알파벳", nameEn: "Alphabet", market: "usStock", label: "Alphabet", labelEn: "Alphabet", currency: "USD" },
+  { symbol: "AMZN", ticker: "AMZN", name: "아마존", nameEn: "Amazon", market: "usStock", label: "Amazon", labelEn: "Amazon", currency: "USD" },
+  { symbol: "META", ticker: "META", name: "메타", nameEn: "Meta", market: "usStock", label: "Meta", labelEn: "Meta", currency: "USD" },
+  { symbol: "TSLA", ticker: "TSLA", name: "테슬라", nameEn: "Tesla", market: "usStock", label: "Tesla", labelEn: "Tesla", currency: "USD" },
+  { symbol: "AVGO", ticker: "AVGO", name: "브로드컴", nameEn: "Broadcom", market: "usStock", label: "Broadcom", labelEn: "Broadcom", currency: "USD" },
+];
+
 /** 현재 언어의 차트 라벨 */
 export function localizedLabel(asset: Asset, locale: string) {
   return locale === "ko" ? asset.label : asset.labelEn;
 }
 
-export const ASSETS: Record<Market, Asset[]> = { crypto: CRYPTO_ASSETS, us: US_ASSETS };
+export const ASSETS: Record<Market, Asset[]> = {
+  crypto: CRYPTO_ASSETS,
+  us: US_ASSETS,
+  kr: KR_ASSETS,
+  usStock: US_STOCK_ASSETS,
+};
+
+export function isYahooMarket(market: Market) {
+  return market === "us" || market === "kr" || market === "usStock";
+}
 
 export function klineUrl(asset: Asset, interval: string) {
-  return asset.market === "us"
+  return isYahooMarket(asset.market)
     ? `/api/stocks/kline?symbol=${encodeURIComponent(asset.symbol)}&interval=${interval}`
     : `/api/bybit/kline?category=spot&symbol=${asset.symbol}&interval=${interval}`;
 }

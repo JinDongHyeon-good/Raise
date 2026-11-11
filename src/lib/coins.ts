@@ -1,5 +1,12 @@
 /** name = 한국어 이름, nameEn = 영어 이름 — 화면에는 localizedName()으로 현재 언어에 맞춰 보여 준다 */
-export type Coin = { symbol: string; ticker: string; name: string; nameEn: string };
+export type Coin = {
+  symbol: string;
+  ticker: string;
+  name: string;
+  nameEn: string;
+  /** 주식만: 가격 통화 (코인 USDT·지수 포인트는 없음) */
+  currency?: "KRW" | "USD";
+};
 
 export const COINS: Coin[] = [
   { symbol: "BTCUSDT", ticker: "BTC", name: "비트코인", nameEn: "Bitcoin" },

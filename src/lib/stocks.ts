@@ -7,7 +7,7 @@
 
 export type StockIndex = { symbol: string; ticker: string; name: string; fullName: string };
 
-/** 화면에 보여줄 미국 지수 (순서 = 화면 순서) */
+/** 화면에 보여줄 미국 지수 (순서 = 화면 순서) — markets.ts US_ASSETS 와 심볼 동기화 */
 export const US_INDICES: StockIndex[] = [
   { symbol: "^IXIC", ticker: "IXIC", name: "나스닥", fullName: "나스닥 종합지수" },
   { symbol: "^NDX", ticker: "NDX", name: "나스닥100", fullName: "나스닥 100" },
@@ -15,7 +15,31 @@ export const US_INDICES: StockIndex[] = [
   { symbol: "^DJI", ticker: "DJI", name: "다우존스", fullName: "다우존스 산업평균" },
 ];
 
-const ALLOWED = new Set(US_INDICES.map((i) => i.symbol));
+/** 한국 주식 — markets.ts KR_ASSETS 와 심볼 동기화 */
+export const KR_STOCKS: StockIndex[] = [
+  { symbol: "005930.KS", ticker: "005930", name: "삼성전자", fullName: "삼성전자" },
+  { symbol: "000660.KS", ticker: "000660", name: "SK하이닉스", fullName: "SK하이닉스" },
+  { symbol: "035420.KS", ticker: "035420", name: "NAVER", fullName: "NAVER" },
+  { symbol: "035720.KS", ticker: "035720", name: "카카오", fullName: "카카오" },
+  { symbol: "005380.KS", ticker: "005380", name: "현대차", fullName: "현대차" },
+  { symbol: "051910.KS", ticker: "051910", name: "LG화학", fullName: "LG화학" },
+  { symbol: "006400.KS", ticker: "006400", name: "삼성SDI", fullName: "삼성SDI" },
+  { symbol: "068270.KS", ticker: "068270", name: "셀트리온", fullName: "셀트리온" },
+];
+
+/** 미국 개별 주식 — markets.ts US_STOCK_ASSETS 와 심볼 동기화 */
+export const US_STOCKS: StockIndex[] = [
+  { symbol: "AAPL", ticker: "AAPL", name: "애플", fullName: "Apple" },
+  { symbol: "MSFT", ticker: "MSFT", name: "마이크로소프트", fullName: "Microsoft" },
+  { symbol: "NVDA", ticker: "NVDA", name: "엔비디아", fullName: "NVIDIA" },
+  { symbol: "GOOGL", ticker: "GOOGL", name: "알파벳", fullName: "Alphabet" },
+  { symbol: "AMZN", ticker: "AMZN", name: "아마존", fullName: "Amazon" },
+  { symbol: "META", ticker: "META", name: "메타", fullName: "Meta" },
+  { symbol: "TSLA", ticker: "TSLA", name: "테슬라", fullName: "Tesla" },
+  { symbol: "AVGO", ticker: "AVGO", name: "브로드컴", fullName: "Broadcom" },
+];
+
+const ALLOWED = new Set([...US_INDICES, ...KR_STOCKS, ...US_STOCKS].map((i) => i.symbol));
 export const isAllowedStockSymbol = (symbol: string) => ALLOWED.has(symbol);
 
 export type StockQuote = {
@@ -77,7 +101,7 @@ async function cached<T>(key: string, ttl: number, load: () => Promise<T>): Prom
 async function yahooChart(symbol: string, interval: string, range: string) {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}&includePrePost=false`;
   const res = await fetch(url, {
-    headers: { "user-agent": "Mozilla/5.0 (compatible; JindongCoinBot/1.0)", accept: "application/json" },
+    headers: { "user-agent": "Mozilla/5.0 (compatible; jjintuBot/1.0)", accept: "application/json" },
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
   });

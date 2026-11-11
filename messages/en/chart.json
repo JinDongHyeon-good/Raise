@@ -3,7 +3,9 @@
   "marketTabs": "Market",
   "market": {
     "crypto": "Crypto",
-    "us": "US Stocks"
+    "us": "US Index",
+    "kr": "KR Stocks",
+    "usStock": "US Stocks"
   },
   "interval": {
     "m15": "15m",
@@ -16,7 +18,7 @@
   "low": "Low",
   "turnover": "Volume",
   "loadFailed": "Couldn't load the chart.",
-  "sourceUs": "Data: Yahoo Finance · Index quotes may be delayed · US regular session",
+  "sourceUs": "Data: Yahoo Finance · Quotes may be delayed",
   "sourceCrypto": "Data: Bybit spot",
   "noData": "No chart data",
   "candleChart": "Candlestick chart"

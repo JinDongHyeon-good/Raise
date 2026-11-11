@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   const t = apiTranslator(request);
   const raw = new URL(request.url).searchParams.get("symbols");
-  const symbols = raw ? raw.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 10) : US_INDICES.map((i) => i.symbol);
+  const symbols = raw ? raw.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 12) : US_INDICES.map((i) => i.symbol);
   try {
     const tickers = await getStockQuotes(symbols);
     if (tickers.length === 0) return NextResponse.json({ error: t("stocks.quotesFailed") }, { status: 502 });

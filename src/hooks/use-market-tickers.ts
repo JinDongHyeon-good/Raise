@@ -3,9 +3,9 @@
 import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
 import type { Ticker } from "@/lib/coins";
-import { ASSETS, type Market } from "@/lib/markets";
+import { ASSETS, isYahooMarket, type Market } from "@/lib/markets";
 
-/** 코인(Bybit, 10초) 또는 미국 지수(Yahoo, 30초) 시세 */
+/** 코인(Bybit, 10초) 또는 주식·지수(Yahoo, 30초) 시세 */
 export function useMarketTickers(market: Market) {
   const locale = useLocale();
   const [state, setState] = useState<{ market: Market; tickers: Record<string, Ticker> }>({ market, tickers: {} });
@@ -13,8 +13,10 @@ export function useMarketTickers(market: Market) {
   useEffect(() => {
     let alive = true;
     const symbols = ASSETS[market].map((a) => a.symbol).join(",");
-    const url =
-      market === "us" ? `/api/stocks/quotes?symbols=${encodeURIComponent(symbols)}` : `/api/bybit/tickers?symbols=${symbols}`;
+    const yahoo = isYahooMarket(market);
+    const url = yahoo
+      ? `/api/stocks/quotes?symbols=${encodeURIComponent(symbols)}`
+      : `/api/bybit/tickers?symbols=${symbols}`;
     const load = async () => {
       try {
         const res = await fetch(url, { headers: { "x-ui-locale": locale } });
@@ -27,7 +29,7 @@ export function useMarketTickers(market: Market) {
       }
     };
     void load();
-    const id = window.setInterval(load, market === "us" ? 30_000 : 10_000);
+    const id = window.setInterval(load, yahoo ? 30_000 : 10_000);
     return () => {
       alive = false;
       window.clearInterval(id);

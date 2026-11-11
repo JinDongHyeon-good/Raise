@@ -3,7 +3,9 @@
   "marketTabs": "시장",
   "market": {
     "crypto": "코인",
-    "us": "미국증시"
+    "us": "미국증시",
+    "kr": "한국주식",
+    "usStock": "미국주식"
   },
   "interval": {
     "m15": "15분",
@@ -16,7 +18,7 @@
   "low": "저가",
   "turnover": "거래대금",
   "loadFailed": "차트를 불러오지 못했어요.",
-  "sourceUs": "데이터: Yahoo Finance · 지수 시세는 지연될 수 있어요 · 미국 정규장 기준",
+  "sourceUs": "데이터: Yahoo Finance · 시세는 지연될 수 있어요",
   "sourceCrypto": "데이터: Bybit 현물",
   "noData": "차트 데이터 없음",
   "candleChart": "캔들 차트"

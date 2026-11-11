@@ -7,12 +7,13 @@ import { MarketTabs } from "@/components/raise/market-tabs";
 import { RaiseFooter, RaiseHeader } from "@/components/raise/raise-chrome";
 import { VideoSection } from "@/components/raise/video-section";
 import { useMarketTickers } from "@/hooks/use-market-tickers";
-import { ASSETS, localizedName, type Asset, type Market } from "@/lib/markets";
+import { ASSETS, type Asset, type Market } from "@/lib/markets";
 import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName } from "@/lib/brand";
 
 export default function RaiseHome() {
   const t = useTranslations("home");
+  const tChart = useTranslations("chart");
   const locale = useLocale();
   const serviceName = getLocalizedBrandName(locale as AppLocale);
   const [market, setMarket] = useState<Market>("crypto");
@@ -22,6 +23,14 @@ export default function RaiseHome() {
     setMarket(next);
     setCoin(ASSETS[next][0]);
   };
+  const marketTabLabel =
+    market === "crypto"
+      ? tChart("market.crypto")
+      : market === "us"
+        ? tChart("market.us")
+        : market === "kr"
+          ? tChart("market.kr")
+          : tChart("market.usStock");
 
   return (
     <div className="raise-app min-h-dvh bg-[var(--rz-bg)] text-[var(--rz-text)]">
@@ -39,10 +48,20 @@ export default function RaiseHome() {
 
         <header className="space-y-1.5">
           <h2 className="font-[family-name:var(--font-brand-display)] text-xl font-semibold tracking-tight sm:text-2xl">
-            {t("relatedVideos", { name: localizedName(coin, locale) })}
+            {t("relatedVideos", { name: marketTabLabel })}
           </h2>
-          <p className="max-w-xl text-sm leading-relaxed text-[var(--rz-muted)]">
-            {market === "us" ? t("introUs") : t("introCrypto")}
+          <p
+            className={`text-sm text-[var(--rz-muted)] ${
+              locale === "en" ? "whitespace-nowrap leading-snug" : "max-w-xl leading-relaxed"
+            }`}
+          >
+            {market === "crypto"
+              ? t("introCrypto")
+              : market === "us"
+                ? t("introUs")
+                : market === "kr"
+                  ? t("introKr")
+                  : t("introUsStock")}
           </p>
         </header>
 

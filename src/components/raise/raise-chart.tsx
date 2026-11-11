@@ -2,14 +2,14 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { CandleChart, formatPrice, type Candle } from "@/components/raise/candle-chart";
+import { CandleChart, formatQuote, type Candle } from "@/components/raise/candle-chart";
 import { BybitInlinePromo } from "@/components/raise/bybit-inline-promo";
 import { CoinTickerStrip } from "@/components/raise/coin-ticker-strip";
 import { MarketTabs } from "@/components/raise/market-tabs";
 import { RaiseFooter, RaiseHeader } from "@/components/raise/raise-chrome";
 import { useMarketTickers } from "@/hooks/use-market-tickers";
 import { INTERVALS, formatTurnover } from "@/lib/coins";
-import { ASSETS, klineUrl, localizedLabel, localizedName, type Asset, type Market } from "@/lib/markets";
+import { ASSETS, isYahooMarket, klineUrl, localizedLabel, localizedName, type Asset, type Market } from "@/lib/markets";
 import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName } from "@/lib/brand";
 
@@ -85,13 +85,17 @@ export default function RaiseChart() {
                   <>
                     {localizedName(coin, locale)} <span className="font-mono">{localizedLabel(coin, locale)}</span>
                   </>
-                ) : (
+                ) : coin.market === "us" ? (
                   localizedLabel(coin, locale)
+                ) : (
+                  <>
+                    {localizedName(coin, locale)} <span className="font-mono">{coin.ticker}</span>
+                  </>
                 )}
               </p>
               <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="font-mono text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
-                  {ticker ? formatPrice(ticker.price) : "—"}
+                  {ticker ? formatQuote(ticker.price, coin.currency, locale) : "—"}
                 </span>
                 {ticker ? (
                   <span
@@ -104,10 +108,10 @@ export default function RaiseChart() {
               {ticker ? (
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
                   <span>
-                    {t("high")} {formatPrice(ticker.high24h)}
+                    {t("high")} {formatQuote(ticker.high24h, coin.currency, locale)}
                   </span>
                   <span>
-                    {t("low")} {formatPrice(ticker.low24h)}
+                    {t("low")} {formatQuote(ticker.low24h, coin.currency, locale)}
                   </span>
                   {ticker.turnover24h !== undefined ? (
                     <span>
@@ -147,11 +151,11 @@ export default function RaiseChart() {
               <div className="h-[260px] animate-pulse rounded-xl bg-[var(--rz-panel-2)] sm:h-[400px]" />
             ) : (
               <div className={chartLoading ? "opacity-50 transition" : "transition"}>
-                <CandleChart candles={candles} interval={interval} />
+                <CandleChart candles={candles} interval={interval} currency={coin.currency} />
               </div>
             )}
             <p className="mt-2 text-right text-[11px] text-[var(--rz-muted)]">
-              {coin.market === "us" ? t("sourceUs") : t("sourceCrypto")}
+              {isYahooMarket(coin.market) ? t("sourceUs") : t("sourceCrypto")}
             </p>
           </div>
         </section>

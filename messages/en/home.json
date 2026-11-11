@@ -1,6 +1,8 @@
 {
   "srTitle": "{brand} — AI summaries of crypto & stock YouTube · Investor community",
   "relatedVideos": "{name} videos",
-  "introUs": "We gather YouTube outlooks on the US market, like the Nasdaq and S&P 500, and AI sums up long videos for you.",
-  "introCrypto": "We gather the latest and most popular crypto YouTube videos, and AI sums up long videos for you."
+  "introUs": "US market outlook videos, with AI summaries.",
+  "introCrypto": "Latest crypto videos, with AI summaries.",
+  "introKr": "Korean stock outlook videos, with AI summaries.",
+  "introUsStock": "US stock outlook videos, with AI summaries."
 }

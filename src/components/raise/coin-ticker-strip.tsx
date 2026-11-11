@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { formatPrice } from "@/components/raise/candle-chart";
+import { formatQuote } from "@/components/raise/candle-chart";
 import { localizedName, type Coin, type Ticker } from "@/lib/coins";
 
 type Props = {
@@ -39,7 +39,7 @@ export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }:
                   <span className="ml-1.5">{localizedName(c, locale)}</span>
                 </span>
                 <span className="mt-1 font-mono text-[15px] tabular-nums tracking-tight">
-                  {t ? formatPrice(t.price) : "—"}
+                  {t ? formatQuote(t.price, c.currency, locale) : "—"}
                 </span>
                 <span
                   className={`mt-0.5 font-mono text-[11px] tabular-nums ${

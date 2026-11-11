@@ -20,11 +20,25 @@ const PRICE_H = 320;
 const VOL_TOP = 340;
 const VOL_H = 64;
 
-export function formatPrice(value: number) {
+export type PriceCurrency = "KRW" | "USD" | undefined;
+
+/** 숫자만 (차트 축·OHLC). 원화는 소수점 없이, 달러 주식은 소수 둘째 자리까지 */
+export function formatPrice(value: number, currency?: PriceCurrency) {
   if (!Number.isFinite(value)) return "-";
+  if (currency === "KRW") return Math.round(value).toLocaleString("en-US");
+  if (currency === "USD") return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const abs = Math.abs(value);
   const digits = abs >= 1000 ? 2 : abs >= 1 ? 3 : abs >= 0.01 ? 5 : 8;
   return value.toLocaleString("en-US", { minimumFractionDigits: Math.min(2, digits), maximumFractionDigits: digits });
+}
+
+/** 통화 표시를 붙인 가격 (시세 카드·제목용): 206,000원 / ₩206,000 / $348.51. 코인·지수는 숫자만 */
+export function formatQuote(value: number, currency: PriceCurrency, locale: string) {
+  const n = formatPrice(value, currency);
+  if (n === "-") return n;
+  if (currency === "KRW") return locale === "ko" ? `${n}원` : `₩${n}`;
+  if (currency === "USD") return `$${n}`;
+  return n;
 }
 
 function formatTime(ts: number, interval: string, locale: string) {
@@ -41,7 +55,7 @@ function formatTime(ts: number, interval: string, locale: string) {
   return `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function CandleChart({ candles, interval }: { candles: Candle[]; interval: string }) {
+export function CandleChart({ candles, interval, currency }: { candles: Candle[]; interval: string; currency?: PriceCurrency }) {
   const t = useTranslations("chart");
   const locale = useLocale();
   const [hover, setHover] = useState<number | null>(null);
@@ -83,16 +97,16 @@ export function CandleChart({ candles, interval }: { candles: Candle[]; interval
       <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--rz-muted)] sm:text-xs">
         <span>{formatTime(active.timestamp, interval, locale)}</span>
         <span>
-          O <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.open)}</b>
+          O <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.open, currency)}</b>
         </span>
         <span>
-          H <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.high)}</b>
+          H <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.high, currency)}</b>
         </span>
         <span>
-          L <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.low)}</b>
+          L <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.low, currency)}</b>
         </span>
         <span>
-          C <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.close)}</b>
+          C <b className={activeUp ? "text-[var(--rz-up)]" : "text-[var(--rz-down)]"}>{formatPrice(active.close, currency)}</b>
         </span>
       </div>
 
@@ -109,7 +123,7 @@ export function CandleChart({ candles, interval }: { candles: Candle[]; interval
           <g key={price}>
             <line x1={0} x2={W - PAD_R} y1={y(price)} y2={y(price)} stroke="var(--rz-grid)" strokeWidth={1} />
             <text x={W - PAD_R + 8} y={y(price) + 4} fontSize={12} fill="var(--rz-muted)" fontFamily="monospace">
-              {formatPrice(price)}
+              {formatPrice(price, currency)}
             </text>
           </g>
         ))}
@@ -149,7 +163,7 @@ export function CandleChart({ candles, interval }: { candles: Candle[]; interval
           fill={last.close >= last.open ? "var(--rz-up)" : "var(--rz-down)"}
         />
         <text x={W - PAD_R + 8} y={y(last.close) + 4} fontSize={12} fill="#fff" fontFamily="monospace">
-          {formatPrice(last.close)}
+          {formatPrice(last.close, currency)}
         </text>
 
         {hover !== null ? (
