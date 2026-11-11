@@ -84,7 +84,7 @@ export function RaiseHeader() {
             href="/"
             className="relative z-10 flex shrink-0 items-center gap-2 font-[family-name:var(--font-brand-display)] text-[17px] font-semibold tracking-tight sm:text-lg"
           >
-            <LogoMark size={28} className="shrink-0 drop-shadow-[0_2px_6px_rgb(225_29_72_/_0.35)]" />
+            <LogoMark size={28} className="shrink-0" />
             {SERVICE_NAME}
           </Link>
 
