@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { CandleChart, formatQuote, type Candle } from "@/components/raise/candle-chart";
+import { CandleChart, PriceText, formatQuote, type Candle } from "@/components/raise/candle-chart";
 import { BybitInlinePromo } from "@/components/raise/bybit-inline-promo";
 import { CoinTickerStrip } from "@/components/raise/coin-ticker-strip";
 import { MarketTabs } from "@/components/raise/market-tabs";
@@ -95,7 +95,7 @@ export default function RaiseChart() {
               </p>
               <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="font-mono text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
-                  {ticker ? formatQuote(ticker.price, coin.currency, locale) : "—"}
+                  {ticker ? <PriceText value={ticker.price} currency={coin.currency} locale={locale} unitClassName="text-sm sm:text-base" /> : "—"}
                 </span>
                 {ticker ? (
                   <span

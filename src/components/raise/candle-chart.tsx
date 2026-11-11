@@ -41,6 +41,40 @@ export function formatQuote(value: number, currency: PriceCurrency, locale: stri
   return n;
 }
 
+/**
+ * 가격 + 작은 통화 표시. 통화 기호는 숫자보다 작고 흐리게 (긴 원화 가격이 카드를 넘지 않게)
+ * unitClassName 으로 기호 크기를 정한다 (기본: 숫자의 약 70%)
+ */
+export function PriceText({
+  value,
+  currency,
+  locale,
+  unitClassName = "text-[0.7em]",
+}: {
+  value: number;
+  currency: PriceCurrency;
+  locale: string;
+  unitClassName?: string;
+}) {
+  const n = formatPrice(value, currency);
+  if (n === "-" || !currency) return <>{n}</>;
+  const unitCls = `font-sans font-medium text-[var(--rz-muted)] ${unitClassName}`;
+  if (currency === "KRW" && locale === "ko") {
+    return (
+      <>
+        {n}
+        <span className={`ml-0.5 ${unitCls}`}>원</span>
+      </>
+    );
+  }
+  return (
+    <>
+      <span className={`mr-0.5 ${unitCls}`}>{currency === "KRW" ? "₩" : "$"}</span>
+      {n}
+    </>
+  );
+}
+
 function formatTime(ts: number, interval: string, locale: string) {
   const d = new Date(ts);
   const pad = (n: number) => String(n).padStart(2, "0");
