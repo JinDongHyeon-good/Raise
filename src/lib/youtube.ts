@@ -159,9 +159,9 @@ export function normalizeQuery(raw: string) {
   return raw.normalize("NFC").trim().replace(/\s+/g, " ").slice(0, 100);
 }
 
-/** v2: 라이브 방송 제외 + 페이지 */
+/** v3: 라이브 방송·쇼츠 제외 + 페이지 */
 function cacheKey(query: string, page: number) {
-  return `v2:${page}:${query.toLowerCase()}`;
+  return `v3:${page}:${query.toLowerCase()}`;
 }
 
 function l1Set(key: string, value: YoutubeSearchResult) {
@@ -223,6 +223,48 @@ function decodeEntities(text: string) {
     .replace(/&gt;/g, ">");
 }
 
+// ── 쇼츠 제외 ────────────────────────────────────────────
+// YouTube API에는 쇼츠 여부 필드가 없고, 쇼츠는 최대 3분까지라 길이만으로는 못 가른다.
+//   60초 이하 또는 제목에 #shorts → 쇼츠
+//   1~3분 → youtube.com/shorts/<id> 에 HEAD 요청: 쇼츠면 200, 일반 영상이면 303(일반 주소로 이동)
+//   3분 초과 → 일반 영상
+// 확인이 실패하면 일반 영상으로 둔다 (영상을 잘못 숨기는 것보다 쇼츠 하나가 섞이는 편이 낫다).
+
+const shortsMemo = new Map<string, boolean>();
+
+async function isShortsUrl(id: string): Promise<boolean> {
+  const memo = shortsMemo.get(id);
+  if (memo !== undefined) return memo;
+  try {
+    const res = await fetch(`https://www.youtube.com/shorts/${id}`, {
+      method: "HEAD",
+      redirect: "manual",
+      headers: { "user-agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    const short = res.status === 200;
+    shortsMemo.set(id, short);
+    if (shortsMemo.size > 5000) shortsMemo.delete(shortsMemo.keys().next().value as string);
+    return short;
+  } catch {
+    return false;
+  }
+}
+
+async function excludeShorts<T extends { id: string; title: string; duration: string | null }>(videos: T[]): Promise<T[]> {
+  const verdicts = await Promise.all(
+    videos.map(async (v) => {
+      if (/#shorts?\b/i.test(v.title)) return true;
+      const sec = v.duration ? parseIsoDuration(v.duration) : null;
+      if (sec === null) return false;
+      if (sec <= 60) return true;
+      if (sec > 180) return false;
+      return isShortsUrl(v.id);
+    }),
+  );
+  return videos.filter((_, i) => !verdicts[i]);
+}
+
 async function fetchFromApi(query: string, page: number, pageToken: string | null): Promise<YoutubeSearchResult> {
   // search.list = 100 units (maxResults와 무관하므로 최대치 50개를 한 번에)
   const { data: search, credential } = await ytGet<{ items?: SearchItem[]; nextPageToken?: string }>("search", {
@@ -264,12 +306,7 @@ async function fetchFromApi(query: string, page: number, pageToken: string | nul
     return Boolean(detail.liveStreamingDetails) || detail.contentDetails?.duration === "P0D";
   };
 
-  return {
-    query,
-    page,
-    nextPageToken: search.nextPageToken ?? null,
-    fetchedAt: Date.now(),
-    videos: items.filter((item) => !isLiveRecording(item.id!.videoId!)).map((item) => {
+  const mapped = items.filter((item) => !isLiveRecording(item.id!.videoId!)).map((item) => {
       const id = item.id!.videoId!;
       const snippet = item.snippet ?? {};
       const detail = detailMap.get(id);
@@ -285,7 +322,14 @@ async function fetchFromApi(query: string, page: number, pageToken: string | nul
         likeCount: detail?.statistics?.likeCount ? Number(detail.statistics.likeCount) : null,
         duration: detail?.contentDetails?.duration ?? null,
       };
-    }),
+    });
+
+  return {
+    query,
+    page,
+    nextPageToken: search.nextPageToken ?? null,
+    fetchedAt: Date.now(),
+    videos: await excludeShorts(mapped),
   };
 }
 
@@ -419,7 +463,7 @@ async function fetchChannelVideos(channelId: string): Promise<YoutubeVideo[]> {
       (await ytGet<{ items?: VideoItem[] }>("videos", { part: "statistics,contentDetails,liveStreamingDetails", id: ids.join(",") })).data.items ?? [];
   }
   const detailMap = new Map(details.map((d) => [d.id, d]));
-  return items
+  const videos = items
     .map((item) => {
       const s = item.snippet!;
       const id = s.resourceId!.videoId!;
@@ -444,12 +488,13 @@ async function fetchChannelVideos(channelId: string): Promise<YoutubeVideo[]> {
       void _live;
       return video;
     });
+  return excludeShorts(videos);
 }
 
 /** 채널 최신 영상 (라이브 제외). 30분 캐시(메모리+DB), 실패 시 이전 결과 */
 export async function getChannelVideos(channelId: string): Promise<YoutubeVideo[]> {
   if (!isChannelId(channelId)) return [];
-  const key = `channel:v1:${channelId}`;
+  const key = `channel:v2:${channelId}`; // v2: 쇼츠 제외
   const now = Date.now();
   let cached = channelMemory.get(channelId) ?? null;
   if (!cached || now - cached.at >= CHANNEL_FRESH_MS) {

@@ -6,9 +6,6 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { useFavoriteChannels } from "@/hooks/use-favorite-channels";
 import { VideoFilterModal } from "@/components/raise/video-filter-modal";
 import {
-  LENGTH_OPTIONS,
-  ORDER_OPTIONS,
-  UPLOADED_OPTIONS,
   activeFilterCount,
   applyVideoFilters,
   useSavedVideoFilters,
@@ -260,29 +257,6 @@ export function VideoSection({ coinName, hideTitle = false }: { coinName: string
         </button>
       </form>
 
-      {filterCount ? (
-        <div className="-mt-1 mb-3 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--rz-muted)]">
-          <span>필터</span>
-          {filters.order !== "relevance" ? (
-            <span className="rounded-md bg-[var(--rz-panel-2)] px-1.5 py-0.5 text-[var(--rz-text)]">
-              {ORDER_OPTIONS.find((o) => o.value === filters.order)?.label}순
-            </span>
-          ) : null}
-          {filters.uploaded !== "any" ? (
-            <span className="rounded-md bg-[var(--rz-panel-2)] px-1.5 py-0.5 text-[var(--rz-text)]">
-              {UPLOADED_OPTIONS.find((o) => o.value === filters.uploaded)?.label}
-            </span>
-          ) : null}
-          {filters.length !== "any" ? (
-            <span className="rounded-md bg-[var(--rz-panel-2)] px-1.5 py-0.5 text-[var(--rz-text)]">
-              {LENGTH_OPTIONS.find((o) => o.value === filters.length)?.label}
-            </span>
-          ) : null}
-          <button type="button" onClick={() => setFilterOpen(true)} className="underline">
-            변경
-          </button>
-        </div>
-      ) : null}
 
       <VideoFilterModal
         open={filterOpen}
