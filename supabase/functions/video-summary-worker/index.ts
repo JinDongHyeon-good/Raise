@@ -55,7 +55,20 @@ type Draft = {
   levels: Array<{ coin: string; price: string; kind: string; segs: string[]; quote: string }>;
   stance: { label: string; reason: string; segs: string[] } | null;
   is_speech: boolean;
+  video_type: VideoType;
+  type_segs: string[];
 };
+/**
+ * 영상 종류 — 받아쓴 내용으로 판단한다 (제목·썸네일 아님)
+ *   analysis: 화자가 시장·종목·코인의 방향, 가격, 매매 판단을 근거와 함께 직접 말하는 분석·전망 영상
+ *   news:     사건·발표·정책·규제·기업/프로젝트 소식을 전하는 영상 (화자 전망이 중심이 아님)
+ *   general:  사용법·개념 설명, 강의, 인터뷰, 잡담 등 그 밖의 영상
+ * analysis 가 아니면 가격대(levels)와 화자 관점(stance)을 만들지 않는다.
+ */
+type VideoType = "analysis" | "news" | "general";
+const VIDEO_TYPES: VideoType[] = ["analysis", "news", "general"];
+/** 요약 형식 버전 — 올리면 예전 요약은 받아쓰기를 재사용해 다시 요약된다 (src/lib/video-summary.ts 와 같게) */
+const SUMMARY_VERSION = 2;
 type SummaryItem = { text: string; segs: string[]; t: number; quote?: string };
 type PriceLevel = { coin: string; price: string; kind: string; segs: string[]; t: number; quote: string };
 type VideoSummary = {
@@ -65,6 +78,8 @@ type VideoSummary = {
   stance: { label: string; reason: string; segs: string[]; t: number } | null;
   dropped: number;
   noSpeech: boolean;
+  videoType: VideoType;
+  version: number;
   model: { transcribe: string; text: string };
 };
 type Lang = "ko" | "en";
@@ -326,9 +341,19 @@ const draftSchema = (lang: Lang) => ({
   type: "OBJECT",
   properties: {
     is_speech: { type: "BOOLEAN", description: "요약할 만한 발언이 있으면 true" },
+    video_type: {
+      type: "STRING",
+      enum: VIDEO_TYPES,
+      description: "analysis=화자가 방향·가격·매매 판단을 근거와 함께 직접 말함 / news=사건·발표 소식 전달 / general=사용법·개념 설명·강의·인터뷰 등 그 밖",
+    },
+    type_segs: {
+      type: "ARRAY",
+      description: "video_type 판단의 근거 문단 번호. analysis면 화자가 전망·가격·매매 판단을 말한 문단",
+      items: { type: "STRING" },
+    },
     overview: {
       type: "ARRAY",
-      description: "영상 전체 요지 1~3문장",
+      description: "영상 전체 요지 1~3문장 (무엇을 다루고 화자가 결국 무슨 말을 하는지)",
       items: {
         type: "OBJECT",
         properties: { text: { type: "STRING" }, segs: { type: "ARRAY", items: { type: "STRING" } } },
@@ -337,7 +362,7 @@ const draftSchema = (lang: Lang) => ({
     },
     points: {
       type: "ARRAY",
-      description: "핵심 주장 3~8개",
+      description: "analysis면 화자의 주장과 그 근거, news·general이면 주요 내용. 영상 순서대로 3~8개",
       items: {
         type: "OBJECT",
         properties: {
@@ -350,7 +375,7 @@ const draftSchema = (lang: Lang) => ({
     },
     levels: {
       type: "ARRAY",
-      description: "화자가 직접 말한 가격대만. 없으면 빈 배열",
+      description: "analysis일 때만. 화자가 직접 말한 가격대만. 없거나 analysis가 아니면 빈 배열",
       items: {
         type: "OBJECT",
         properties: {
@@ -374,7 +399,7 @@ const draftSchema = (lang: Lang) => ({
       required: ["label", "reason", "segs"],
     },
   },
-  required: ["is_speech", "overview", "points", "levels"],
+  required: ["is_speech", "video_type", "type_segs", "overview", "points", "levels"],
 });
 
 async function summarize(job: SummaryJob) {
@@ -383,30 +408,66 @@ async function summarize(job: SummaryJob) {
   const transcript = allSegments(job)
     .map((s) => `[${s.id} | ${mmss(s.t)}] ${s.text}`)
     .join("\n");
+  const en = lang === "en";
   const prompt = [
     `아래는 유튜브 영상의 받아쓰기 원문이다. 이 원문에 적힌 내용만 근거로 ${outLang} 요약을 만들어라.`,
     "",
-    "절대 규칙:",
-    "1. 원문에 없는 사실·숫자·전망·배경지식을 절대 추가하지 마라. 네가 아는 시장 정보도 쓰지 마라.",
-    lang === "en"
-      ? "2. 화자의 의견은 사실처럼 쓰지 말고 'The speaker says/thinks ...'처럼 화자의 말로 적어라."
-      : "2. 화자의 의견은 사실처럼 쓰지 말고 '화자는 ~라고 본다/말한다'처럼 화자의 말로 적어라.",
-    '3. 모든 항목에 근거 문단 번호(segs, 예: ["S3","S4"])를 붙여라. 근거를 댈 수 없는 내용은 쓰지 마라.',
-    "4. quote는 근거 문단에서 글자 그대로 복사한 원문이어야 한다. 번역하거나 고치지 마라 (외국어면 외국어 그대로).",
-    "5. 숫자·가격은 원문 표기 그대로 옮겨라 (예: 원문이 '9만 2천'이면 '9만 2천', '92,000'이면 '92,000').",
-    `6. 요약 문장(overview.text, points.claim, stance.reason)은 원문 언어와 상관없이 반드시 ${outLang}로 써라. levels.coin(대상 이름)도 ${outLang}로 써라.`,
-    "7. 화자가 직접 말하지 않은 가격대(코인 가격·주가·지수 포인트)는 levels에 넣지 마라. 확실하지 않으면 빼라.",
-    "8. 광고·구독 요청·인사말은 요약하지 마라.",
+    "절대 규칙 (어기면 그 항목은 버려진다):",
+    "1. 원문에 없는 사실·숫자·전망·배경지식을 절대 추가하지 마라. 네가 아는 시장 정보, 최근 시세, 일반 상식도 쓰지 마라.",
+    "2. 원문 내용을 부풀리거나 단정하지 마라. 화자가 '~일 수도 있다'고 했으면 그 정도로만 써라.",
+    en
+      ? "3. 화자의 의견·예상은 사실처럼 쓰지 말고 'The speaker says/expects ...'처럼 화자의 말로 적어라. 화자가 전한 소식도 'According to the video, ...'처럼 출처를 밝혀라."
+      : "3. 화자의 의견·예상은 사실처럼 쓰지 말고 '화자는 ~라고 본다/예상한다'처럼 화자의 말로 적어라. 화자가 전한 소식도 '영상에 따르면 ~'처럼 출처를 밝혀라.",
+    en
+      ? "3-1. Any judgment, interpretation, forecast or recommendation by the speaker ('should', 'the cause is', 'the key is') must be attributed to the speaker. Never state it as plain fact."
+      : "3-1. 화자의 판단·해석·전망·권유('~해야 한다', '~가 원인이다', '~가 핵심이다')는 반드시 '화자는 ~라고 본다/말한다/강조한다'처럼 적어라. 화자 없이 단정하는 문장을 쓰지 마라. 단, 사용법 설명의 절차(앱을 설치한다 등)는 그대로 써도 된다.",
+    '4. 모든 항목에 근거 문단 번호(segs, 예: ["S3","S4"])를 붙여라. 근거를 댈 수 없는 내용은 쓰지 마라.',
+    "5. quote는 근거 문단에서 글자 그대로 복사한 원문이어야 한다. 번역하거나 고치지 마라 (외국어면 외국어 그대로).",
+    "6. 숫자·가격·날짜는 원문 표기 그대로 옮겨라 (예: 원문이 '9만 2천'이면 '9만 2천', '92,000'이면 '92,000').",
+    `7. 요약 문장(overview.text, points.claim, stance.reason)은 원문 언어와 상관없이 반드시 ${outLang}로 써라. levels.coin(대상 이름)도 ${outLang}로 써라.`,
+    "8. 광고·협찬·구독 요청·인사말·채널 홍보는 요약하지 마라.",
+    "9. 받아쓰기가 잘못 들은 것 같은 부분(앞뒤가 안 맞는 단어·숫자)은 추측해서 고치지 말고 빼라.",
     "",
-    `영상 제목: ${job.title}`,
+    "먼저 영상 종류(video_type)를 정하라. 제목·채널명이 아니라 받아쓴 내용으로만 판단한다:",
+    "- analysis: 화자가 코인·주식·지수 등의 방향(상승/하락), 가격대, 매수·매도·관망 판단을 근거와 함께 직접 말하는 분석·전망 영상.",
+    "- news: 사건·발표·정책·규제·기업/프로젝트 소식을 전하는 영상. 화자의 시장 전망이 중심이 아니다.",
+    "- general: 사용법·가입 방법·개념 설명, 강의, 인터뷰, 토크, 잡담 등 위 둘에 해당하지 않는 영상.",
+    "- 소식을 전하면서도 화자가 지지·저항 가격대, 매매 대응, 방향 판단을 여러 차례 구체적으로 말하면 analysis다.",
+    "- 소식 전달이 대부분이고 끝에 한두 마디 전망을 덧붙인 정도면 news다. 제목이 '분석', '전망'이어도 내용에 화자의 판단과 근거가 없으면 analysis가 아니다.",
+    "- type_segs에 판단 근거가 된 문단 번호를 넣어라.",
+    "",
+    "종류별로 다르게 써라:",
+    "[analysis]",
+    "- overview: 화자가 무엇을 분석했고 결론적으로 어떻게 보는지.",
+    "- points: 화자의 주장과 그 근거(차트 패턴, 지표, 수급, 뉴스 등 화자가 직접 든 이유), 화자가 말한 조건·시나리오('~를 넘으면', '~를 깨면')와 위험 요인.",
+    "- levels: 화자가 직접 말한 가격대만 (지지·저항·목표·손절·현재가). 확실하지 않으면 빼라.",
+    "- stance: 화자가 전체적으로 밝힌 방향. 화자가 방향을 분명히 말하지 않았으면 '불명확'/'Unclear' 또는 null.",
+    "[news]",
+    "- overview: 어떤 소식/주제를 다루는지와 핵심 내용.",
+    "- points: 누가·무엇을·언제·얼마나 같은 사실 정보와 영상이 설명한 배경·영향. 사실 전달은 '영상에 따르면', 화자 해석은 '화자는 ~라고 본다'로 구분.",
+    "- levels는 빈 배열, stance는 null.",
+    "[general]",
+    "- overview: 영상의 주제와 화자가 결국 전하려는 말.",
+    "- points: 영상에서 다룬 주요 내용·조언·사례·절차를 순서대로. 사용법 영상이면 단계별로.",
+    "- levels는 빈 배열, stance는 null.",
+    "",
+    "좋은 요약의 조건: 구체적일 것(대상·숫자·이유를 원문 그대로 담기), 서로 겹치지 않을 것, 영상 순서를 따를 것, 한 항목은 한두 문장.",
+    "overview는 반드시 1개 이상, 각각 한 문장으로 쓰고 segs를 붙여라. overview에는 숫자·가격·지표 이름을 넣지 말고(그건 points·levels에) 주제와 화자의 결론만 담아라. segs에는 그 결론을 화자가 직접 말한 문단만 넣어라. 대상에 대한 설명(어떤 회사·거래소인지 등)을 원문에 없는데 덧붙이지 마라.",
+    en
+      ? "Write in plain, natural English. Check spelling."
+      : "문체: '~다'로 끝나는 간결한 평서문으로 통일하고(예: '화자는 ~라고 본다'), 맞춤법과 띄어쓰기를 지켜라. 받아쓰기의 오타는 바로잡아 옮기되 뜻은 바꾸지 마라.",
+    "",
+    `영상 제목(참고용, 근거로 쓰지 마라): ${job.title}`,
     `채널: ${job.channelTitle}`,
     "",
     "[받아쓰기 원문]",
     transcript,
   ].join("\n");
 
-  const text = await generate({ model: TEXT_MODEL, parts: [{ text: prompt }], schema: draftSchema(lang), thinkingLow: true });
-  job.draft = JSON.parse(text) as Draft;
+  const text = await generate({ model: TEXT_MODEL, parts: [{ text: prompt }], schema: draftSchema(lang) });
+  const draft = JSON.parse(text) as Draft;
+  if (!VIDEO_TYPES.includes(draft.video_type)) draft.video_type = "general";
+  job.draft = draft;
 }
 
 // ── 3) 검증 ──────────────────────────────────────────────
@@ -447,8 +508,18 @@ async function verify(job: SummaryJob) {
     return q.length >= 4 && norm(sourceText(found)).includes(q);
   };
 
+  // 종류 판단도 원문으로 확인한다: analysis라면서 근거 문단이 없거나 그 문단에 판단이 없으면 news로 낮춘다
+  let videoType: VideoType = VIDEO_TYPES.includes(draft.video_type) ? draft.video_type : "general";
+  const typeFound = videoType === "analysis" ? cited(draft.type_segs ?? []) : null;
+  if (videoType === "analysis" && !typeFound) videoType = "news";
+  if (videoType !== "analysis") {
+    // 가격대·관점은 아예 만들지 않는다 (버린 항목으로 세지 않음)
+    draft.levels = [];
+    draft.stance = null;
+  }
+
   // (a)(b) 코드 검증
-  type Candidate = { id: string; text: string; found: Segment[]; kind: "overview" | "point" | "level" | "stance"; index: number };
+  type Candidate = { id: string; text: string; found: Segment[]; kind: "overview" | "point" | "level" | "stance" | "type"; index: number };
   const candidates: Candidate[] = [];
 
   (draft.overview ?? []).forEach((item, index) => {
@@ -469,6 +540,15 @@ async function verify(job: SummaryJob) {
     if (!found || !quoteOk(item.quote, found) || !priceInQuote) return void dropped++;
     candidates.push({ id: `L${index}`, text: `${item.coin} ${item.price} (${item.kind})`, found, kind: "level", index });
   });
+  if (typeFound) {
+    candidates.push({
+      id: "K0",
+      text: "화자가 이 대목에서 코인·주식·지수의 방향, 가격대, 또는 매수·매도·관망 판단을 자기 의견으로 직접 말한다 (단순 소식 전달이 아님)",
+      found: typeFound,
+      kind: "type",
+      index: 0,
+    });
+  }
   if (draft.stance) {
     const found = cited(draft.stance.segs);
     if (!found || !numbersOk(draft.stance.reason, found)) dropped++;
@@ -481,7 +561,10 @@ async function verify(job: SummaryJob) {
     const prompt = [
       "각 항목이 함께 주어진 '근거 원문'만으로 성립하는지 엄격하게 판정하라.",
       "- 근거 원문에 직접 나오거나 명백히 같은 뜻일 때만 supported=true.",
-      "- 근거에 없는 내용이 조금이라도 추가됐거나, 화자의 의견을 사실처럼 단정했거나, 숫자·대상이 다르면 false.",
+      "- 근거에 없는 내용이 조금이라도 추가됐거나, 숫자·대상·시점이 다르면 false.",
+      "- 화자의 판단·전망·해석·권유를 '화자는 ~'처럼 화자의 말로 쓰지 않고 객관적 사실처럼 단정했으면 false. (예: 화자가 'A 때문인 것 같다'고 했는데 항목이 'A가 원인이다'면 false)",
+      "- 항목이 화자보다 더 강하게 단정하거나(가능성 → 확정) 뜻을 바꿨으면 false.",
+      "- 사용법·절차 설명이나 화자가 전한 소식을 '영상에 따르면'처럼 옮긴 것은 근거와 같으면 true.",
       "- 원문이 외국어이고 항목이 한국어여도 뜻이 정확히 같으면 true.",
       "- 너의 배경지식으로 판단하지 마라.",
       "",
@@ -492,6 +575,12 @@ async function verify(job: SummaryJob) {
     supported = new Set((parsed.results ?? []).filter((r) => r.supported === true).map((r) => r.id));
   }
 
+  // 종류 판정이 원문으로 확인되지 않으면 분석 영상으로 보지 않는다 → 가격대·관점도 보여 주지 않는다
+  if (typeFound && !supported.has("K0")) {
+    videoType = "news";
+    for (const c of candidates) if (c.kind === "level" || c.kind === "stance") supported.delete(c.id);
+  }
+
   const summary: VideoSummary = {
     overview: [],
     points: [],
@@ -499,9 +588,12 @@ async function verify(job: SummaryJob) {
     stance: null,
     dropped,
     noSpeech: !draft.is_speech || segments.length === 0,
+    videoType,
+    version: SUMMARY_VERSION,
     model: { transcribe: TRANSCRIBE_MODEL, text: TEXT_MODEL },
   };
   for (const c of candidates) {
+    if (c.kind === "type") continue;
     if (!supported.has(c.id)) {
       summary.dropped++;
       continue;

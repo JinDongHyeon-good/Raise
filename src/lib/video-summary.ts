@@ -22,6 +22,11 @@ export type Segment = { id: string; t: number; text: string };
 export type SummaryItem = { text: string; segs: string[]; t: number; quote?: string };
 export type PriceLevel = { coin: string; price: string; kind: string; segs: string[]; t: number; quote: string };
 
+/** 영상 종류 (워커가 받아쓴 내용으로 판단). analysis 가 아니면 가격대·화자 관점이 없다 */
+export type VideoType = "analysis" | "news" | "general";
+/** 요약 형식 버전 — 워커의 SUMMARY_VERSION 과 같게. 이보다 낮은 완료 요약은 받아쓰기를 재사용해 다시 요약한다 */
+export const SUMMARY_VERSION = 2;
+
 export type VideoSummary = {
   overview: SummaryItem[];
   points: SummaryItem[];
@@ -30,6 +35,9 @@ export type VideoSummary = {
   /** 검증에서 떨어진 항목 수 */
   dropped: number;
   noSpeech: boolean;
+  /** 예전(버전 1) 요약에는 없다 */
+  videoType?: VideoType;
+  version?: number;
   model: { transcribe: string; text: string };
 };
 
@@ -39,6 +47,8 @@ type Draft = {
   levels: Array<{ coin: string; price: string; kind: string; segs: string[]; quote: string }>;
   stance: { label: string; reason: string; segs: string[] } | null;
   is_speech: boolean;
+  video_type?: VideoType;
+  type_segs?: string[];
 };
 
 export type SummaryLang = "ko" | "en";
@@ -207,6 +217,16 @@ export async function ensureSummary(videoId: string, lang: SummaryLang = "ko"): 
       };
     }
 
+    await saveJob(job);
+    kick = true;
+  } else if (
+    job.status === "done" &&
+    (job.summary?.version ?? 1) < SUMMARY_VERSION &&
+    job.chunks.length > 0 &&
+    job.chunks.every((c) => c.segments)
+  ) {
+    // 예전 형식 요약 → 받아쓰기는 그대로 두고 요약·확인만 새 기준으로 다시
+    job = { ...job, status: "summarizing", draft: null, summary: null, attempts: 0, error: null, lockedUntil: 0 };
     await saveJob(job);
     kick = true;
   } else if (job.status !== "done" && job.status !== "failed") {
