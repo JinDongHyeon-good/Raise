@@ -48,7 +48,7 @@ function TimeButton({ t, onSeek }: { t: number; onSeek: (sec: number) => void })
       type="button"
       onClick={() => onSeek(Math.floor(t))}
       title={tr("seekTitle")}
-      className="mt-0.5 min-h-8 shrink-0 rounded-md border border-[var(--rz-accent)]/35 bg-[var(--rz-accent-soft)] px-2 py-1 font-mono text-[11px] font-medium text-[var(--rz-accent)] transition hover:border-[var(--rz-accent)]/60 hover:bg-[var(--rz-accent)]/20 sm:min-h-0 sm:px-1.5 sm:py-0.5"
+      className="min-h-8 shrink-0 rounded-md sm:mt-0.5 border border-[var(--rz-accent)]/35 bg-[var(--rz-accent-soft)] px-2 py-1 font-mono text-[11px] font-medium text-[var(--rz-accent)] transition hover:border-[var(--rz-accent)]/60 hover:bg-[var(--rz-accent)]/20 sm:min-h-0 sm:px-1.5 sm:py-0.5"
     >
       {mmss(t)}
     </button>
@@ -68,9 +68,9 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function SummaryRow({ t, onSeek, children }: { t: number; onSeek: (sec: number) => void; children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-2.5 sm:gap-3">
+    <li className="flex flex-col items-start gap-1.5 sm:flex-row sm:gap-3">
       <TimeButton t={t} onSeek={onSeek} />
-      <div className="min-w-0 flex-1 break-words">{children}</div>
+      <div className="w-full min-w-0 break-words sm:w-auto sm:flex-1">{children}</div>
     </li>
   );
 }
@@ -103,7 +103,6 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
   const [error, setError] = useState<string | null>(null);
   const [quotaHit, setQuotaHit] = useState(false);
   const [quota, setQuota] = useState<Quota | null>(null);
-  const [showTranscript, setShowTranscript] = useState(false);
   const cancelled = useRef(false);
 
   useEffect(() => {
@@ -196,7 +195,6 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
           }}
         />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(251_113_133_/_0.85),transparent)]" />
-        <div aria-hidden className="absolute inset-y-0 left-0 w-1 bg-[linear-gradient(180deg,#fb7185,var(--rz-accent),#9f1239)]" />
 
         <div className="relative flex flex-col gap-4 pl-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:pl-3">
           <div className="min-w-0">
@@ -231,7 +229,6 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
   return (
     <div className={shellClass}>
-      <div aria-hidden className="absolute inset-y-0 left-0 w-1 bg-[var(--rz-accent)]" />
 
       <div className="relative flex items-start justify-between gap-3 pl-2 sm:pl-3">
         <div className="min-w-0">
@@ -247,7 +244,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
       </div>
 
       {view?.status !== "done" && view?.status !== "failed" ? (
-        <div className="relative mt-3 ml-2 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/55 p-3 sm:ml-3 sm:mt-4 sm:p-3.5">
+        <div className="relative mt-3 rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/55 p-3 sm:mt-4 sm:p-3.5">
           <div className="flex items-start gap-2 text-xs text-[var(--rz-text)] sm:items-center">
             <span className="mt-0.5 inline-block h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-[var(--rz-accent)]/30 border-t-[var(--rz-accent)] sm:mt-0" />
             <span className="min-w-0 break-words font-medium leading-5">{statusText}</span>
@@ -266,14 +263,14 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
       {quotaHit ? (
         <Link
           href="/bybit#bybit-ai-bonus"
-          className="relative mt-2 ml-2 inline-flex items-center gap-1 text-xs font-semibold text-[#f7a600] transition hover:brightness-110 sm:ml-3"
+          className="relative mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#f7a600] transition hover:brightness-110"
         >
           {t("quotaBonusCta")} →
         </Link>
       ) : null}
 
       {view?.status === "failed" ? (
-        <div className="relative mt-3 ml-2 flex flex-col gap-2.5 rounded-xl border border-[var(--rz-up)]/25 bg-[var(--rz-up)]/10 px-3 py-3 sm:ml-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3.5">
+        <div className="relative mt-3 flex flex-col gap-2.5 rounded-xl border border-[var(--rz-up)]/25 bg-[var(--rz-up)]/10 px-3 py-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3.5">
           <p className="min-w-0 break-words text-xs text-[var(--rz-up)]">{view.error ?? t("failed")}</p>
           <button
             type="button"
@@ -286,7 +283,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
       ) : null}
 
       {summary ? (
-        <div className="relative mt-3 ml-2 space-y-3 text-sm sm:ml-3 sm:mt-4 sm:space-y-4">
+        <div className="relative mt-3 space-y-3 text-sm sm:mt-4 sm:space-y-4">
           {summary.videoType && !summary.noSpeech ? (
             <div className="flex flex-wrap items-center gap-2">
               <span
@@ -304,12 +301,12 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
 
           {summary.stance ? (
             <div
-              className={`flex items-start gap-2.5 rounded-xl border px-3 py-3 sm:gap-3 sm:px-3.5 ${
+              className={`flex flex-col items-start gap-2 rounded-xl border px-3 py-3 sm:flex-row sm:gap-3 sm:px-3.5 ${
                 stanceDir ? STANCE_BG[stanceDir] : "border-[var(--rz-line)] bg-[var(--rz-bg)]/50"
               }`}
             >
               <TimeButton t={summary.stance.t} onSeek={onSeek} />
-              <div className="min-w-0 flex-1">
+              <div className="w-full min-w-0 sm:w-auto sm:flex-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--rz-muted)]">{t("stanceTitle")}</p>
                 <p className="mt-1 break-words leading-6 text-white">
                   <b className={`text-[15px] sm:text-base ${stanceDir ? STANCE_COLOR[stanceDir] : ""}`}>
@@ -387,26 +384,6 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
             {summary.dropped > 0 ? ` ${t("disclaimerDropped", { count: summary.dropped })}` : ""} {t("disclaimerTail")}
           </div>
 
-          {view?.transcript?.length ? (
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowTranscript((v) => !v)}
-                className="min-h-10 text-left text-xs font-medium text-[var(--rz-accent)] transition hover:brightness-125 sm:min-h-0"
-              >
-                {showTranscript ? t("hideTranscript") : t("showTranscript", { count: view.transcript.length })}
-              </button>
-              {showTranscript ? (
-                <ol className="mt-2 max-h-64 space-y-2.5 overflow-y-auto overscroll-contain rounded-xl border border-[var(--rz-line)] bg-[var(--rz-bg)]/50 p-3 text-xs leading-5 sm:mt-2.5 sm:max-h-80">
-                  {view.transcript.map((s) => (
-                    <SummaryRow key={s.id} t={s.t} onSeek={onSeek}>
-                      <span className="text-[var(--rz-muted)]">{s.text}</span>
-                    </SummaryRow>
-                  ))}
-                </ol>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       ) : null}
     </div>

@@ -456,7 +456,7 @@ export function VideoSection({
                   {[playing.channelTitle, formatCount(playing.viewCount, locale), timeAgo(playing.publishedAt, locale)].filter(Boolean).join(" · ")}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 sm:shrink-0 sm:justify-end">
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0 sm:justify-end">
                 {playing.channelId ? (
                   <button
                     type="button"
@@ -464,7 +464,7 @@ export function VideoSection({
                     disabled={favorites.busyId === playing.channelId}
                     aria-pressed={favorites.isFavorite(playing.channelId)}
                     title={favorites.isFavorite(playing.channelId) ? t("unfavoriteTitle") : t("favoriteTitle")}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition disabled:opacity-50 ${
+                    className={`inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition disabled:opacity-50 ${
                       favorites.isFavorite(playing.channelId)
                         ? "bg-amber-400 text-[#1a1408] shadow-[0_6px_16px_rgb(251_191_36_/_0.35)] hover:brightness-110"
                         : "border border-amber-400/45 bg-amber-400/15 text-amber-100 hover:border-amber-300/70 hover:bg-amber-400/25"
@@ -478,7 +478,7 @@ export function VideoSection({
                   href={`https://www.youtube.com/watch?v=${playing.id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#ff0033] px-3.5 py-2.5 text-xs font-semibold text-white shadow-[0_6px_16px_rgb(255_0_51_/_0.28)] transition hover:brightness-110"
+                  className="inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#ff0033] px-3.5 py-2.5 text-xs font-semibold text-white shadow-[0_6px_16px_rgb(255_0_51_/_0.28)] transition hover:brightness-110"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                     <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.75 15.5v-7l6.5 3.5-6.5 3.5z" />
