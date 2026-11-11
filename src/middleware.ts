@@ -15,7 +15,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (pathname.startsWith("/api")) return NextResponse.next();
+  // API와 인증 라우트 핸들러(app/auth/*)는 로케일 라우팅을 거치면 404가 된다
+  if (pathname.startsWith("/api") || pathname === "/auth/callback" || pathname === "/auth/signout") {
+    return NextResponse.next();
+  }
 
   return intlMiddleware(request);
 }
