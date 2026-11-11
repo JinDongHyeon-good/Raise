@@ -43,7 +43,8 @@
     "favoriteLimit": "즐겨찾기는 50개까지 할 수 있어요.",
     "channelLoadFailed": "채널 정보를 불러오지 못했어요.",
     "quotaExhausted": "오늘 YouTube 조회 한도를 다 썼어요.",
-    "videosLoadFailed": "영상을 불러오지 못했어요."
+    "videosLoadFailed": "영상을 불러오지 못했어요.",
+    "tooManyLookups": "채널 검색이 너무 잦아요. 잠시 후 다시 시도해 주세요."
   },
   "findId": {
     "tooManyRequests": "잠시 후 다시 시도해 주세요.",

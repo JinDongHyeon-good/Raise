@@ -156,15 +156,6 @@ export function KeywordModal({ open, keywords, onAdd, onRemove, onClose }: Props
           )}
         </div>
 
-        <div className="mt-5 flex justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-[var(--rz-line)] px-5 py-2 text-sm text-[var(--rz-muted)] transition hover:text-[var(--rz-text)]"
-          >
-            {t("keywords.done")}
-          </button>
-        </div>
       </div>
     </div>
   );

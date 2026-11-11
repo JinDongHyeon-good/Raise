@@ -50,19 +50,6 @@ export default function RaiseHome() {
           <h2 className="font-[family-name:var(--font-brand-display)] text-xl font-semibold tracking-tight sm:text-2xl">
             {t("relatedVideos", { name: marketTabLabel })}
           </h2>
-          <p
-            className={`text-sm text-[var(--rz-muted)] ${
-              locale === "en" ? "whitespace-nowrap leading-snug" : "max-w-xl leading-relaxed"
-            }`}
-          >
-            {market === "crypto"
-              ? t("introCrypto")
-              : market === "us"
-                ? t("introUs")
-                : market === "kr"
-                  ? t("introKr")
-                  : t("introUsStock")}
-          </p>
         </header>
 
         <VideoSection coinName={coin.name} coinNameEn={coin.nameEn} hideTitle />

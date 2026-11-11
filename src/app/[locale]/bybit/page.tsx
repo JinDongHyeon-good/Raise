@@ -9,7 +9,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { localizedPath } from "@/i18n/routing";
 import { getLocalizedBrandName, getSiteUrl } from "@/lib/brand";
 import { BYBIT_REFERRAL, BYBIT_REFERRAL_KEYWORDS_EN, BYBIT_REFERRAL_KEYWORDS_KO } from "@/lib/bybit-referral";
-import { BYBIT_GUIDE_UPDATED, BYBIT_RESTRICTED_COUNTRIES_URL, getBybitSignupManual } from "@/lib/bybit-signup-manual";
+import { BYBIT_GUIDE_UPDATED, getBybitSignupManual } from "@/lib/bybit-signup-manual";
 import { buildPageMetadata } from "@/lib/seo";
 import { toRoutedLocale } from "@/lib/seo-i18n";
 
@@ -90,7 +90,6 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
   const locale = toRoutedLocale(rawLocale) === "en" ? "en" : "ko";
   const t = await getTranslations("bybit");
   const seo = await getTranslations({ locale, namespace: "seo.pages.bybit" });
-  const code = () => <b className="text-white">{BYBIT_REFERRAL.code}</b>;
 
   const isEn = locale === "en";
   const quick = [
@@ -156,33 +155,9 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
 
           <BybitAiBonus locale={locale} />
 
-          <section
-            aria-labelledby="bybit-availability"
-            className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-4 text-sm leading-6 text-[var(--rz-muted)] sm:p-5"
-          >
-            <h2 id="bybit-availability" className="mb-1 text-sm font-semibold text-amber-200">
-              {t("availabilityTitle")}
-            </h2>
-            <p>{t("availabilityBody")}</p>
-            <a
-              href={BYBIT_RESTRICTED_COUNTRIES_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-xs font-medium text-amber-200 underline-offset-2 hover:underline"
-            >
-              {t("availabilityLink")}
-            </a>
-          </section>
 
           <BybitSignupManual />
 
-          <section className="space-y-3 rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-4 sm:p-5">
-            <h2 className="text-[15px] font-semibold text-white">{t("aboutTitle")}</h2>
-            <div className="space-y-3 text-sm leading-6 text-[var(--rz-muted)]">
-              <p>{t.rich("aboutBody1", { code })}</p>
-              <p>{t("aboutBody2")}</p>
-            </div>
-          </section>
         </div>
       </main>
       <BybitStickyCta />

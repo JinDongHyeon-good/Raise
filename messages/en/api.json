@@ -43,7 +43,8 @@
     "favoriteLimit": "You can save up to 50 favorite channels.",
     "channelLoadFailed": "Couldn't load channel info.",
     "quotaExhausted": "Today's YouTube lookup limit has been reached.",
-    "videosLoadFailed": "Couldn't load videos."
+    "videosLoadFailed": "Couldn't load videos.",
+    "tooManyLookups": "Too many channel searches. Please wait a moment."
   },
   "findId": {
     "tooManyRequests": "Please try again in a moment.",

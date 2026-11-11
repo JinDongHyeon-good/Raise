@@ -459,6 +459,77 @@ export async function getChannelMeta(channelId: string): Promise<YoutubeChannel 
   return { id: item.id, title: decodeEntities(item.snippet?.title ?? ""), thumbnail: thumbs.default?.url ?? thumbs.medium?.url ?? "" };
 }
 
+export type YoutubeChannelCandidate = YoutubeChannel & { subscriberCount: number | null; handle: string | null };
+
+const lookupMemory = new Map<string, { at: number; items: YoutubeChannelCandidate[] }>();
+const LOOKUP_FRESH_MS = 24 * 60 * 60 * 1000;
+
+type ChannelItem = {
+  id: string;
+  snippet?: { title?: string; customUrl?: string; thumbnails?: Record<string, { url?: string }> };
+  statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean };
+};
+
+function toCandidate(item: ChannelItem): YoutubeChannelCandidate {
+  const thumbs = item.snippet?.thumbnails ?? {};
+  return {
+    id: item.id,
+    title: decodeEntities(item.snippet?.title ?? ""),
+    thumbnail: thumbs.default?.url ?? thumbs.medium?.url ?? "",
+    handle: item.snippet?.customUrl ?? null,
+    subscriberCount:
+      item.statistics?.subscriberCount && !item.statistics.hiddenSubscriberCount ? Number(item.statistics.subscriberCount) : null,
+  };
+}
+
+/**
+ * 채널 찾기 — 채널 주소·@핸들·채널 ID·이름을 받아 후보(최대 5개)를 돌려준다.
+ * ID·주소·핸들은 1 unit, 이름 검색만 100 units 라 결과를 하루 캐시한다.
+ */
+export async function lookupChannels(raw: string): Promise<YoutubeChannelCandidate[]> {
+  const input = raw.trim().slice(0, 200);
+  if (!input) return [];
+
+  let byId: string | null = null;
+  let byHandle: string | null = null;
+  const idMatch = input.match(/(?:^|\/channel\/)(UC[A-Za-z0-9_-]{22})(?:[/?#]|$)/);
+  if (idMatch) byId = idMatch[1];
+  else {
+    const handleMatch = input.match(/(?:^|youtube\.com\/)(@[\w.\-À-￿]{1,100})(?:[/?#]|$)/i);
+    if (handleMatch) byHandle = handleMatch[1];
+  }
+
+  const key = byId ? `id:${byId}` : byHandle ? `handle:${byHandle.toLowerCase()}` : `q:${input.toLowerCase()}`;
+  const hit = lookupMemory.get(key);
+  if (hit && Date.now() - hit.at < LOOKUP_FRESH_MS) return hit.items;
+
+  let ids: string[] = [];
+  if (byId) ids = [byId];
+  else if (byHandle) {
+    const { data } = await ytGet<{ items?: ChannelItem[] }>("channels", { part: "snippet,statistics", forHandle: byHandle });
+    const items = (data.items ?? []).map(toCandidate);
+    lookupMemory.set(key, { at: Date.now(), items });
+    return items;
+  } else {
+    const { data } = await ytGet<{ items?: Array<{ id?: { channelId?: string } }> }>("search", {
+      part: "id",
+      type: "channel",
+      q: input,
+      maxResults: "5",
+    });
+    ids = (data.items ?? []).map((i) => i.id?.channelId ?? "").filter(isChannelId);
+  }
+
+  let items: YoutubeChannelCandidate[] = [];
+  if (ids.length) {
+    const { data } = await ytGet<{ items?: ChannelItem[] }>("channels", { part: "snippet,statistics", id: ids.join(",") });
+    const byIdMap = new Map((data.items ?? []).map((i) => [i.id, toCandidate(i)]));
+    items = ids.map((id) => byIdMap.get(id)).filter((c): c is YoutubeChannelCandidate => Boolean(c));
+  }
+  lookupMemory.set(key, { at: Date.now(), items });
+  return items;
+}
+
 async function fetchChannelVideos(channelId: string): Promise<YoutubeVideo[]> {
   const uploads = `UU${channelId.slice(2)}`;
   const { data } = await ytGet<{

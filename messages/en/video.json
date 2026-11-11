@@ -73,5 +73,21 @@
     "done": "Close",
     "chipTitle": "Your keyword",
     "failed": "Something went wrong. Please try again."
+  },
+  "channels": {
+    "title": "Add channels",
+    "help": "Find a channel by name, @handle or URL and add it. Added channels appear as buttons under the search box; tap one to see only that channel's videos.",
+    "placeholder": "e.g. Coin Bureau, @handle, channel URL",
+    "search": "Find",
+    "searching": "Searching…",
+    "add": "Add",
+    "added": "Added",
+    "empty": "Enter a channel name or URL.",
+    "notFound": "No channel found. Try another name or @handle.",
+    "failed": "Couldn't find channels. Please try again.",
+    "listTitle": "Your channels",
+    "none": "No channels yet.",
+    "subscribers": "{count} subscribers",
+    "chipTitle": "Only {channel} videos"
   }
 }

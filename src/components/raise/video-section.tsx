@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { useFavoriteChannels } from "@/hooks/use-favorite-channels";
 import { VideoFilterModal } from "@/components/raise/video-filter-modal";
 import { KeywordModal } from "@/components/raise/keyword-modal";
+import { ChannelModal } from "@/components/raise/channel-modal";
 import { useSearchKeywords } from "@/hooks/use-search-keywords";
 import { useVideoFilterDefault } from "@/hooks/use-video-filter-default";
 import {
@@ -112,6 +113,7 @@ export function VideoSection({
   const searchKeywords = useSearchKeywords();
   const savedKeywords = searchKeywords.items.map((k) => k.keyword);
   const [keywordOpen, setKeywordOpen] = useState(false);
+  const [channelOpen, setChannelOpen] = useState(false);
   const filterCount = activeFilterCount(filters);
   const [pages, setPages] = useState<{ key: string; list: Page[]; error: string | null }>({ key: "", list: [], error: null });
   const [loadingMore, setLoadingMore] = useState(false);
@@ -240,10 +242,11 @@ export function VideoSection({
     setVisible(REVEAL_STEP);
   };
 
-  const openFavorites = () => {
+  // 추가한 채널 버튼: 그 채널 최신 영상만 보기
+  const openChannel = (channelId: string) => {
     if (!requireLogin()) return;
     setMode("favorites");
-    setFavFilter(null);
+    setFavFilter(channelId);
     setPlaying(null);
     setVisible(REVEAL_STEP);
   };
@@ -307,6 +310,22 @@ export function VideoSection({
       </form>
 
 
+      <ChannelModal
+        open={channelOpen}
+        channels={favorites.channels}
+        busyId={favorites.busyId}
+        error={favorites.error}
+        isFavorite={favorites.isFavorite}
+        onToggle={async (channelId) => {
+          if (favorites.isFavorite(channelId) && favFilter === channelId) {
+            setMode("search");
+            setFavFilter(null);
+          }
+          await favorites.toggle(channelId);
+        }}
+        onClose={() => setChannelOpen(false)}
+      />
+
       <KeywordModal
         open={keywordOpen}
         keywords={searchKeywords.items}
@@ -332,16 +351,16 @@ export function VideoSection({
       <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
-          onClick={openFavorites}
-          aria-pressed={inFavorites}
-          className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition ${
-            inFavorites
-              ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
-              : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
-          }`}
+          onClick={() => {
+            if (requireLogin()) setChannelOpen(true);
+          }}
+          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-dashed border-[var(--rz-line-strong)] px-3 py-1.5 text-xs text-[var(--rz-muted)] transition hover:border-[var(--rz-accent)]/50 hover:text-[var(--rz-text)]"
         >
-          ★ {t("myChannels")}
-          {favorites.channels.length ? ` ${favorites.channels.length}` : ""}
+          <span aria-hidden className="inline-flex h-3.5 w-3.5 items-center justify-center text-[13px] font-semibold leading-none">
+            +
+          </span>
+          <span className="leading-none">{t("myChannels")}</span>
+          {favorites.channels.length ? <span className="leading-none tabular-nums">{favorites.channels.length}</span> : null}
         </button>
         <button
           type="button"
@@ -387,54 +406,34 @@ export function VideoSection({
               # {p}
             </button>
           ))}
+        {favorites.channels.map((c) => {
+          const active = inFavorites && favFilter === c.id;
+          return (
+            <button
+              key={`ch:${c.id}`}
+              type="button"
+              onClick={() => openChannel(c.id)}
+              aria-pressed={active}
+              title={t("channels.chipTitle", { channel: c.title })}
+              className={`inline-flex max-w-[180px] shrink-0 items-center gap-1.5 rounded-lg border py-1 pl-1 pr-3 text-xs transition ${
+                active
+                  ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
+                  : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
+              }`}
+            >
+              {c.thumbnail ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={c.thumbnail} alt="" className="h-5 w-5 shrink-0 rounded-full" />
+              ) : (
+                <span className="h-5 w-5 shrink-0 rounded-full bg-[var(--rz-panel-2)]" />
+              )}
+              <span className="truncate">{c.title}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {inFavorites ? (
-        <div className="mb-4 rounded-2xl border border-[var(--rz-line)] bg-[var(--rz-panel)] p-3">
-          {favorites.channels.length === 0 ? (
-            <p className="text-xs leading-5 text-[var(--rz-muted)]">
-              {t.rich("noFavorites", { b: (chunks) => <b className="text-[var(--rz-text)]">{chunks}</b> })}
-            </p>
-          ) : (
-            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden">
-              <button
-                type="button"
-                onClick={() => setFavFilter(null)}
-                className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs ${favFilter === null ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"}`}
-              >
-                {t("allChannels")}
-              </button>
-              {favorites.channels.map((c) => (
-                <span
-                  key={c.id}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-lg py-1 pl-1.5 pr-1 text-xs ${
-                    favFilter === c.id ? "bg-[var(--rz-panel-2)] text-[var(--rz-text)]" : "text-[var(--rz-muted)]"
-                  }`}
-                >
-                  <button type="button" onClick={() => setFavFilter(c.id)} className="flex items-center gap-1.5">
-                    {c.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.thumbnail} alt="" className="h-5 w-5 rounded-full" />
-                    ) : null}
-                    <span className="max-w-[140px] truncate">{c.title}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (favFilter === c.id) setFavFilter(null);
-                      void favorites.toggle(c.id);
-                    }}
-                    aria-label={t("unfavoriteChannel", { channel: c.title })}
-                    className="rounded px-1 text-[var(--rz-muted)] hover:text-[var(--rz-up)]"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : null}
+
 
       {playing ? (
         <div className="mb-5 overflow-hidden rounded-2xl border border-[var(--rz-line)] bg-black shadow-[var(--rz-shadow)]">
