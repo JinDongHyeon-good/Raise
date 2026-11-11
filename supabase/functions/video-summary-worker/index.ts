@@ -42,6 +42,8 @@ const START_STEP_BEFORE_MS = 50_000;
 const STEP_TIMEOUT_MS = 80_000;
 const LOCK_MS = STEP_TIMEOUT_MS + 15_000;
 const MAX_ATTEMPTS = 3;
+/** 동시에 받아쓸 구간 수 (3분 × 8 = 24분 분량을 한 번에) */
+const TRANSCRIBE_PARALLEL = 8;
 
 // ── 타입 (src/lib/video-summary.ts 와 동일) ──────────────
 
@@ -517,16 +519,24 @@ async function step(videoId: string): Promise<boolean> {
 
   try {
     if (job.status === "transcribing") {
-      const index = job.chunks.findIndex((c) => !c.segments);
-      if (index !== -1) {
-        job.chunks[index].attempts++;
-        try {
-          await transcribeChunk(job, index);
-        } catch (error) {
-          if (job.chunks[index].attempts >= MAX_ATTEMPTS) throw error;
-          console.warn("transcribe retry", videoId, index, String(error));
+      // 남은 구간을 한꺼번에(최대 TRANSCRIBE_PARALLEL개) 받아쓴다 — 구간 하나가 15~50초라 순서대로 하면 너무 느리다
+      const pending = job.chunks
+        .map((c, i) => ({ c, i }))
+        .filter(({ c }) => !c.segments)
+        .slice(0, TRANSCRIBE_PARALLEL);
+      const results = await Promise.allSettled(
+        pending.map(({ c, i }) => {
+          c.attempts++;
+          return transcribeChunk(job, i);
+        }),
+      );
+      results.forEach((r, k) => {
+        if (r.status === "rejected") {
+          const { c, i } = pending[k];
+          console.warn("transcribe retry", videoId, i, String(r.reason));
+          if (c.attempts >= MAX_ATTEMPTS) throw r.reason;
         }
-      }
+      });
       if (job.chunks.every((c) => c.segments)) job.status = "summarizing";
     } else if (job.status === "summarizing") {
       job.attempts++;
