@@ -17,7 +17,7 @@ export default function TermsPage() {
 
         <h2>1. 목적</h2>
         <p>
-          본 약관은 {SERVICE_NAME}가 제공하는 코인 시세·차트 열람 및 관련 영상 검색 서비스의 이용 조건과 책임 범위를
+          본 약관은 {SERVICE_NAME}가 제공하는 코인·미국 증시 시세·차트 열람, 관련 영상 검색·AI 요약, 커뮤니티 서비스의 이용 조건과 책임 범위를
           정합니다.
         </p>
 
@@ -30,7 +30,7 @@ export default function TermsPage() {
 
         <h2>3. 외부 콘텐츠</h2>
         <p>
-          영상은 YouTube, 시세는 Bybit에서 제공되며 각 콘텐츠의 권리와 책임은 해당 제공자와 게시자에게 있습니다. 영상 속
+          영상은 YouTube, 코인 시세는 Bybit, 미국 지수 시세는 Yahoo Finance에서 제공되며 각 콘텐츠의 권리와 책임은 해당 제공자와 게시자에게 있습니다. 영상 속
           의견은 {SERVICE_NAME}의 입장이 아니며, 서비스는 영상 내용의 정확성을 보증하지 않습니다.
         </p>
 

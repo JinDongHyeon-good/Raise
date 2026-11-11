@@ -1,10 +1,14 @@
-export const BOARD_POST_TYPES = ["free", "analysis", "news", "question", "profit"] as const;
+/** 화면 탭 순서와 같다 */
+export const BOARD_POST_TYPES = ["free", "analysis", "stock_analysis", "us_stock", "kr_stock", "news", "question", "profit"] as const;
 
 export type BoardPostType = (typeof BOARD_POST_TYPES)[number];
 
 export const BOARD_POST_TYPE_LABELS: Record<BoardPostType, string> = {
   free: "자유게시판",
   analysis: "코인분석",
+  stock_analysis: "주식분석",
+  us_stock: "해외주식",
+  kr_stock: "국내주식",
   news: "뉴스·정보",
   question: "질문",
   profit: "손익인증",

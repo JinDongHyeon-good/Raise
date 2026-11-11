@@ -3,7 +3,7 @@ import { SERVICE_DESCRIPTION, SERVICE_NAME } from "@/lib/brand";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${SERVICE_NAME} - 실시간 코인 차트 AI 분석 · 코인 커뮤니티`,
+    name: `${SERVICE_NAME} - 코인·미국증시 차트 · AI 영상 요약 · 투자 커뮤니티`,
     short_name: SERVICE_NAME,
     description: SERVICE_DESCRIPTION,
     start_url: "/",

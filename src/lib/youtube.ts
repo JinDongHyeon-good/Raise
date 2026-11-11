@@ -382,3 +382,101 @@ export async function getVideoMeta(videoId: string): Promise<YoutubeVideoMeta | 
     isLive: (item.snippet?.liveBroadcastContent ?? "none") !== "none" || durationSec === 0,
   };
 }
+
+// ── 채널 (즐겨찾기용) ────────────────────────────────────
+// 채널 최신 영상은 search(100 units) 대신 업로드 재생목록(playlistItems, 1 unit)으로 가져온다.
+
+export type YoutubeChannel = { id: string; title: string; thumbnail: string };
+
+const CHANNEL_ID = /^UC[A-Za-z0-9_-]{22}$/;
+export const isChannelId = (id: string) => CHANNEL_ID.test(id);
+
+const CHANNEL_FRESH_MS = 30 * 60 * 1000;
+const channelMemory = new Map<string, { at: number; videos: YoutubeVideo[] }>();
+
+export async function getChannelMeta(channelId: string): Promise<YoutubeChannel | null> {
+  if (!isChannelId(channelId)) return null;
+  const { data } = await ytGet<{ items?: Array<{ id: string; snippet?: { title?: string; thumbnails?: Record<string, { url?: string }> } }> }>(
+    "channels",
+    { part: "snippet", id: channelId },
+  );
+  const item = data.items?.[0];
+  if (!item) return null;
+  const thumbs = item.snippet?.thumbnails ?? {};
+  return { id: item.id, title: decodeEntities(item.snippet?.title ?? ""), thumbnail: thumbs.default?.url ?? thumbs.medium?.url ?? "" };
+}
+
+async function fetchChannelVideos(channelId: string): Promise<YoutubeVideo[]> {
+  const uploads = `UU${channelId.slice(2)}`;
+  const { data } = await ytGet<{
+    items?: Array<{ snippet?: { resourceId?: { videoId?: string }; title?: string; channelTitle?: string; channelId?: string; publishedAt?: string; thumbnails?: Record<string, { url?: string }> } }>;
+  }>("playlistItems", { part: "snippet", playlistId: uploads, maxResults: "25" });
+  const items = (data.items ?? []).filter((i) => i.snippet?.resourceId?.videoId);
+  const ids = items.map((i) => i.snippet!.resourceId!.videoId!);
+  let details: VideoItem[] = [];
+  if (ids.length) {
+    details =
+      (await ytGet<{ items?: VideoItem[] }>("videos", { part: "statistics,contentDetails,liveStreamingDetails", id: ids.join(",") })).data.items ?? [];
+  }
+  const detailMap = new Map(details.map((d) => [d.id, d]));
+  return items
+    .map((item) => {
+      const s = item.snippet!;
+      const id = s.resourceId!.videoId!;
+      const detail = detailMap.get(id);
+      const thumbs = s.thumbnails ?? {};
+      return {
+        id,
+        title: decodeEntities(s.title ?? ""),
+        channelTitle: decodeEntities(s.channelTitle ?? ""),
+        channelId: s.channelId ?? channelId,
+        publishedAt: s.publishedAt ?? "",
+        thumbnail: thumbs.high?.url ?? thumbs.medium?.url ?? thumbs.default?.url ?? "",
+        viewCount: detail?.statistics?.viewCount ? Number(detail.statistics.viewCount) : null,
+        likeCount: detail?.statistics?.likeCount ? Number(detail.statistics.likeCount) : null,
+        duration: detail?.contentDetails?.duration ?? null,
+        _live: !detail || Boolean(detail.liveStreamingDetails) || detail.contentDetails?.duration === "P0D",
+      };
+    })
+    .filter((v) => !v._live && v.title !== "Private video" && v.title !== "Deleted video")
+    .map((v) => {
+      const { _live, ...video } = v;
+      void _live;
+      return video;
+    });
+}
+
+/** 채널 최신 영상 (라이브 제외). 30분 캐시(메모리+DB), 실패 시 이전 결과 */
+export async function getChannelVideos(channelId: string): Promise<YoutubeVideo[]> {
+  if (!isChannelId(channelId)) return [];
+  const key = `channel:v1:${channelId}`;
+  const now = Date.now();
+  let cached = channelMemory.get(channelId) ?? null;
+  if (!cached || now - cached.at >= CHANNEL_FRESH_MS) {
+    const admin = getSupabaseAdminClient();
+    if (admin) {
+      const { data } = await admin
+        .from("YOUTUBE_SEARCH_CACHE")
+        .select("payload, fetched_at")
+        .eq("query_key", key)
+        .maybeSingle<{ payload: { videos: YoutubeVideo[] }; fetched_at: string }>();
+      if (data) {
+        const fromDb = { at: new Date(data.fetched_at).getTime(), videos: data.payload.videos };
+        if (!cached || fromDb.at > cached.at) cached = fromDb;
+      }
+    }
+  }
+  if (cached && now - cached.at < CHANNEL_FRESH_MS) return cached.videos;
+  try {
+    const videos = await fetchChannelVideos(channelId);
+    channelMemory.set(channelId, { at: now, videos });
+    const admin = getSupabaseAdminClient();
+    if (admin) {
+      await admin.from("YOUTUBE_SEARCH_CACHE").upsert({ query_key: key, payload: { videos }, fetched_at: new Date(now).toISOString() });
+    }
+    return videos;
+  } catch (error) {
+    if (cached && now - cached.at < STALE_MS) return cached.videos;
+    throw error;
+  }
+}

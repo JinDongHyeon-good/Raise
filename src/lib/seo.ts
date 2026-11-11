@@ -60,7 +60,7 @@ function buildOpenGraph(
 }
 
 /** 구글 검색 제목·스니펫용 (홈·기본) — locale별 값은 getSeoCopy 참고 */
-export const SEO_HOME_TITLE = "진코 - 실시간 코인 차트 AI 분석 · 코인 유튜브 요약 · 코인 커뮤니티";
+export const SEO_HOME_TITLE = "진코 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티";
 
 export const SEO_HOME_DESCRIPTION = SERVICE_DESCRIPTION;
 
@@ -213,6 +213,6 @@ export function getFaqJsonLd(locale: AppLocale = defaultLocale): JsonLdObject {
 
 /** 서비스 소개 페이지용 문구 */
 export const HOME_SEO_INTRO = {
-  heading: "진코 — 실시간 코인 차트 AI 분석 · 코인 유튜브 요약 · 코인 커뮤니티",
+  heading: "진코 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
   body: SERVICE_DESCRIPTION,
 };

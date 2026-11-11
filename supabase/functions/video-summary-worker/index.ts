@@ -273,7 +273,7 @@ async function transcribeChunk(job: SummaryJob, index: number) {
     "규칙:",
     "- 요약, 의역, 번역, 보충 설명, 맺음말 추가를 절대 하지 마라. 실제로 들린 말만 적는다.",
     "- 말한 언어 그대로 적는다 (영어면 영어, 한국어면 한국어).",
-    "- 숫자·가격·코인 이름은 들린 그대로 적는다.",
+    "- 숫자·가격·코인·종목·지수 이름은 들린 그대로 적는다 (예: 나스닥, S&P500, 엔비디아).",
     "- 15~40초 단위 문단으로 나누고, 각 문단 시작 시각을 영상 전체 기준으로 적는다.",
     "- 잘 안 들리는 부분은 추측하지 말고 [불분명]이라고 적는다.",
     "- 말소리가 전혀 없으면 segments를 빈 배열로 둔다.",
@@ -340,7 +340,7 @@ const DRAFT_SCHEMA = {
       items: {
         type: "OBJECT",
         properties: {
-          coin: { type: "STRING" },
+          coin: { type: "STRING", description: "가격이 언급된 대상 (코인·종목·지수 이름, 예: 비트코인, 나스닥, 엔비디아)" },
           price: { type: "STRING", description: "받아쓰기에 적힌 표기 그대로" },
           kind: { type: "STRING", enum: ["지지", "저항", "목표", "손절", "현재가", "기타"] },
           segs: { type: "ARRAY", items: { type: "STRING" } },
@@ -377,7 +377,7 @@ async function summarize(job: SummaryJob) {
     "4. quote는 근거 문단에서 글자 그대로 복사한 원문이어야 한다. 번역하거나 고치지 마라 (외국어면 외국어 그대로).",
     "5. 숫자·가격은 원문 표기 그대로 옮겨라 (예: 원문이 '9만 2천'이면 '9만 2천', '92,000'이면 '92,000').",
     "6. 요약 문장(overview.text, points.claim, stance.reason)은 원문이 외국어여도 반드시 한국어로 써라.",
-    "7. 화자가 직접 말하지 않은 가격대는 levels에 넣지 마라. 확실하지 않으면 빼라.",
+    "7. 화자가 직접 말하지 않은 가격대(코인 가격·주가·지수 포인트)는 levels에 넣지 마라. 확실하지 않으면 빼라.",
     "8. 광고·구독 요청·인사말은 요약하지 마라.",
     "",
     `영상 제목: ${job.title}`,
