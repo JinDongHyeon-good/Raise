@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getVertexGeminiHeaders, getVertexGeminiUrl, isVertexGeminiConfigured } from "@/lib/gemini-fetch";
 import { getGeminiModelChain } from "@/lib/gemini-models";
-import { AiQuotaUnavailableError, consumeAiQuota } from "@/lib/ai-quota";
+import { guardAiRequest } from "@/lib/ai-quota";
 import { requireSessionUser } from "@/lib/board-server";
 
 export const runtime = "nodejs";
@@ -259,25 +259,10 @@ export async function POST(request: NextRequest) {
     }
     const body = parsedBody.body;
 
-    // AI 기능은 로그인 사용자만, 하루 한도 공유 (같은 날 같은 코인·주기는 한 번만 셈)
+    // 출처·로그인·이메일 인증·하루 한도(사용자/IP/전체)·차단 목록 (같은 날 같은 코인·주기는 한 번만 셈)
     const { user } = await requireSessionUser();
-    if (!user) {
-      return NextResponse.json({ error: "AI 차트 분석은 로그인 후 이용할 수 있어요.", code: "login_required" }, { status: 401 });
-    }
-    try {
-      const quota = await consumeAiQuota(user.id, "chart-analysis", `${body.market}:${body.symbol}:${body.interval}`);
-      if (!quota.allowed) {
-        return NextResponse.json(
-          { error: `오늘 AI 사용 ${quota.limit}회를 모두 썼어요. 내일 다시 이용해 주세요.`, code: "ai_quota_exceeded", quota },
-          { status: 429 },
-        );
-      }
-    } catch (error) {
-      if (error instanceof AiQuotaUnavailableError) {
-        return NextResponse.json({ error: "AI 사용량을 확인할 수 없어 잠시 이용할 수 없어요." }, { status: 503 });
-      }
-      throw error;
-    }
+    const guard = await guardAiRequest(request, user, "chart-analysis", `${body.market}:${body.symbol}:${body.interval}`);
+    if (!guard.ok) return guard.response;
 
     cleanupCaches();
     const cacheKey = getCacheKey(body);

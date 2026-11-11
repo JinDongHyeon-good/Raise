@@ -60,7 +60,7 @@ function buildOpenGraph(
 }
 
 /** 구글 검색 제목·스니펫용 (홈·기본) — locale별 값은 getSeoCopy 참고 */
-export const SEO_HOME_TITLE = "진동코인 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티";
+export const SEO_HOME_TITLE = "찐동코인 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티";
 
 export const SEO_HOME_DESCRIPTION = SERVICE_DESCRIPTION;
 
@@ -108,12 +108,13 @@ export function buildRootMetadata(locale: AppLocale = defaultLocale): Metadata {
     },
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "32x32" },
-        { url: "/favicon.png", sizes: "1024x1024", type: "image/png" },
+        { url: "/favicon.svg", type: "image/svg+xml" },
+        { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/favicon.png", sizes: "512x512", type: "image/png" },
       ],
       shortcut: "/favicon.ico",
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-      other: [{ rel: "icon", url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
     },
     category: "finance",
     other: {
@@ -213,6 +214,6 @@ export function getFaqJsonLd(locale: AppLocale = defaultLocale): JsonLdObject {
 
 /** 서비스 소개 페이지용 문구 */
 export const HOME_SEO_INTRO = {
-  heading: "진동코인 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
+  heading: "찐동코인 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
   body: SERVICE_DESCRIPTION,
 };

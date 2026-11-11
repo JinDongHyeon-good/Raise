@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AiQuotaUnavailableError, consumeAiQuota } from "@/lib/ai-quota";
+import { guardAiRequest } from "@/lib/ai-quota";
 import { requireSessionUser } from "@/lib/board-server";
 import { SlidingRateLimiter } from "@/lib/sliding-rate-limit";
 import { ensureSummary, resetFailedSummary, SummaryRejectedError } from "@/lib/video-summary";
@@ -22,33 +22,20 @@ export async function POST(request: NextRequest) {
   if (!VIDEO_ID.test(videoId)) return NextResponse.json({ error: "잘못된 영상" }, { status: 400 });
 
   const { user } = await requireSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: "AI 요약은 로그인 후 이용할 수 있어요.", code: "login_required" }, { status: 401 });
-  }
-  if (!stepLimiter.check(user.id).allowed) {
+  if (user && !stepLimiter.check(user.id).allowed) {
     return NextResponse.json({ error: "요청이 너무 많아요. 잠시 후 다시 시도해 주세요." }, { status: 429 });
   }
 
   try {
-    const quota = await consumeAiQuota(user.id, "video-summary", videoId);
-    if (!quota.allowed) {
-      return NextResponse.json(
-        {
-          error: `오늘 AI 사용 ${quota.limit}회를 모두 썼어요. 내일 다시 이용해 주세요.`,
-          code: "ai_quota_exceeded",
-          quota,
-        },
-        { status: 429 },
-      );
-    }
+    // 출처·로그인·이메일 인증·하루 한도(사용자/IP/전체)·차단 목록
+    const guard = await guardAiRequest(request, user, "video-summary", videoId);
+    if (!guard.ok) return guard.response;
+    const quota = guard.quota;
 
     if (body.retry) await resetFailedSummary(videoId);
     const view = await ensureSummary(videoId);
     return NextResponse.json({ item: view, quota }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    if (error instanceof AiQuotaUnavailableError) {
-      return NextResponse.json({ error: "AI 사용량을 확인할 수 없어 잠시 이용할 수 없어요." }, { status: 503 });
-    }
     if (error instanceof SummaryRejectedError) return NextResponse.json({ error: error.message }, { status: 422 });
     if (error instanceof YoutubeQuotaError) {
       return NextResponse.json({ error: "오늘 YouTube 조회 한도를 다 썼어요." }, { status: 429 });

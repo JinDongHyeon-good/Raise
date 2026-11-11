@@ -1,19 +1,63 @@
 /**
- * AI 기능 사용량 제한 — 로그인 사용자 1인당 하루(KST) AI_DAILY_LIMIT회.
- * DB 함수 ai_consume(supabase/sql/ai_usage.sql)가 확인과 기록을 한 번에 처리한다.
- * 확인할 수 없으면(테이블 없음·키 없음) 허용하지 않는다 (fail closed).
+ * AI 기능 사용 제한·악용 방지 (영상 요약, 차트 분석 공통)
+ *
+ * guardAiRequest 한 번으로 다음을 확인한다:
+ *   - 다른 사이트에서 보낸 요청 거절 (Origin 확인)
+ *   - 로그인 + 이메일 인증된 계정만 (Google 로그인은 인증된 것으로 침)
+ *   - DB 함수 ai_consume (supabase/sql/ai_abuse_guard.sql) 로 하루(KST) 한도를 한 번에 확인·기록
+ *       사용자당 AI_DAILY_LIMIT, IP당 AI_IP_DAILY_LIMIT, 서비스 전체 AI_GLOBAL_DAILY_LIMIT, 차단 목록
+ *     같은 날 같은 대상(같은 영상 등)은 다시 세지 않는다.
+ * 확인할 수 없으면 허용하지 않는다 (fail closed).
  */
+import { createHash } from "node:crypto";
+import type { User } from "@supabase/supabase-js";
+import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const AI_DAILY_LIMIT = Number(process.env.AI_DAILY_LIMIT) || 5;
+const AI_IP_DAILY_LIMIT = Number(process.env.AI_IP_DAILY_LIMIT) || 10;
+const AI_GLOBAL_DAILY_LIMIT = Number(process.env.AI_GLOBAL_DAILY_LIMIT) || 2000;
 
 export type AiFeature = "video-summary" | "chart-analysis";
 
-export type AiQuotaResult = { allowed: boolean; used: number; limit: number; repeat: boolean };
+type ConsumeReason = "ok" | "repeat" | "blocked" | "user_limit" | "ip_limit" | "global_limit";
+export type AiQuotaResult = { allowed: boolean; used: number; limit: number; repeat: boolean; reason: ConsumeReason };
 
 export class AiQuotaUnavailableError extends Error {}
 
-export async function consumeAiQuota(userId: string, feature: AiFeature, itemKey: string): Promise<AiQuotaResult> {
+function clientIp(request: NextRequest) {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
+}
+
+/** IP 원문 대신 저장하는 해시 (서버 비밀값을 섞어 되돌릴 수 없게) */
+function ipHash(ip: string) {
+  if (!ip) return null;
+  const salt = process.env.AI_IP_SALT || process.env.VIDEO_SUMMARY_WORKER_SECRET || "";
+  return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
+}
+
+function isSameOrigin(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  if (!origin) return true; // 같은 사이트의 일부 요청은 Origin이 없다 — 아래 로그인 확인으로 막힌다
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
+  try {
+    const o = new URL(origin).host.toLowerCase().replace(/^www\./, "");
+    return o === host.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return false;
+  }
+}
+
+function isVerified(user: User) {
+  return Boolean(user.email_confirmed_at || user.confirmed_at || user.app_metadata?.provider === "google");
+}
+
+export async function consumeAiQuota(
+  userId: string,
+  feature: AiFeature,
+  itemKey: string,
+  hashedIp: string | null = null,
+): Promise<AiQuotaResult> {
   const admin = getSupabaseAdminClient();
   if (!admin) throw new AiQuotaUnavailableError("SUPABASE_SECRET_KEY가 없습니다.");
   const { data, error } = await admin.rpc("ai_consume", {
@@ -21,12 +65,74 @@ export async function consumeAiQuota(userId: string, feature: AiFeature, itemKey
     p_feature: feature,
     p_item: itemKey.slice(0, 200),
     p_limit: AI_DAILY_LIMIT,
+    p_ip_hash: hashedIp,
+    p_ip_limit: AI_IP_DAILY_LIMIT,
+    p_global_limit: AI_GLOBAL_DAILY_LIMIT,
   });
   if (error) {
     console.error("[ai-quota]", error.message);
     throw new AiQuotaUnavailableError(error.message);
   }
   return data as AiQuotaResult;
+}
+
+const DENY_MESSAGES: Record<Exclude<ConsumeReason, "ok" | "repeat">, string> = {
+  user_limit: `오늘 AI 사용 ${AI_DAILY_LIMIT}회를 모두 썼어요. 내일 다시 이용해 주세요.`,
+  ip_limit: "이 네트워크에서 오늘 사용할 수 있는 AI 횟수를 모두 썼어요. 내일 다시 이용해 주세요.",
+  global_limit: "오늘 AI 기능 이용이 많아 잠시 멈췄어요. 내일 다시 이용해 주세요.",
+  blocked: "AI 기능 이용이 제한된 계정이에요. 문의 페이지로 연락해 주세요.",
+};
+
+/**
+ * AI 요청 공통 관문. 통과하면 { ok: true, quota }, 막히면 { ok: false, response } (그대로 반환하면 됨)
+ */
+export async function guardAiRequest(
+  request: NextRequest,
+  user: User | null,
+  feature: AiFeature,
+  itemKey: string,
+): Promise<{ ok: true; quota: AiQuotaResult } | { ok: false; response: NextResponse }> {
+  if (!isSameOrigin(request)) {
+    return { ok: false, response: NextResponse.json({ error: "허용되지 않은 요청이에요." }, { status: 403 }) };
+  }
+  if (!user) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "AI 기능은 로그인 후 이용할 수 있어요.", code: "login_required" }, { status: 401 }),
+    };
+  }
+  if (!isVerified(user)) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "이메일 인증을 마친 계정만 AI 기능을 쓸 수 있어요. 메일함의 인증 링크를 눌러 주세요.", code: "email_unverified" },
+        { status: 403 },
+      ),
+    };
+  }
+  try {
+    const quota = await consumeAiQuota(user.id, feature, itemKey, ipHash(clientIp(request)));
+    if (!quota.allowed) {
+      const reason = (quota.reason in DENY_MESSAGES ? quota.reason : "user_limit") as keyof typeof DENY_MESSAGES;
+      if (reason !== "user_limit") console.warn(`[ai-guard] denied ${reason}`, { user: user.id, feature });
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: DENY_MESSAGES[reason], code: reason === "user_limit" ? "ai_quota_exceeded" : `ai_${reason}`, quota },
+          { status: reason === "blocked" ? 403 : 429 },
+        ),
+      };
+    }
+    return { ok: true, quota };
+  } catch (error) {
+    if (error instanceof AiQuotaUnavailableError) {
+      return {
+        ok: false,
+        response: NextResponse.json({ error: "AI 사용량을 확인할 수 없어 잠시 이용할 수 없어요." }, { status: 503 }),
+      };
+    }
+    throw error;
+  }
 }
 
 function kstToday() {
