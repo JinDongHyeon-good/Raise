@@ -113,6 +113,7 @@ export function buildRootMetadata(locale: AppLocale = defaultLocale): Metadata {
       ],
       shortcut: "/favicon.ico",
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+      other: [{ rel: "icon", url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
     },
     category: "finance",
     other: {
