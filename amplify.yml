@@ -16,6 +16,8 @@ frontend:
         - echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" >> .env.production
         - echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" >> .env.production
         - echo "SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY}" >> .env.production
+        - echo "YOUTUBE_API_KEYS=${YOUTUBE_API_KEYS}" >> .env.production
+        - echo "VIDEO_SUMMARY_WORKER_SECRET=${VIDEO_SUMMARY_WORKER_SECRET}" >> .env.production
 
         # 의존성 설치
         - pnpm install --no-frozen-lockfile

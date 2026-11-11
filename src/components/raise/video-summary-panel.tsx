@@ -71,8 +71,8 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
     setRunning(true);
     let first = true;
     try {
-      // done/failed가 될 때까지 서버에 한 단계씩 진행 요청
-      for (let i = 0; i < 40 && !cancelled.current; i++) {
+      // 요약은 서버 백그라운드에서 진행 → done/failed가 될 때까지 상태만 다시 읽는다 (최대 약 10분)
+      for (let i = 0; i < 240 && !cancelled.current; i++) {
         const res = await fetch("/api/youtube/summary", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -91,7 +91,7 @@ export function VideoSummaryPanel({ videoId, onSeek }: { videoId: string; onSeek
         }
         setView(data.item);
         if (data.item.status === "done" || data.item.status === "failed") return;
-        await new Promise((r) => setTimeout(r, 700));
+        await new Promise((r) => setTimeout(r, 2500));
       }
     } catch {
       setError("요약을 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
