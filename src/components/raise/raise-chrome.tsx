@@ -1,20 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { Link, usePathname } from "@/navigation";
 import { HeaderUser } from "@/components/auth/header-user";
 import { BybitReferralMenu } from "@/components/raise/bybit-referral-menu";
+import { LanguageSwitcher } from "@/components/raise/language-switcher";
 import { LogoMark } from "@/components/raise/logo-mark";
-import { SERVICE_NAME } from "@/lib/brand";
+import type { AppLocale } from "@/i18n/routing";
+import { getLocalizedBrandName } from "@/lib/brand";
 
 const NAV = [
-  { href: "/", label: "영상", match: (path: string) => path === "/" },
-  { href: "/chart", label: "차트", match: (path: string) => path.startsWith("/chart") },
-  { href: "/community", label: "커뮤니티", match: (path: string) => path.startsWith("/community") },
+  { href: "/", key: "navVideos", match: (path: string) => path === "/" },
+  { href: "/chart", key: "navChart", match: (path: string) => path.startsWith("/chart") },
+  { href: "/community", key: "navCommunity", match: (path: string) => path.startsWith("/community") },
 ] as const;
 
 export function RaiseHeader() {
+  const t = useTranslations("common");
+  const SERVICE_NAME = getLocalizedBrandName(useLocale() as AppLocale);
   const pathname = usePathname() || "/";
   const [menuOpen, setMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -86,7 +90,7 @@ export function RaiseHeader() {
 
           <nav
             className="absolute left-1/2 top-0 hidden h-full -translate-x-1/2 items-stretch gap-1 md:flex"
-            aria-label="주요 메뉴"
+            aria-label={t("mainMenu")}
           >
             {NAV.map((item) => {
               const active = item.match(pathname);
@@ -98,7 +102,7 @@ export function RaiseHeader() {
                     active ? "font-medium text-white" : "text-white/70 hover:text-white"
                   }`}
                 >
-                  {item.label}
+                  {t(item.key)}
                   {active ? (
                     <span aria-hidden className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-white" />
                   ) : null}
@@ -109,16 +113,17 @@ export function RaiseHeader() {
           </nav>
 
           <div className="relative z-10 ml-auto flex shrink-0 items-center gap-2 self-center">
+            <LanguageSwitcher />
             <HeaderUser />
             <button
               type="button"
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--rz-line)] text-[var(--rz-text)] md:hidden"
-              aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
+              aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
               aria-expanded={menuOpen}
               aria-controls="mobile-sidebar"
               onClick={() => setMenuOpen((v) => !v)}
             >
-              <span className="sr-only">{menuOpen ? "메뉴 닫기" : "메뉴 열기"}</span>
+              <span className="sr-only">{menuOpen ? t("closeMenu") : t("openMenu")}</span>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
                 {menuOpen ? (
                   <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -136,7 +141,7 @@ export function RaiseHeader() {
         <button
           type="button"
           tabIndex={menuOpen ? 0 : -1}
-          aria-label="메뉴 닫기"
+          aria-label={t("closeMenu")}
           onClick={() => setMenuOpen(false)}
           className={`fixed inset-0 z-50 bg-black/55 transition-opacity duration-300 ease-out ${
             menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
@@ -146,7 +151,7 @@ export function RaiseHeader() {
           id="mobile-sidebar"
           role="dialog"
           aria-modal="true"
-          aria-label="메뉴"
+          aria-label={t("menu")}
           className={`fixed inset-y-0 right-0 z-50 flex w-[min(82vw,320px)] flex-col border-l border-[var(--rz-line)] bg-[var(--rz-bg)] shadow-[var(--rz-shadow)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             menuOpen ? "translate-x-0" : "translate-x-full"
           }`}
@@ -158,7 +163,7 @@ export function RaiseHeader() {
             <button
               type="button"
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--rz-line)] text-[var(--rz-text)]"
-              aria-label="메뉴 닫기"
+              aria-label={t("closeMenu")}
               onClick={() => setMenuOpen(false)}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
@@ -167,7 +172,7 @@ export function RaiseHeader() {
             </button>
           </div>
 
-          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="모바일 메뉴">
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label={t("mobileMenu")}>
             {NAV.map((item) => {
               const active = item.match(pathname);
               return (
@@ -181,12 +186,13 @@ export function RaiseHeader() {
                       : "text-white/70 hover:bg-[var(--rz-panel)] hover:text-white"
                   }`}
                 >
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               );
             })}
             <BybitReferralMenu variant="mobile" onNavigate={() => setMenuOpen(false)} />
           </nav>
+          <LanguageSwitcher variant="list" />
         </aside>
       </div>
     </>
@@ -194,13 +200,15 @@ export function RaiseHeader() {
 }
 
 const FOOTER_LINKS = [
-  { href: "/about", label: "소개" },
-  { href: "/contact", label: "문의" },
-  { href: "/privacy", label: "개인정보처리방침" },
-  { href: "/terms", label: "이용약관" },
+  { href: "/about", key: "footerAbout" },
+  { href: "/contact", key: "footerContact" },
+  { href: "/privacy", key: "footerPrivacy" },
+  { href: "/terms", key: "footerTerms" },
 ] as const;
 
 export function RaiseFooter() {
+  const t = useTranslations("common");
+  const SERVICE_NAME = getLocalizedBrandName(useLocale() as AppLocale);
   return (
     <footer className="mt-auto border-t border-[var(--rz-line)] py-8 text-xs text-[var(--rz-muted)]">
       <div className="rz-container flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -215,14 +223,13 @@ export function RaiseFooter() {
             </a>
           </p>
           <p className="max-w-xl leading-relaxed">
-            © {new Date().getFullYear()} {SERVICE_NAME} · 시세 Bybit · 영상 YouTube · AI 분석은 참고용이며 투자 판단의
-            책임은 본인에게 있습니다
+            © {new Date().getFullYear()} {SERVICE_NAME} · {t("footerDisclaimer")}
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2">
           {FOOTER_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="transition hover:text-[var(--rz-text)]">
-              {link.label}
+              {t(link.key)}
             </Link>
           ))}
         </nav>

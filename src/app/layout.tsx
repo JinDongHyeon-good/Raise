@@ -1,4 +1,5 @@
 import type { Viewport } from "next";
+import { getLocale } from "next-intl/server";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GOOGLE_ADSENSE_CLIENT } from "@/lib/brand";
 import { brandDisplayFont } from "@/lib/brand-font";
@@ -21,13 +22,14 @@ export const viewport: Viewport = {
   themeColor: "#0a0c10",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html
+      lang={await getLocale().catch(() => "ko")}
       className={`${geistSans.variable} ${geistMono.variable} ${brandDisplayFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >

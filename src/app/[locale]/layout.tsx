@@ -17,7 +17,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  return buildRootMetadata((locale as AppLocale) || "ko");
+  return buildRootMetadata(((locale as AppLocale) || "ko"));
 }
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
@@ -32,7 +32,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const lang = htmlLang[(locale as RoutedLocale) ?? "ko"] ?? "ko";
 
   return (
-    <NextIntlClientProvider locale="ko" messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
         <div lang={lang} className="contents">
           {children}
