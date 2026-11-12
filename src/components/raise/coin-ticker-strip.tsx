@@ -25,7 +25,7 @@ export function CoinTickerStrip({ coins, selected, tickers, onSelect, toolbar }:
         <div
           ref={rowRef}
           onScroll={onRowScroll}
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+          className="-mx-4 flex gap-2 overflow-x-auto overscroll-x-contain px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
           {coins.map((c) => {
             const t = tickers[c.symbol];
             const active = c.symbol === selected.symbol;

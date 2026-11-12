@@ -110,46 +110,51 @@ export function VideoSection({
   const [filterOverride, setFilterOverride] = useState<VideoFilters | null>(null);
   const filters = filterOverride ?? savedFilters;
   const [filterOpen, setFilterOpen] = useState(false);
-  // 내가 추가한 검색 키워드 (이 브라우저에 저장)
+  // 내 키워드·채널 (계정에 저장) — 추가·삭제는 필터 창 안의 관리 창에서
+  const { requireLogin } = useAuth();
   const searchKeywords = useSearchKeywords();
-  const savedKeywords = searchKeywords.items.map((k) => k.keyword);
+  const favorites = useFavoriteChannels();
   const [keywordOpen, setKeywordOpen] = useState(false);
   const [channelOpen, setChannelOpen] = useState(false);
-  const filterCount = activeFilterCount(filters);
+  // 필터 창에서 체크한 키워드·채널 (복수 선택). 하나라도 있으면 검색어 대신 이것들로 영상을 모은다
+  const [selection, setSelection] = useState<{ keywords: string[]; channels: string[] }>({ keywords: [], channels: [] });
+  // 목록에서 지워졌거나 로그아웃했으면 선택에서도 빠진다
+  const selKeywords = useMemo(() => {
+    const have = new Set(searchKeywords.items.map((k) => k.keyword));
+    return selection.keywords.filter((k) => have.has(k));
+  }, [selection.keywords, searchKeywords.items]);
+  const selChannels = useMemo(() => {
+    const have = new Set(favorites.channels.map((c) => c.id));
+    return selection.channels.filter((c) => have.has(c));
+  }, [selection.channels, favorites.channels]);
+  const custom = selKeywords.length > 0 || selChannels.length > 0;
+  const customKey = custom ? `${lang}|k:${selKeywords.join("\u0001")}|c:${selChannels.join(",")}` : "";
+  const filterCount = activeFilterCount(filters) + selKeywords.length + selChannels.length;
+
   const [pages, setPages] = useState<{ key: string; list: Page[]; error: string | null }>({ key: "", list: [], error: null });
+  const [customFeed, setCustomFeed] = useState<{ key: string; videos: Video[]; error: string | null }>({ key: "", videos: [], error: null });
   const [loadingMore, setLoadingMore] = useState(false);
   const [visible, setVisible] = useState(REVEAL_STEP);
   const [playing, setPlaying] = useState<Video | null>(null);
   const [playStart, setPlayStart] = useState(0);
   const sentinel = useRef<HTMLDivElement | null>(null);
-
-  // ⭐ 내 채널 (즐겨찾기 채널 최신 영상)
-  const { requireLogin } = useAuth();
-  const favorites = useFavoriteChannels();
-  const [mode, setMode] = useState<"search" | "favorites">("search");
-  const [favFilter, setFavFilter] = useState<string | null>(null);
-  const favKey = `fav:${favFilter ?? "all"}:${favorites.channels.map((c) => c.id).join(",")}`;
-  // 모바일: 채널·키워드·검색 버튼 줄 좌우 이동 (버튼 수가 바뀌면 다시 계산)
-  const { setNode: chipRowRef, update: onChipScroll, edge: chipEdge, slide: slideChips } = useHScroll([
-    favorites.channels.length,
-    savedKeywords.length,
-    name,
-  ]);
-  const [favFeed, setFavFeed] = useState<{ key: string; videos: Video[]; error: string | null }>({ key: "", videos: [], error: null });
+  // 모바일: 검색 버튼 줄 좌우 이동
+  const { setNode: chipRowRef, update: onChipScroll, edge: chipEdge, slide: slideChips } = useHScroll([name]);
 
   // 코인이 바뀌면 그 코인의 첫 배지로 검색 (렌더 중 상태 조정 — effect 불필요)
   const [lastCoin, setLastCoin] = useState(name);
   if (lastCoin !== name) {
     setLastCoin(name);
-    setMode("search");
+    setSelection({ keywords: [], channels: [] });
     setQuery(presets[0]);
     setQueryInput(presets[0]);
     setPlaying(null);
     setVisible(REVEAL_STEP);
   }
 
-  // 첫 페이지
+  // 검색어 첫 페이지
   useEffect(() => {
+    if (custom) return;
     let alive = true;
     fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&lang=${lang}`, { headers: { "x-ui-locale": locale } })
       .then(async (res) => {
@@ -165,41 +170,63 @@ export function VideoSection({
     return () => {
       alive = false;
     };
-  }, [query, lang, locale, loadFailed]);
+  }, [custom, query, lang, locale, loadFailed]);
 
-  // 즐겨찾기 피드
+  // 체크한 키워드(각각 검색) + 체크한 채널(최신 영상)을 합쳐서
   useEffect(() => {
-    if (mode !== "favorites" || !favorites.loggedIn) return;
+    if (!custom) return;
     let alive = true;
-    const key = favKey;
-    fetch(`/api/youtube/favorites/feed${favFilter ? `?channelId=${encodeURIComponent(favFilter)}` : ""}`, {
-      cache: "no-store",
-      headers: { "x-ui-locale": locale },
-    })
-      .then(async (res) => {
-        const data = (await res.json()) as { videos?: Video[]; error?: string };
-        if (!alive) return;
-        setFavFeed(data.videos ? { key, videos: data.videos, error: null } : { key, videos: [], error: data.error ?? loadFailed });
-      })
-      .catch(() => alive && setFavFeed({ key, videos: [], error: loadFailed }));
+    const key = customKey;
+    const jobs: Array<Promise<Video[]>> = selKeywords.map((kw) =>
+      fetch(`/api/youtube/search?q=${encodeURIComponent(kw)}&lang=${lang}`, { headers: { "x-ui-locale": locale } })
+        .then((res) => res.json() as Promise<Partial<Page> & { error?: string }>)
+        .then((data) => {
+          if (!data.videos) throw new Error(data.error ?? loadFailed);
+          return data.videos;
+        }),
+    );
+    if (selChannels.length) {
+      jobs.push(
+        fetch(`/api/youtube/favorites/feed?channelIds=${encodeURIComponent(selChannels.join(","))}`, {
+          cache: "no-store",
+          headers: { "x-ui-locale": locale },
+        })
+          .then((res) => res.json() as Promise<{ videos?: Video[]; error?: string }>)
+          .then((data) => {
+            if (!data.videos) throw new Error(data.error ?? loadFailed);
+            return data.videos;
+          }),
+      );
+    }
+    void Promise.allSettled(jobs).then((results) => {
+      if (!alive) return;
+      const ok = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+      const firstError = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
+      if (ok.length === 0 && firstError) {
+        setCustomFeed({ key, videos: [], error: firstError.reason instanceof Error ? firstError.reason.message : loadFailed });
+        return;
+      }
+      // 키워드 결과(관련도순)와 채널 영상(최신순)을 섞어서 최신순으로 — 정렬 필터를 고르면 그 순서로 다시 정렬된다
+      const merged = [...ok].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+      setCustomFeed({ key, videos: merged, error: null });
+    });
     return () => {
       alive = false;
     };
-  }, [mode, favFilter, favKey, favorites.loggedIn, locale, loadFailed]);
+  }, [custom, customKey, selKeywords, selChannels, lang, locale, loadFailed]);
 
-  const inFavorites = mode === "favorites";
-  const loading = inFavorites ? favFeed.key !== favKey : pages.key !== query;
-  const listError = inFavorites ? favFeed.error : pages.error;
+  const loading = custom ? customFeed.key !== customKey : pages.key !== query;
+  const listError = custom ? customFeed.error : pages.error;
   const all = useMemo(() => {
     const seen = new Set<string>();
-    const source = inFavorites ? favFeed.videos : pages.list.flatMap((p) => p.videos);
+    const source = custom ? customFeed.videos : pages.list.flatMap((p) => p.videos);
     const merged = source.filter((v) => (seen.has(v.id) ? false : (seen.add(v.id), true)));
     return applyVideoFilters(merged, filters);
-  }, [pages.list, favFeed.videos, inFavorites, filters]);
-  const loadedCount = inFavorites ? favFeed.videos.length : pages.list.reduce((n, p) => n + p.videos.length, 0);
+  }, [pages.list, customFeed.videos, custom, filters]);
+  const loadedCount = custom ? customFeed.videos.length : pages.list.reduce((n, p) => n + p.videos.length, 0);
   const shown = all.slice(0, visible);
   const lastPage = pages.list[pages.list.length - 1];
-  const canFetchMore = !inFavorites && !loading && !!lastPage?.nextPageToken && pages.list.length < MAX_PAGES;
+  const canFetchMore = !custom && !loading && !!lastPage?.nextPageToken && pages.list.length < MAX_PAGES;
   const hasMore = visible < all.length || canFetchMore;
 
   const loadMore = useCallback(async () => {
@@ -239,21 +266,13 @@ export function VideoSection({
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
+  // 검색어로 찾으면 체크한 키워드·채널은 풀린다 (검색이 우선)
   const runSearch = (q: string) => {
     const trimmed = q.trim();
     if (!trimmed) return;
+    setSelection({ keywords: [], channels: [] });
     setQueryInput(trimmed);
     setQuery(trimmed);
-    setMode("search");
-    setPlaying(null);
-    setVisible(REVEAL_STEP);
-  };
-
-  // 추가한 채널 버튼: 그 채널 최신 영상만 보기
-  const openChannel = (channelId: string) => {
-    if (!requireLogin()) return;
-    setMode("favorites");
-    setFavFilter(channelId);
     setPlaying(null);
     setVisible(REVEAL_STEP);
   };
@@ -317,19 +336,38 @@ export function VideoSection({
       </form>
 
 
+      <VideoFilterModal
+        open={filterOpen}
+        value={{ filters, keywords: selKeywords, channels: selChannels }}
+        savedDefault={savedFilters}
+        loggedIn={filterDefault.loggedIn}
+        keywords={searchKeywords.items}
+        channels={favorites.channels}
+        onSaveDefault={filterDefault.save}
+        onRequireLogin={() => {
+          setFilterOpen(false);
+          requireLogin();
+        }}
+        onManageKeywords={() => setKeywordOpen(true)}
+        onManageChannels={() => setChannelOpen(true)}
+        onClose={() => setFilterOpen(false)}
+        onApply={(next) => {
+          setFilterOverride(next.filters);
+          setSelection({ keywords: next.keywords, channels: next.channels });
+          setFilterOpen(false);
+          setPlaying(null);
+          setVisible(REVEAL_STEP);
+        }}
+      />
+
+      {/* 필터 창 위에 겹쳐 뜨는 관리 창 (DOM 순서상 뒤에 있어 위로 올라온다) */}
       <ChannelModal
         open={channelOpen}
         channels={favorites.channels}
         busyId={favorites.busyId}
         error={favorites.error}
         isFavorite={favorites.isFavorite}
-        onToggle={async (channelId) => {
-          if (favorites.isFavorite(channelId) && favFilter === channelId) {
-            setMode("search");
-            setFavFilter(null);
-          }
-          await favorites.toggle(channelId);
-        }}
+        onToggle={favorites.toggle}
         onClose={() => setChannelOpen(false)}
       />
 
@@ -341,109 +379,28 @@ export function VideoSection({
         onClose={() => setKeywordOpen(false)}
       />
 
-      <VideoFilterModal
-        open={filterOpen}
-        value={filters}
-        savedDefault={savedFilters}
-        loggedIn={filterDefault.loggedIn}
-        onSaveDefault={filterDefault.save}
-        onClose={() => setFilterOpen(false)}
-        onApply={(next) => {
-          setFilterOverride(next);
-          setFilterOpen(false);
-          setVisible(REVEAL_STEP);
-        }}
-      />
-
       <div className="relative mb-4">
-      <div
-        ref={chipRowRef}
-        onScroll={onChipScroll}
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-        <button
-          type="button"
-          onClick={() => {
-            if (requireLogin()) setChannelOpen(true);
-          }}
-          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-dashed border-[var(--rz-line-strong)] px-3 py-1.5 text-xs text-[var(--rz-muted)] transition hover:border-[var(--rz-accent)]/50 hover:text-[var(--rz-text)]"
+        <div
+          ref={chipRowRef}
+          onScroll={onChipScroll}
+          className="-mx-4 flex gap-2 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
         >
-          <span aria-hidden className="inline-flex h-3.5 w-3.5 items-center justify-center text-[13px] font-semibold leading-none">
-            +
-          </span>
-          <span className="leading-none">{t("myChannels")}</span>
-          {favorites.channels.length ? <span className="leading-none tabular-nums">{favorites.channels.length}</span> : null}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (requireLogin()) setKeywordOpen(true);
-          }}
-          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-dashed border-[var(--rz-line-strong)] px-3 py-1.5 text-xs text-[var(--rz-muted)] transition hover:border-[var(--rz-accent)]/50 hover:text-[var(--rz-text)]"
-        >
-          <span aria-hidden className="inline-flex h-3.5 w-3.5 items-center justify-center text-[13px] font-semibold leading-none">
-            +
-          </span>
-          <span className="leading-none">{t("keywords.button")}</span>
-          {savedKeywords.length ? <span className="leading-none tabular-nums">{savedKeywords.length}</span> : null}
-        </button>
-        {presets.map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => runSearch(p)}
-            className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition ${
-              !inFavorites && query === p
-                ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
-                : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
-            }`}
-          >
-            {p}
-          </button>
-        ))}
-        {savedKeywords
-          .filter((k) => !presets.includes(k))
-          .map((p) => (
+          {presets.map((p) => (
             <button
-              key={`kw:${p}`}
+              key={p}
               type="button"
               onClick={() => runSearch(p)}
-              title={t("keywords.chipTitle")}
               className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition ${
-                !inFavorites && query === p
+                !custom && query === p
                   ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
                   : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
               }`}
             >
-              # {p}
+              {p}
             </button>
           ))}
-        {favorites.channels.map((c) => {
-          const active = inFavorites && favFilter === c.id;
-          return (
-            <button
-              key={`ch:${c.id}`}
-              type="button"
-              onClick={() => openChannel(c.id)}
-              aria-pressed={active}
-              title={t("channels.chipTitle", { channel: c.title })}
-              className={`inline-flex max-w-[180px] shrink-0 items-center gap-1.5 rounded-lg border py-1 pl-1 pr-3 text-xs transition ${
-                active
-                  ? "border-[var(--rz-accent)]/50 bg-[var(--rz-accent-soft)] text-[var(--rz-text)]"
-                  : "border-[var(--rz-line)] text-[var(--rz-muted)] hover:border-[var(--rz-line-strong)] hover:text-[var(--rz-text)]"
-              }`}
-            >
-              {c.thumbnail ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.thumbnail} alt="" className="h-5 w-5 shrink-0 rounded-full" />
-              ) : (
-                <span className="h-5 w-5 shrink-0 rounded-full bg-[var(--rz-panel-2)]" />
-              )}
-              <span className="truncate">{c.title}</span>
-            </button>
-          );
-        })}
-      </div>
-      <ScrollArrows edge={chipEdge} onSlide={slideChips} size="sm" allScreens />
+        </div>
+        <ScrollArrows edge={chipEdge} onSlide={slideChips} size="sm" allScreens />
       </div>
 
 
@@ -554,13 +511,7 @@ export function VideoSection({
               ))}
           {!loading && all.length === 0 ? (
             <p className="col-span-full py-10 text-center text-sm text-[var(--rz-muted)]">
-              {loadedCount > 0 && filterCount
-                ? t("noFilterMatch")
-                : inFavorites
-                  ? favorites.channels.length
-                    ? t("noFavoriteVideos")
-                    : ""
-                  : t("noResults")}
+              {loadedCount > 0 && filterCount ? t("noFilterMatch") : t("noResults")}
             </p>
           ) : null}
         </div>

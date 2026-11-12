@@ -7,19 +7,21 @@ export const runtime = "nodejs";
 
 /**
  * 즐겨찾기 채널들의 최신 영상을 합쳐 최신순으로 (채널당 25개, 30분 캐시, 채널당 2 units)
- * ?channelId= 를 주면 그 채널만
+ * ?channelIds=a,b (또는 예전 ?channelId=a) 를 주면 그 채널들만 — 내 즐겨찾기에 있는 채널만 허용
  */
 export async function GET(request: Request) {
   const t = apiTranslator(request);
   const { supabase, user } = await requireSessionUser();
   if (!user) return privateJson({ error: t("youtubeFavorites.loginRequired"), code: "login_required" }, { status: 401 });
 
-  const only = new URL(request.url).searchParams.get("channelId");
+  const params = new URL(request.url).searchParams;
+  const onlyRaw = params.get("channelIds") ?? params.get("channelId") ?? "";
+  const only = new Set(onlyRaw.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20));
   const { data, error } = await supabase.from("FAVORITE_CHANNELS").select("channel_id").eq("user_auth_id", user.id);
   if (error) return privateJson({ error: hideError(error, t("common.serverError")) }, { status: 500 });
   const channelIds = ((data ?? []) as Array<{ channel_id: string }>)
     .map((r) => r.channel_id)
-    .filter((id) => !only || id === only);
+    .filter((id) => only.size === 0 || only.has(id));
 
   const results = await Promise.allSettled(channelIds.map((id) => getChannelVideos(id)));
   if (channelIds.length && results.every((r) => r.status === "rejected")) {

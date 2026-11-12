@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * 가로로 넘기는 줄(모바일)에 붙이는 좌우 이동 버튼
@@ -12,10 +12,13 @@ export function useHScroll(deps: unknown[] = []) {
   // 콜백 ref 로 받은 요소 (렌더 중 ref 를 읽지 않도록 state 에 둔다)
   const [node, setNode] = useState<HTMLDivElement | null>(null);
   const [edge, setEdge] = useState({ left: true, right: true });
+  // 버튼으로 이동 중인 목표 위치 (0.6초 안의 연속 탭만 이어서 계산 — 중간에 끊긴 이동이 남지 않게)
+  const target = useRef<{ left: number; at: number } | null>(null);
 
   const update = useCallback(() => {
     const el = node;
     if (!el) return;
+    if (target.current && Math.abs(el.scrollLeft - target.current.left) <= 2) target.current = null;
     const next = { left: el.scrollLeft <= 4, right: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4 };
     setEdge((prev) => (prev.left === next.left && prev.right === next.right ? prev : next));
   }, [node]);
@@ -30,7 +33,15 @@ export function useHScroll(deps: unknown[] = []) {
       Array.from(el.children).forEach((child) => observer.observe(child));
     }
     window.addEventListener("resize", update);
+    // 손으로 넘기기 시작하면 버튼 이동 목표는 버린다
+    const clearTarget = () => {
+      target.current = null;
+    };
+    el?.addEventListener("pointerdown", clearTarget, { passive: true });
+    el?.addEventListener("wheel", clearTarget, { passive: true });
     return () => {
+      el?.removeEventListener("pointerdown", clearTarget);
+      el?.removeEventListener("wheel", clearTarget);
       cancelAnimationFrame(frame);
       observer?.disconnect();
       window.removeEventListener("resize", update);
@@ -38,9 +49,18 @@ export function useHScroll(deps: unknown[] = []) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [update, node, ...deps]);
 
+  // 이동 목표를 실제 끝(0 ~ scrollWidth-clientWidth) 안으로 잘라서 이동한다.
+  // scrollBy 로 고정 거리만큼 밀면 끝 근처·연속 탭에서 모바일 사파리가 끝을 넘겨 튕겼다가 돌아온다.
+  // 연속 탭은 진행 중인 목표에서 이어서 계산한다 (부드러운 스크롤 도중 scrollLeft 는 중간값이라서)
   const slide = useCallback(
     (dir: -1 | 1) => {
-      if (node) node.scrollBy({ left: dir * Math.max(160, node.clientWidth * 0.8), behavior: "smooth" });
+      if (!node) return;
+      const max = Math.max(0, node.scrollWidth - node.clientWidth);
+      const now = Date.now();
+      const from = target.current && now - target.current.at < 600 ? target.current.left : node.scrollLeft;
+      const next = Math.min(max, Math.max(0, Math.round(from + dir * Math.max(160, node.clientWidth * 0.8))));
+      target.current = { left: next, at: now };
+      node.scrollTo({ left: next, behavior: "smooth" });
     },
     [node],
   );

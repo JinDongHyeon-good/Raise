@@ -29,7 +29,7 @@
     "orderTitle": "Sort by",
     "uploadedTitle": "Upload date",
     "lengthTitle": "Duration",
-    "help": "Filters apply to the videos already loaded. Save as default to keep these settings on your account (sign-in required).",
+    "help": "Filters apply to the videos already loaded. Save as default to keep sort, date and length on your account (sign-in required).",
     "savedNote": "Saved as default.",
     "sameAsDefault": "Same as default",
     "saveDefault": "Save as default",
@@ -54,7 +54,16 @@
       "long": "Over 20 min"
     },
     "saveDefaultLogin": "Sign in to save default",
-    "saveFailed": "Couldn't save. Please try again."
+    "saveFailed": "Couldn't save. Please try again.",
+    "channelsTitle": "My channels",
+    "keywordsTitle": "My keywords",
+    "addChannel": "Add channel",
+    "addKeyword": "Add keyword",
+    "noChannels": "No channels yet. Use 'Add channel' to add ones you watch.",
+    "noKeywords": "No keywords yet. Use 'Add keyword' to add searches you use often.",
+    "loginForPersonal": "Sign in to add and pick your own channels and keywords →",
+    "selectionHelp": "Shows the latest videos from the checked channels plus results for the checked keywords. A new search clears the selection.",
+    "resetAll": "Reset filters and channel/keyword selection"
   },
   "keywords": {
     "button": "Add keyword",
