@@ -16,17 +16,18 @@ export type SeoLocaleCopy = {
 
 const KO_COPY: SeoLocaleCopy = {
   siteName: SERVICE_NAME,
-  homeTitle: "찐투 - 코인·나스닥 실시간 차트, 코인·주식 유튜브 AI 요약, 투자 커뮤니티",
+  homeTitle: "찐투 - 코인·주식 유튜브 분석 영상 모아보기, AI 요약, 채널·키워드별 모아보기",
   homeDescription:
-    "비트코인·이더리움과 나스닥·S&P500 실시간 차트, 코인·미국 주식 전망 유튜브 영상의 AI 요약, 코인·주식 투자자 커뮤니티를 한곳에서. 찐투.",
-  introHeading: "찐투 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
-  ogAlt: "찐투 — 코인·미국증시 실시간 차트 · 유튜브 AI 요약 · 투자 커뮤니티",
+    "여러 유튜버의 비트코인·나스닥·미국 주식 분석 영상을 한곳에 모아 보고, 긴 영상은 AI로 핵심만 빠르게 요약하세요. 내 채널·키워드로 골라 보고 비교까지. 실시간 차트·투자 커뮤니티도 함께.",
+  introHeading: "찐투 — 코인·주식 분석 영상 모아보기 · AI 요약 · 채널·키워드별 모아보기",
+  ogAlt: "찐투 — 코인·주식 분석 영상 모아보기 · AI 요약 · 채널·키워드별 모아보기",
   schemaLanguage: "ko",
   featureList: [
+    "여러 유튜버의 코인·주식 분석 영상 모아보기 (시장별·최신순·인기순)",
+    "긴 유튜브 영상 AI 요약 (영상 속 발언만 근거, 문장마다 영상 시각)",
+    "내 채널·키워드별 영상 모아보기와 비교",
     "코인 실시간 시세와 캔들 차트 (15분봉~주봉)",
     "나스닥·나스닥100·S&P500·다우존스 실시간 차트",
-    "코인·주식 유튜브 영상 모아보기 (채널 즐겨찾기)",
-    "유튜브 영상 AI 요약 (영상 속 발언만 근거, 시각 표시)",
     "코인·주식 커뮤니티 (코인분석·주식분석·해외주식·국내주식·뉴스·질문·손익인증)",
     "추천·댓글·대댓글",
   ],
@@ -34,6 +35,11 @@ const KO_COPY: SeoLocaleCopy = {
     {
       question: "찐투는 어떤 서비스인가요?",
       answer: SERVICE_DESCRIPTION,
+    },
+    {
+      question: "여러 유튜버의 분석 영상을 한 번에 볼 수 있나요?",
+      answer:
+        "네. 코인·미국 증시·미국 주식·국내 주식 시장별로 여러 유튜버의 전망·분석 영상을 모아 최신순·인기순으로 보여 줍니다. 자주 보는 채널과 관심 키워드(비트코인, 나스닥, 엔비디아 등)를 추가하면 그 채널과 키워드 영상만 골라 볼 수 있습니다.",
     },
     {
       question: "주식 차트도 볼 수 있나요?",
@@ -62,17 +68,18 @@ const KO_COPY: SeoLocaleCopy = {
 
 const EN_COPY: SeoLocaleCopy = {
   siteName: SERVICE_NAME_EN,
-  homeTitle: "jjintu – Live Crypto & Nasdaq Charts, AI YouTube Summaries, Investor Community",
+  homeTitle: "jjintu – Crypto & Stock Analysis Videos in One Place, AI Summaries, Channel & Keyword Feeds",
   homeDescription:
-    "Live Bitcoin, Ethereum, Nasdaq and S&P 500 charts, AI summaries of crypto and US stock outlook videos on YouTube, and a community for crypto and stock investors — all in one place. jjintu.",
-  introHeading: "jjintu — Live Crypto & US Stock Charts · AI YouTube Summaries · Investor Community",
-  ogAlt: "jjintu — Live crypto & US stock charts · AI YouTube summaries · Investor community",
+    "See Bitcoin, Nasdaq and US stock analysis videos from many YouTubers in one place, and let AI summarize long videos in seconds. Follow channels and keywords to compare takes. Live charts and an investor community included.",
+  introHeading: "jjintu — Crypto & Stock Analysis Videos in One Place · AI Summaries · Channel & Keyword Feeds",
+  ogAlt: "jjintu — Crypto & stock analysis videos in one place · AI summaries · Channel & keyword feeds",
   schemaLanguage: "en",
   featureList: [
+    "Crypto and stock analysis videos from many YouTubers in one place (by market, newest or popular)",
+    "AI summaries of long YouTube videos (based only on what is said, with timestamps)",
+    "Feeds by your own channels and keywords, to compare takes",
     "Live crypto prices and candlestick charts (15-minute to weekly)",
     "Live Nasdaq Composite, Nasdaq 100, S&P 500 and Dow Jones charts",
-    "Crypto and stock YouTube videos in one place (favorite channels)",
-    "AI summaries of YouTube videos (based only on what is said, with timestamps)",
     "Crypto and stock community (crypto analysis, stock analysis, US stocks, Korean stocks, news, Q&A, P&L proof)",
     "Upvotes, comments and replies",
   ],
@@ -80,6 +87,11 @@ const EN_COPY: SeoLocaleCopy = {
     {
       question: "What is jjintu?",
       answer: SERVICE_DESCRIPTION_EN,
+    },
+    {
+      question: "Can I see analysis videos from many YouTubers at once?",
+      answer:
+        "Yes. Outlook and analysis videos from many YouTubers are gathered by market — crypto, US indices, US stocks and Korean stocks — and sorted by newest or most popular. Add the channels and keywords you follow (Bitcoin, Nasdaq, Nvidia…) to see only those videos.",
     },
     {
       question: "Can I see stock charts too?",

@@ -4,6 +4,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { BYBIT_OFFICIAL_GUIDE_URL, getBybitSignupManual } from "@/lib/bybit-signup-manual";
 import { BYBIT_REFERRAL } from "@/lib/bybit-referral";
+import { getBybitGuide } from "@/lib/bybit-guides";
+import { Link } from "@/navigation";
 
 export function BybitSignupManual() {
   const t = useTranslations("bybit");
@@ -92,6 +94,14 @@ export function BybitSignupManual() {
                     <p className="mt-3 rounded-xl border border-[#F7A600]/25 bg-[#F7A600]/08 px-3 py-2.5 text-xs leading-5 text-[#F7A600]/95">
                       Tip · {step.tip}
                     </p>
+                  ) : null}
+                  {step.guide ? (
+                    <Link
+                      href={`/bybit/${step.guide}`}
+                      className="mt-3 inline-block text-xs font-medium text-[#F7A600] underline-offset-2 hover:underline"
+                    >
+                      {getBybitGuide(step.guide, locale).navTitle} →
+                    </Link>
                   ) : null}
                   {step.id === "open-link" ? (
                     <a

@@ -1,3 +1,4 @@
+import type { BybitGuideSlug } from "@/lib/bybit-guides";
 import { BYBIT_REFERRAL } from "@/lib/bybit-referral";
 
 export type ManualStep = {
@@ -6,6 +7,8 @@ export type ManualStep = {
   summary: string;
   details: string[];
   tip?: string;
+  /** 이 단계를 더 자세히 다루는 세부 가이드 (/bybit/<slug>) */
+  guide?: BybitGuideSlug;
 };
 
 /** Bybit 공식 가입 가이드 기준 정리 (화면은 지역·시점에 따라 다를 수 있음) */
@@ -64,6 +67,7 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
   },
   {
     id: "kyc",
+    guide: "kyc",
     title: "5. KYC(본인 인증) 진행",
     summary: "입금·거래·출금을 위해 신원 인증을 완료합니다.",
     details: [
@@ -77,6 +81,7 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
   },
   {
     id: "security",
+    guide: "app",
     title: "6. 보안 설정 (2FA · 출금 보호)",
     summary: "Google Authenticator 등 2단계 인증을 켜 둡니다.",
     details: [
@@ -87,6 +92,7 @@ export const BYBIT_SIGNUP_STEPS: ManualStep[] = [
   },
   {
     id: "deposit",
+    guide: "deposit",
     title: "7. (선택) 첫 입금은 소액 테스트",
     summary: "네트워크·메모(태그)를 맞춘 뒤 소액으로 먼저 확인합니다.",
     details: [
@@ -201,6 +207,7 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
   },
   {
     id: "kyc",
+    guide: "kyc",
     title: "Complete KYC",
     summary: "Verify identity to deposit, trade, and withdraw.",
     details: [
@@ -214,6 +221,7 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
   },
   {
     id: "security",
+    guide: "app",
     title: "Security (2FA & withdrawals)",
     summary: "Enable 2FA such as Google Authenticator.",
     details: [
@@ -224,6 +232,7 @@ export const BYBIT_SIGNUP_STEPS_EN: ManualStep[] = [
   },
   {
     id: "deposit",
+    guide: "deposit",
     title: "(Optional) Small test deposit",
     summary: "Match network & memo/tag; start with a small amount.",
     details: [

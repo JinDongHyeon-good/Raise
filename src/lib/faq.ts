@@ -45,7 +45,7 @@ const ITEMS_KO: FaqItem[] = [
     id: "what",
     category: "service",
     q: "찐투는 어떤 서비스인가요?",
-    a: "코인·주식 유튜브 영상을 모아 보고, AI로 영상 내용을 요약하고, 비트코인 등 코인과 미국 지수 차트를 보고, 투자자끼리 의견을 나누는 커뮤니티 서비스입니다.",
+    a: "여러 유튜버의 코인·주식 분석 영상을 한곳에 모아 보고, 긴 영상은 AI로 핵심만 빠르게 요약하고, 내 채널·키워드별로 골라 보며 비교하는 서비스입니다. 코인·미국 지수 실시간 차트와 투자자 커뮤니티도 함께 있습니다.",
   },
   {
     id: "free",
@@ -205,7 +205,7 @@ const ITEMS_EN: FaqItem[] = [
     id: "what",
     category: "service",
     q: "What is jjintu?",
-    a: "A community service where you browse crypto and stock YouTube videos, get AI summaries of them, check Bitcoin and other coin charts alongside US indices, and discuss with other investors.",
+    a: "A service that brings crypto and stock analysis videos from many YouTubers into one place, summarizes long videos with AI, and lets you follow your own channels and keywords to compare takes — with live crypto and US index charts and an investor community.",
   },
   {
     id: "free",

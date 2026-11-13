@@ -62,5 +62,15 @@
   "pageTitleLine1": "Bybit Referral Code XQZZ6O",
   "pageTitleLine2": "How to Sign Up",
   "availabilityLink": "See Bybit's official list of restricted countries →",
-  "updated": "Last updated: {date}"
+  "updated": "Last updated: {date}",
+  "guidesTitle": "More Bybit guides",
+  "guidesTitleOther": "Other Bybit guides",
+  "guideCtaTitle": "Don't have a Bybit account yet?",
+  "guideCtaBody": "Referral code XQZZ6O only applies if you enter it before creating the account.",
+  "guideCtaSignup": "Sign up for Bybit",
+  "guideCtaGuide": "Sign-up guide",
+  "guideFaq": "FAQ",
+  "guideDisclaimer": "This page summarizes Bybit's official guidance for reference and is not investment advice. Fees, policies and supported exchanges can change — check the official pages too. The sign-up link is an affiliate (referral) link.",
+  "guideChecked": "Checked against official guidance: {date}",
+  "breadcrumbSignup": "Bybit sign-up"
 }

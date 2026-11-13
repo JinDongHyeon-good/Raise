@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { locales, localizedPath } from "@/i18n/routing";
 import { getSiteUrl } from "@/lib/brand";
+import { BYBIT_GUIDE_SLUGS, BYBIT_GUIDES_CHECKED } from "@/lib/bybit-guides";
 
 /** 1시간마다 다시 생성 (새 글 반영) */
 export const revalidate = 3600;
@@ -57,6 +58,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
+  const guideEntries: MetadataRoute.Sitemap = BYBIT_GUIDE_SLUGS.flatMap((slug) =>
+    localizedEntries(siteUrl, `/bybit/${slug}`, {
+      lastModified: new Date(BYBIT_GUIDES_CHECKED),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    }),
+  );
+
   const posts = await fetchCommunityPosts();
   const postEntries: MetadataRoute.Sitemap = posts.flatMap((post) =>
     localizedEntries(siteUrl, `/community/${post.id}`, {
@@ -66,5 +75,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
-  return [...staticEntries, ...postEntries];
+  return [...staticEntries, ...guideEntries, ...postEntries];
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BybitAiBonus } from "@/components/raise/bybit-ai-bonus";
+import { BybitGuideLinks } from "@/components/raise/bybit-guide-links";
 import { BybitReferralCard } from "@/components/raise/bybit-referral-card";
 import { BybitSignupManual } from "@/components/raise/bybit-signup-manual";
 import { BybitStickyCta } from "@/components/raise/bybit-sticky-cta";
@@ -129,6 +130,7 @@ export default async function BybitReferralPage({ params }: { params: Promise<{ 
 
           <BybitSignupManual />
 
+          <BybitGuideLinks locale={locale} />
         </div>
       </main>
       <BybitStickyCta />
