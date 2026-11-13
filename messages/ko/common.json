@@ -18,5 +18,12 @@
   "footerFaq": "자주 묻는 질문",
   "footerBybit": "바이비트 추천인 코드",
   "slidePrev": "이전",
-  "slideNext": "다음"
+  "slideNext": "다음",
+  "notFoundTitle": "페이지를 찾을 수 없어요",
+  "notFoundBody": "주소가 바뀌었거나 삭제된 페이지예요. 아래 메뉴에서 다시 찾아보세요.",
+  "errorTitle": "잠시 문제가 생겼어요",
+  "errorBody": "일시적인 오류예요. 잠시 후 다시 시도해 주세요.",
+  "goHome": "홈으로",
+  "goCommunity": "커뮤니티",
+  "retry": "다시 시도"
 }

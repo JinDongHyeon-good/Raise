@@ -18,5 +18,12 @@
   "footerFaq": "FAQ",
   "footerBybit": "Bybit Referral Code",
   "slidePrev": "Previous",
-  "slideNext": "Next"
+  "slideNext": "Next",
+  "notFoundTitle": "Page not found",
+  "notFoundBody": "This page may have moved or been removed. Try one of the links below.",
+  "errorTitle": "Something went wrong",
+  "errorBody": "This is a temporary error. Please try again in a moment.",
+  "goHome": "Home",
+  "goCommunity": "Community",
+  "retry": "Try again"
 }

@@ -285,12 +285,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[gemini-analysis] request received", {
-      symbol: body.symbol,
-      market: body.market,
-      interval: body.interval,
-      candles: Array.isArray(body.candles) ? body.candles.length : 0,
-    });
 
     const candles = body.candles.slice(-180);
     const closes = candles.map((c) => c.close);
@@ -421,11 +415,8 @@ export async function POST(request: NextRequest) {
     ].join("\n");
 
     const candidateModels = getGeminiModelChain();
-    console.log("[gemini-analysis] model candidates", candidateModels);
-
     let lastErrorMessage = t("chartAnalysis.requestFailed");
     for (const model of candidateModels) {
-      console.log("[gemini-analysis] trying model", model);
       let analysis = "";
       let accumulated = "";
 
@@ -516,7 +507,7 @@ export async function POST(request: NextRequest) {
         analysis = mergedAnalysis;
         if (isCompleteAnalysis(mergedAnalysis, body.market)) {
           const finalAnalysis = mergedAnalysis.replace(/\n?\[END_REPORT\]\s*$/g, "").trim();
-          console.log("[gemini-analysis] success", { model, attempt, length: analysis.length });
+          console.info("[gemini-analysis] success", { model, attempt, length: analysis.length });
           analysisCache.set(cacheKey, { analysis: finalAnalysis, model, expiresAt: Date.now() + CACHE_TTL_MS });
           return privateJson(
             { analysis: finalAnalysis, model },
