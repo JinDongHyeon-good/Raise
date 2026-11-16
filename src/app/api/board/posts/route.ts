@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { privateJson } from "@/lib/private-response";
-import { apiTranslator, hideError } from "@/lib/server-i18n";
+import { apiTranslator, getApiLocale, hideError } from "@/lib/server-i18n";
 import { hydratePostSummaries, isEmptyHtml, requireSessionUser, sanitizePostHtml } from "@/lib/board-server";
 import {
   BOARD_POST_LIST_SELECT,
@@ -28,7 +28,9 @@ export async function GET(request: NextRequest) {
     const { supabase, user } = await requireSessionUser();
     let query = supabase.from("BOARD_POSTS").select(BOARD_POST_LIST_SELECT, { count: "exact" }).is("deleted_at", null);
 
+    // 작성자 글 목록은 언어와 상관없이 전부, 게시판 목록은 화면 언어의 글만
     if (author) query = query.eq("author_auth_id", author);
+    else query = query.eq("locale", getApiLocale(request));
     if (typeParam && isBoardPostType(typeParam)) query = query.eq("post_type", typeParam);
     if (q) query = query.ilike("title", `%${q.replace(/[\\%_]/g, (m) => `\\${m}`)}%`);
 
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
         title: title.slice(0, 120),
         content_html: contentHtml,
         post_type: body.post_type,
+        locale: getApiLocale(request),
       })
       .select(BOARD_POST_SELECT)
       .single<BoardPostRow>();

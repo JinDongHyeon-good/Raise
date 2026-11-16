@@ -17,11 +17,11 @@ async function fetchCommunityPosts() {
     const supabase = createClient(url, key, { auth: { persistSession: false } });
     const { data } = await supabase
       .from("BOARD_POSTS")
-      .select("id, updated_at")
+      .select("id, updated_at, locale")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(5000);
-    return (data ?? []) as Array<{ id: string; updated_at: string }>;
+    return (data ?? []) as Array<{ id: string; updated_at: string; locale: string | null }>;
   } catch {
     return [];
   }
@@ -67,13 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const posts = await fetchCommunityPosts();
-  const postEntries: MetadataRoute.Sitemap = posts.flatMap((post) =>
-    localizedEntries(siteUrl, `/community/${post.id}`, {
-      lastModified: new Date(post.updated_at),
-      changeFrequency: "weekly",
-      priority: 0.6,
-    }),
-  );
+  // 글은 쓰인 언어의 주소 하나만 올린다 (한국어 글을 /en 에 중복 노출하지 않음)
+  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: new URL(localizedPath(`/community/${post.id}`, post.locale === "en" ? "en" : "ko"), siteUrl).toString(),
+    lastModified: new Date(post.updated_at),
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
 
   return [...staticEntries, ...guideEntries, ...postEntries];
 }
