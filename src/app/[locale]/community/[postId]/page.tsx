@@ -14,20 +14,22 @@ type Props = { params: Promise<{ locale: string; postId: string }> };
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 
-/** 글이 쓰인 언어 (ko/en). 조회 실패 시 null — 그때는 그냥 현재 주소에서 보여준다 */
-async function fetchPostLocale(postId: string): Promise<"ko" | "en" | null> {
+/** 글이 쓰인 언어 (ko/en). 글이 없으면(삭제 포함) "missing", 조회 실패 시 null — 그때는 그냥 현재 주소에서 보여준다 */
+async function fetchPostLocale(postId: string): Promise<"ko" | "en" | "missing" | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return null;
   try {
     const supabase = createClient(url, key, { auth: { persistSession: false } });
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("BOARD_POSTS")
       .select("locale")
       .eq("id", postId)
       .is("deleted_at", null)
       .maybeSingle<{ locale: string }>();
-    return data?.locale === "en" ? "en" : data?.locale === "ko" ? "ko" : null;
+    if (error) return null;
+    if (!data) return "missing";
+    return data.locale === "en" ? "en" : "ko";
   } catch {
     return null;
   }
@@ -78,6 +80,8 @@ export default async function CommunityPostPage({ params }: Props) {
   // 한국어 글은 한국어 주소, 영어 글은 /en 주소에서만 — 다른 언어 주소로 들어오면 글의 언어 주소로 보낸다
   const initial = await fetchPublicPost(postId);
   const postLocale = initial?.locale ?? (await fetchPostLocale(postId));
+  // 없는 글·삭제된 글은 404 — 200 으로 빈 껍데기를 주면 검색엔진이 홈 canonical 의 중복 페이지로 쌓는다
+  if (postLocale === "missing") notFound();
   if (postLocale && postLocale !== toRoutedLocale(locale)) redirect(localizedPath(`/community/${postId}`, postLocale));
   return (
     <RaisePageShell plain>

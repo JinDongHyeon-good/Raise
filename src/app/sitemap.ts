@@ -4,8 +4,8 @@ import { locales, localizedPath } from "@/i18n/routing";
 import { getSiteUrl } from "@/lib/brand";
 import { BYBIT_GUIDE_SLUGS, BYBIT_GUIDES_CHECKED } from "@/lib/bybit-guides";
 
-/** 1시간마다 다시 생성 (새 글 반영) */
-export const revalidate = 3600;
+/** 요청마다 생성 — Amplify 는 ISR 캐시를 갱신하지 않아 빌드 시점 글 목록(삭제된 글 포함)이 계속 나갔다 */
+export const dynamic = "force-dynamic";
 
 const STATIC_PATHS = ["/", "/chart", "/community", "/bybit", "/faq", "/about", "/contact", "/privacy", "/terms"] as const;
 
