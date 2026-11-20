@@ -15,7 +15,7 @@ KEY = os.environ["SUPABASE_SECRET_KEY"]
 H = {"apikey": KEY, "Authorization": f"Bearer {KEY}", "Content-Type": "application/json"}
 DOMAIN = "seed.raise.invalid"
 DAYS = 45
-random.seed(20261116)
+random.seed(20261120)
 
 
 def load(path):
@@ -145,6 +145,25 @@ def post_times(n, loc):
     return sorted(times)
 
 
+# 실제 게시판은 댓글 없는 글이 절반쯤이고, 몇 개만 댓글이 몰린다
+ZERO_COMMENT_P = {"free": 0.5, "news": 0.55, "kr_stock": 0.5, "us_stock": 0.45, "stock_analysis": 0.45,
+                  "analysis": 0.4, "profit": 0.35, "question": 0.3}
+
+
+def pick_comments(p):
+    cs = p["comments"]
+    r = random.random() - ZERO_COMMENT_P[p["type"]]
+    if r < 0 or not cs:
+        return []
+    if r < 0.25:
+        k = random.randint(1, 2)
+    elif r < 0.42:
+        k = random.randint(3, 4)
+    else:
+        k = len(cs)
+    return cs[:k]
+
+
 def html(lines):
     return "".join(f"<p>{l}</p>" for l in lines)
 
@@ -170,7 +189,7 @@ for loc, plist in posts.items():
         t = created
         root_id, root_author = None, None
         comment_rows = []
-        for c in p["comments"]:
+        for c in pick_comments(p):
             kind = "root"
             if c.startswith("r:a:") or c.startswith("a:"):
                 kind, c = "author", c.split("a:", 1)[1]

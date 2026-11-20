@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { CoinTickerStrip } from "@/components/raise/coin-ticker-strip";
 import { MarketTabs } from "@/components/raise/market-tabs";
 import { RaiseFooter, RaiseHeader } from "@/components/raise/raise-chrome";
@@ -11,7 +11,7 @@ import { ASSETS, type Asset, type Market } from "@/lib/markets";
 import type { AppLocale } from "@/i18n/routing";
 import { getLocalizedBrandName } from "@/lib/brand";
 
-export default function RaiseHome() {
+export default function RaiseHome({ children }: { children?: ReactNode }) {
   const t = useTranslations("home");
   const tChart = useTranslations("chart");
   const locale = useLocale();
@@ -53,6 +53,8 @@ export default function RaiseHome() {
         </header>
 
         <VideoSection coinName={coin.name} coinNameEn={coin.nameEn} hideTitle />
+
+        {children}
       </main>
 
       <RaiseFooter />

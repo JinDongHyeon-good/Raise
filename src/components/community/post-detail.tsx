@@ -13,7 +13,7 @@ import {
 } from "@/lib/board-types";
 import { Link, useRouter } from "@/navigation";
 
-type Detail = { item: BoardPostSummary; comments: BoardCommentView[] };
+export type PostDetailData = { item: BoardPostSummary; comments: BoardCommentView[] };
 
 async function jsonFetch<T>(url: string, locale: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: T }> {
   const res = await fetch(url, {
@@ -32,12 +32,13 @@ function HeartIcon({ filled }: { filled: boolean }) {
   );
 }
 
-export function PostDetail({ postId }: { postId: string }) {
+export function PostDetail({ postId, initial }: { postId: string; initial?: PostDetailData | null }) {
   const t = useTranslations("community");
   const locale = useLocale();
   const router = useRouter();
   const { me, requireLogin } = useAuth();
-  const [detail, setDetail] = useState<Detail | null>(null);
+  // 서버가 미리 그린 글로 시작 (검색엔진·심사용), 내 좋아요 여부는 아래에서 다시 받는다
+  const [detail, setDetail] = useState<PostDetailData | null>(initial ?? null);
   const [error, setError] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +47,7 @@ export function PostDetail({ postId }: { postId: string }) {
   const [registeredViews, setRegisteredViews] = useState<number | null>(null);
 
   const load = async () => {
-    const { ok, data } = await jsonFetch<Detail & { error?: string }>(`/api/board/posts/${postId}`, locale, { cache: "no-store" });
+    const { ok, data } = await jsonFetch<PostDetailData & { error?: string }>(`/api/board/posts/${postId}`, locale, { cache: "no-store" });
     if (!ok) return setError(data.error ?? t("loadPostFailed"));
     setDetail({ item: data.item, comments: data.comments });
   };
@@ -56,7 +57,7 @@ export function PostDetail({ postId }: { postId: string }) {
     let alive = true;
     fetch(`/api/board/posts/${postId}`, { cache: "no-store", headers: { "x-ui-locale": locale } })
       .then(async (res) => {
-        const data = (await res.json()) as Detail & { error?: string };
+        const data = (await res.json()) as PostDetailData & { error?: string };
         if (!alive) return;
         if (!res.ok) return setError(data.error ?? t("loadPostFailed"));
         setDetail({ item: data.item, comments: data.comments });

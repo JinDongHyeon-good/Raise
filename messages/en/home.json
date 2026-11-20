@@ -4,5 +4,8 @@
   "introUs": "US market outlook videos, with AI summaries.",
   "introCrypto": "Latest crypto videos, with AI summaries.",
   "introKr": "Korean stock outlook videos, with AI summaries.",
-  "introUsStock": "US stock outlook videos, with AI summaries."
+  "introUsStock": "US stock outlook videos, with AI summaries.",
+  "latestCommunity": "Latest from the community",
+  "latestCommunityDesc": "Crypto and stock analysis, questions and P&L posts written by jjintu members.",
+  "seeAllPosts": "See all posts"
 }

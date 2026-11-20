@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { notFound, redirect } from "next/navigation";
 import { localizedPath } from "@/i18n/routing";
 import { PostDetail } from "@/components/community/post-detail";
+import { fetchPublicPost } from "@/lib/board-public";
 import { RaisePageShell } from "@/components/raise/raise-chrome";
 import { buildPageMetadata } from "@/lib/seo";
 import { toRoutedLocale } from "@/lib/seo-i18n";
@@ -75,11 +76,12 @@ export default async function CommunityPostPage({ params }: Props) {
   setRequestLocale(locale);
   if (!UUID_RE.test(postId)) notFound();
   // 한국어 글은 한국어 주소, 영어 글은 /en 주소에서만 — 다른 언어 주소로 들어오면 글의 언어 주소로 보낸다
-  const postLocale = await fetchPostLocale(postId);
+  const initial = await fetchPublicPost(postId);
+  const postLocale = initial?.locale ?? (await fetchPostLocale(postId));
   if (postLocale && postLocale !== toRoutedLocale(locale)) redirect(localizedPath(`/community/${postId}`, postLocale));
   return (
     <RaisePageShell plain>
-      <PostDetail postId={postId} />
+      <PostDetail postId={postId} initial={initial ? { item: initial.item, comments: initial.comments } : null} />
     </RaisePageShell>
   );
 }

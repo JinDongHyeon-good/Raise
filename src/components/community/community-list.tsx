@@ -19,9 +19,9 @@ import { Link, usePathname, useRouter } from "@/navigation";
 
 const PAGE_SIZE = 20;
 
-type ListResult = { key: string; items: BoardPostSummary[]; total: number; error: string | null };
+export type ListResult = { key: string; items: BoardPostSummary[]; total: number; error: string | null };
 
-export function CommunityList() {
+export function CommunityList({ initial }: { initial?: ListResult | null } = {}) {
   const t = useTranslations("community");
   const locale = useLocale();
   const router = useRouter();
@@ -37,7 +37,7 @@ export function CommunityList() {
   const author = params.get("author") ?? "";
 
   const [searchInput, setSearchInput] = useState(q);
-  const [result, setResult] = useState<ListResult>({ key: "", items: [], total: 0, error: null });
+  const [result, setResult] = useState<ListResult>(initial ?? { key: "", items: [], total: 0, error: null });
 
   const apiQuery = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
   if (type) apiQuery.set("type", type);
@@ -47,6 +47,8 @@ export function CommunityList() {
 
   useEffect(() => {
     let alive = true;
+    // 서버가 같은 목록을 이미 그려 줬으면 다시 받지 않는다
+    if (result.key === key) return;
     fetch(`/api/board/posts?${key}`, { cache: "no-store", headers: { "x-ui-locale": locale } })
       .then(async (res) => {
         const data = (await res.json()) as { items?: BoardPostSummary[]; total?: number; error?: string };
@@ -61,6 +63,7 @@ export function CommunityList() {
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, locale, t]);
 
   const loading = result.key !== key;
