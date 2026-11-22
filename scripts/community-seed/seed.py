@@ -4,6 +4,7 @@
 - content_*.py 의 LOCALE / POSTS 를 모두 읽는다.
 - 시드 계정: 한국어 seed-NN@seed.raise.invalid, 영어 seed-en-NN@seed.raise.invalid (비밀번호 랜덤 → 로그인 불가)
 - 다시 실행하면 시드 계정이 쓴 글을 전부 지우고 새로 만든다. 실제 회원 글은 건드리지 않는다.
+- 2026-11-22부터 시드 글은 hide.py 로 숨겨 둔 상태다. 다시 실행하면 새 시드 글이 바로 공개되니 주의.
 - 시드 계정 일괄 삭제가 필요하면 auth.users 에서 email like '%@seed.raise.invalid' 를 지우면 된다 (cascade).
 """
 import glob, importlib.util, json, os, random, secrets, sys, urllib.error, urllib.request
